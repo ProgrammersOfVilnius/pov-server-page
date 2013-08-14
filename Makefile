@@ -1,3 +1,6 @@
+source := $(shell dpkg-parsechangelog | awk '$$1 == "Source:" { print $$2 }')
+version := $(shell dpkg-parsechangelog | awk '$$1 == "Version:" { print $$2 }')
+
 .PHONY: all
 all:
 
