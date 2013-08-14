@@ -12,8 +12,7 @@ SSL certificate, set up a password file with htpasswd, enable the site with
 a2ensite and restart Apache::
 
     htpasswd -c /etc/pov/fridge.passwd username
-    a2enmod rewrite
-    a2enmod ssl
+    a2enmod ssl rewrite
     # skipping SSL cert setup: too long
     a2ensite $(hostname -f)
     apache2ctl configtest && apache2ctl graceful
@@ -36,12 +35,12 @@ if debian_package:
     DEFAULT_CONFIG_FILE = '/etc/pov/server-page.conf'
     TEMPLATE_DIR = '/usr/share/pov-server-page/'
     COLLECTION_CGI = '/usr/lib/pov-server-page/collection.cgi'
-    DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.htpasswd'
+    DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
 else:
     DEFAULT_CONFIG_FILE = 'server-page.conf'
     TEMPLATE_DIR = os.path.abspath(os.path.dirname(__file__))
     COLLECTION_CGI = os.path.join(TEMPLATE_DIR, 'collection.cgi')
-    DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.htpasswd'
+    DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
 
 
 def get_fqdn():
@@ -65,7 +64,6 @@ class Builder(object):
         HOSTNAME=get_fqdn(),
         COLLECTION_CGI=COLLECTION_CGI,
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,
-        PORTS='*:80 *:443',
         INCLUDE='',
     )
     build_list = [
