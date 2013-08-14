@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>{HOSTNAME}</title>
+    <title>${HOSTNAME}</title>
   </head>
   <body>
     <p><a href="/stats">Server stats</a></p>
