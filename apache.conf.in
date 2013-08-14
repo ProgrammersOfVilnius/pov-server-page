@@ -9,7 +9,6 @@
   RewriteEngine on
 
   # Redirect everything to HTTPS
-  RewriteCond %{HTTPS} !on
   RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R,L]
 </VirtualHost>
 
@@ -21,15 +20,13 @@
   ErrorLog /var/log/apache2/${HOSTNAME}/error.log
   CustomLog /var/log/apache2/${HOSTNAME}/access.log combined
 
+  SSLEngine on
+
 % if INCLUDE:
   Include ${INCLUDE}
 
 % endif
   RewriteEngine on
-
-  # Redirect everything to HTTPS
-  RewriteCond %{HTTPS} !on
-  RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R,L]
 
   # Collectd stats
   RewriteRule /stats/?$ /stats/${SHORTHOSTNAME} [R,L]
