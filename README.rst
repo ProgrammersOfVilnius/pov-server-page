@@ -15,21 +15,26 @@ Requirements
 - Perl
 - collectd
 
+
 Usage
 -----
 
 ::
 
-    git clone https://github.com/mgedmin/pov-server-page
-    cd pov-server-page
-    make
-    sudo make install
-    sudo a2enmod rewrite
-    sudo a2ensite $(hostname -f)
-    sudo apache2ctl graceful
+    apt-get install pov-update-server-page
+    vim /etc/pov/server-page.conf
+      at the very least uncomment enable=1
+    pov-update-server-page
+    a2enmod rewrite ssl
+    a2ensite $(hostname -f)
+    apache2ctl configtest && apache2ctl graceful
 
 
 Future plans
 ------------
 
-Make this a Debian package.
+Add a list of open TCP ports with service names etc.
+
+Add a treemap showing disk usage of specified partitions.
+
+Add a cron script to update these nightly.

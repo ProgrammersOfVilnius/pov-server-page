@@ -29,7 +29,7 @@ import sys
 from mako.lookup import TemplateLookup
 
 
-debian_package = False
+debian_package = (__file__ == '/usr/sbin/pov-update-server-page')
 
 
 if debian_package:
