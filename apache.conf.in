@@ -1,0 +1,27 @@
+<VirtualHost *:80 *:443>
+  ServerName {HOSTNAME}
+  ServerAdmin root@{HOSTNAME}
+
+  DocumentRoot /var/www/{HOSTNAME}
+  ErrorLog /var/log/apache2/{HOSTNAME}/error.log
+  CustomLog /var/log/apache2/{HOSTNAME}/access.log combined
+
+  RewriteEngine on
+
+  # Redirect everything to HTTPS
+  RewriteCond %{HTTPS} !on
+  RewriteRule ^/(.*)$ https://{HOSTNAME}/$1 [R,L]
+
+  # Collectd stats
+  RewriteRule /stats/?$ /stats/{SHORTHOSTNAME} [R,L]
+  ScriptAlias /stats/{SHORTHOSTNAME} {COLLECTION_CGI}
+
+  # Access control
+  <Location />
+    AuthType Basic
+    AuthName "{HOSTNAME}"
+    AuthUserFile {AUTH_USER_FILE}
+    Require valid-user
+  </Location>
+
+</VirtualHost>
