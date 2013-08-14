@@ -24,6 +24,9 @@ Usage
     cd pov-server-page
     make
     sudo make install
+    sudo a2enmod rewrite
+    sudo a2ensite $(hostname -f)
+    sudo apache2ctl graceful
 
 
 Future plans
