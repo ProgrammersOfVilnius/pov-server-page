@@ -7,6 +7,7 @@ import datetime
 import optparse
 import os
 import pwd
+import re
 import socket
 import string
 import subprocess
@@ -14,15 +15,12 @@ from cgi import escape
 from collections import namedtuple, defaultdict
 
 
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
 HOSTNAME = socket.getfqdn()
 OUTPUT = "/var/www/${hostname}/ports/index.html"
-
-# guess who still has python2.1 running in production?  oh the shame...
-INTERPRETERS = ['python'] + ['python2.%d' % n for n in range(1, 8)]
 
 
 TEMPLATE = string.Template("""\
@@ -169,6 +167,10 @@ def get_cmdline(pid):
     return format_argv(get_argv(pid))
 
 
+def is_interpreter(program_name):
+    return re.match(r'^python(\d([.]\d+)?)?$', program_name)
+
+
 def get_program(pid):
     argv = get_argv(pid)
     if len(argv) >= 1 and ''.join(argv[1:]) == '' and ' ' in argv[0]:
@@ -180,7 +182,7 @@ def get_program(pid):
     # extract progname
     n = 0
     prefix, slash, progname = args[n].rpartition('/')
-    if progname in INTERPRETERS:
+    if is_interpreter(progname):
         if len(args) >= 2:
             n = 1
             prefix, slash, progname = args[n].rpartition('/')
@@ -198,7 +200,7 @@ def get_html_cmdline(pid):
     # highlight progname
     n = 0
     prefix, slash, progname = args[n].rpartition('/')
-    if progname in INTERPRETERS:
+    if is_interpreter(progname):
         if len(args) >= 2:
             n = 1
             prefix, slash, progname = args[n].rpartition('/')
