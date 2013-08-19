@@ -181,10 +181,12 @@ class Builder(object):
             new_contents = marker + '\n' + new_contents
         replace_file(destination, marker, new_contents)
 
-    def build(self):
+    def build(self, verbose=False):
         self._compute_derived()
         for destination, subbuilder in self.build_list:
             filename = self.destdir + destination.format(**self.vars)
+            if verbose:
+                print("Creating %s" % filename)
             subbuilder.build(filename, self)
 
     def check(self):
@@ -226,7 +228,7 @@ def main():
     # Build /var/www/{hostname} and /etc/apache2/sites-available/
     builder = Builder.from_config(cp, destdir=opts.destdir)
     try:
-        builder.build()
+        builder.build(verbose=opts.verbose)
         if opts.checks:
             builder.check()
     except Error, e:
