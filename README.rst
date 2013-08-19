@@ -5,6 +5,7 @@ This script sets up web page for your server, listing the following
 information:
 
   - graphs for collectd
+  - open TCP ports
 
 
 Requirements
@@ -33,8 +34,4 @@ Usage
 Future plans
 ------------
 
-Add a list of open TCP ports with service names etc.
-
 Add a treemap showing disk usage of specified partitions.
-
-Add a cron script to update these nightly.

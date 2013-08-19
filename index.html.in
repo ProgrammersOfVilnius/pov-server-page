@@ -4,5 +4,6 @@
   </head>
   <body>
     <p><a href="/stats">Server stats</a></p>
+    <p><a href="/ports">Local port assignments</a></p>
   </body>
 </html>

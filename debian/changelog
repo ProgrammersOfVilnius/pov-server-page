@@ -1,3 +1,12 @@
+pov-server-page (0.2) precise; urgency=low
+
+  * Add a listing of open TCP ports, updated nightly.
+  * Comment out 'enabled = 1' in the default config file, since we're now
+    shipping a daily cron script.
+  * New option: pov-update-server-page --no-checks.
+
+ -- Marius Gedminas <marius@gedmin.as>  Mon, 19 Aug 2013 17:21:56 +0300
+
 pov-server-page (0.1) precise; urgency=low
 
   * Initial release.
