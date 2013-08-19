@@ -26,6 +26,10 @@
   Include ${INCLUDE}
 
 % endif
+% if APACHE_EXTRA_CONF:
+  ${APACHE_EXTRA_CONF.strip().replace('\n', '\n  ')}
+
+% endif
   RewriteEngine on
 
   # Collectd stats

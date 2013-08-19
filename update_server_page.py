@@ -110,6 +110,7 @@ class Builder(object):
         UPDATE_TCP_PORTS_SCRIPT=UPDATE_TCP_PORTS_SCRIPT,
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,
         INCLUDE='',
+        APACHE_EXTRA_CONF='',
     )
 
     # sub-builders
