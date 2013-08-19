@@ -30,6 +30,12 @@ Usage
     a2ensite $(hostname -f)
     apache2ctl configtest && apache2ctl graceful
 
+Crib for enabling a self-signed SSL certificate in Apache (don't use this in
+production please)::
+
+    SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
+    SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+
 
 Future plans
 ------------

@@ -1,3 +1,9 @@
+pov-server-page (0.3) precise; urgency=low
+
+  * Fix loopback address detection on the TCP port page.
+
+ -- Marius Gedminas <marius@gedmin.as>  Mon, 19 Aug 2013 18:01:44 +0300
+
 pov-server-page (0.2) precise; urgency=low
 
   * Add a listing of open TCP ports, updated nightly.
