@@ -216,6 +216,10 @@ def get_port_mapping(netstat_data):
     return mapping
 
 
+def is_loopback_ip(ip):
+    return ip == '::1' or ip.startswith('127.')
+
+
 def render_row(netstat_list):
     assert len(netstat_list) >= 1
     port = netstat_list[0].port
@@ -232,7 +236,7 @@ def render_row(netstat_list):
     return ROW_TEMPLATE.substitute(
         port=port,
         tr_class='system' if port < 1024 else 'user user%d' % (port // 1000),
-        port_class='local' if ips <= set(['127.0.0.1', '::1']) else 'public',
+        port_class='local' if all(is_loopback_ip(ip) for ip in ips) else 'public',
         ips=', '.join(sorted(ips)),
         user='<br>'.join(map(escape, user)),
         program='<br>'.join(program),
