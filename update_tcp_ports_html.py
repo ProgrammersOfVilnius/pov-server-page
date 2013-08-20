@@ -3,7 +3,6 @@
 Update TCP port assignments page in /var/www/HOSTNAME/ports/index.html.
 """
 
-import datetime
 import optparse
 import os
 import pwd
@@ -11,11 +10,12 @@ import re
 import socket
 import string
 import subprocess
+import time
 from cgi import escape
 from collections import namedtuple, defaultdict
 
 
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -251,7 +251,7 @@ def render_rows(netstat_mapping):
 
 def render_html(netstat_mapping, hostname=HOSTNAME):
     rows = render_rows(netstat_mapping)
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    now = time.strftime('%Y-%m-%d %H:%M:%S %z')
     return TEMPLATE.substitute(
         hostname=hostname,
         rows=rows,
