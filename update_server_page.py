@@ -39,6 +39,7 @@ if debian_package:
     UPDATE_TCP_PORTS_SCRIPT = '/usr/lib/pov-server-page/update-ports'
     DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
 else:
+    # running from source checkout
     DEFAULT_CONFIG_FILE = 'server-page.conf'
     TEMPLATE_DIR = os.path.abspath(os.path.dirname(__file__))
     COLLECTION_CGI = os.path.join(TEMPLATE_DIR, 'collection.cgi')
@@ -57,14 +58,17 @@ def mkdir_with_parents(dirname):
     """Create a directory and all parent directories.
 
     Does nothing if the directory already exists.
+
+    Returns True if the directory was created, False if it already existed.
     """
     try:
         os.makedirs(dirname)
     except OSError, e:
         if e.errno == errno.EEXIST and os.path.isdir(dirname):
-            pass
+            return False
         else:
             raise
+    return True
 
 
 def replace_file(filename, marker, new_contents):
@@ -77,11 +81,16 @@ def replace_file(filename, marker, new_contents):
     overwritten).
 
     Doesn't write if the file already has the right contents.
+
+    Returns True if the file was created or overwritten, False if it was
+    already up to date.
     """
     assert marker in new_contents
     try:
         with open(filename) as f:
             old_contents = f.read()
+            if old_contents == new_contents:
+                return False
             if marker not in old_contents:
                 raise Error('Refusing to overwrite %s' % filename)
     except IOError, e:
@@ -92,6 +101,7 @@ def replace_file(filename, marker, new_contents):
     mkdir_with_parents(os.path.dirname(filename))
     with open(filename, 'w') as f:
         f.write(new_contents)
+    return True
 
 
 class Error(Exception):
@@ -117,7 +127,8 @@ class Builder(object):
 
     class Directory(object):
         def build(self, filename, builder):
-            mkdir_with_parents(filename)
+            if mkdir_with_parents(filename) and builder.verbose:
+                print("Created %s/" % filename)
 
     class Template(object):
         def __init__(self, template_name, marker=HTML_MARKER):
@@ -179,14 +190,14 @@ class Builder(object):
     def replace_file(self, destination, marker, new_contents):
         if marker not in new_contents:
             new_contents = marker + '\n' + new_contents
-        replace_file(destination, marker, new_contents)
+        if replace_file(destination, marker, new_contents) and self.verbose:
+            print("Created %s" % destination)
 
     def build(self, verbose=False):
         self._compute_derived()
+        self.verbose = verbose
         for destination, subbuilder in self.build_list:
             filename = self.destdir + destination.format(**self.vars)
-            if verbose:
-                print("Creating %s" % filename)
             subbuilder.build(filename, self)
 
     def check(self):
