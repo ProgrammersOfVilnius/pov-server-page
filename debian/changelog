@@ -2,6 +2,7 @@ pov-server-page (0.4) UNRELEASED; urgency=low
 
   * Do not overwrite files that haven't changed.
   * TCP port listing: include timezone in the last updated timestamp.
+  * Add optional disk usage treemaps.
 
  -- Marius Gedminas <marius@gedmin.as>  Tue, 20 Aug 2013 09:13:12 +0300
 

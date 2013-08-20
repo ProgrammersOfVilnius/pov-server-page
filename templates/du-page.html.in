@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <title>${HOSTNAME}:${location} Disk Usage</title>
+    <link rel="stylesheet" href="../webtreemap/webtreemap.css" />
+    <script src="du.js"></script>
+    <style>
+
+      #map {
+        width: 800px;
+        height: 480px;
+        position: relative;
+        cursor: pointer;
+        -webkit-user-select: none;
+      }
+
+      .graphs img { vertical-align: top; }
+      .graphs img { display: inline-block; }
+
+    </style>
+  </head>
+  <body>
+    <h1>Disk Usage of ${HOSTNAME}:${location}</h1>
+    <p>Click on a box to zoom in.  Click on the outermost box to zoom out.</p>
+    <div id="map"></div>
+    <p id="footer"></p>
+    <script src="../webtreemap/webtreemap.js"></script>
+    <script>
+      var map = document.getElementById('map');
+      appendTreemap(map, tree);
+      var footer = document.getElementById('footer');
+      footer.innerHTML = 'Last updated on ' + last_updated + '.  Disk usage computed in ' + duration + ' seconds.';
+    </script>
+% if has_disk_graph(location):
+    <p class="graphs">
+      <img src="${disk_graph_url(location, 'trend')}">
+      <img src="${disk_graph_url(location, 'week')}">
+    </p>
+% endif
+  </body>
+</html>

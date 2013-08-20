@@ -4,7 +4,10 @@
   </head>
   <body>
     <h1>${HOSTNAME}</h1>
-    <p><a href="/stats">Server stats</a></p>
-    <p><a href="/ports">Local port assignments</a></p>
+    <p><a href="stats">Server stats</a></p>
+    <p><a href="ports">Local port assignments</a></p>
+% if DISK_USAGE_LIST:
+    <p><a href="du">Disk usage for ${', '.join(DISK_USAGE_LIST)}</a></p>
+% endif
   </body>
 </html>

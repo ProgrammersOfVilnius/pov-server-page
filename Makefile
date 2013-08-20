@@ -10,8 +10,13 @@ install:
 	install update_server_page.py $(DESTDIR)/usr/sbin/pov-update-server-page
 	install update_tcp_ports_html.py $(DESTDIR)/usr/lib/pov-server-page/update-ports
 	install collection.cgi $(DESTDIR)/usr/lib/pov-server-page/collection.cgi
+	install webtreemap-du/du2webtreemap.py $(DESTDIR)/usr/lib/pov-server-page/du2webtreemap
 	install -m 644 templates/apache.conf.in $(DESTDIR)/usr/share/pov-server-page/
 	install -m 644 templates/index.html.in $(DESTDIR)/usr/share/pov-server-page/
+	install -m 644 templates/du.html.in $(DESTDIR)/usr/share/pov-server-page/
+	install -m 644 templates/du-page.html.in $(DESTDIR)/usr/share/pov-server-page/
+	install -m 644 webtreemap/webtreemap.css $(DESTDIR)/usr/share/pov-server-page/webtreemap/
+	install -m 644 webtreemap/webtreemap.js $(DESTDIR)/usr/share/pov-server-page/webtreemap/
 	install cron_daily.sh $(DESTDIR)/etc/cron.daily/pov-update-server-page
 
 .PHONY: source-package

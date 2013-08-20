@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>Disk Usage</title>
+    <style>
+
+      .graphs img { vertical-align: top; }
+      .graphs img { display: inline-block; }
+
+    </style>
+  </head>
+  <body>
+    <h1>Disk Usage on ${HOSTNAME}</h1>
+    <ul>
+% for location in DISK_USAGE_LIST:
+    <li><a href="${location_name(location)}">${location}</a></li>
+% endfor
+    </ul>
+% for location in DISK_USAGE_LIST:
+%     if has_disk_graph(location):
+    <p class="graphs">
+      <img src="${disk_graph_url(location, 'trend')}">
+      <img src="${disk_graph_url(location, 'week')}">
+    </p>
+%     endif
+% endfor
+  </body>
+</html>

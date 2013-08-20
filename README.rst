@@ -6,6 +6,7 @@ information:
 
   - graphs for collectd
   - open TCP ports
+  - disk usage treemaps (if configured)
 
 
 Requirements
@@ -36,8 +37,3 @@ production please)::
     SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
     SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
 
-
-Future plans
-------------
-
-Add a treemap showing disk usage of specified partitions.

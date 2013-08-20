@@ -24,7 +24,9 @@ import datetime
 import errno
 import optparse
 import os
+import subprocess
 import sys
+import time
 
 from mako.lookup import TemplateLookup
 
@@ -34,18 +36,23 @@ debian_package = (__file__ == '/usr/sbin/pov-update-server-page')
 
 if debian_package:
     DEFAULT_CONFIG_FILE = '/etc/pov/server-page.conf'
-    TEMPLATE_DIR = '/usr/share/pov-server-page/'
-    COLLECTION_CGI = '/usr/lib/pov-server-page/collection.cgi'
-    UPDATE_TCP_PORTS_SCRIPT = '/usr/lib/pov-server-page/update-ports'
     DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
+    TEMPLATE_DIR = '/usr/share/pov-server-page/'
+    libdir = '/usr/lib/pov-server-page'
+    COLLECTION_CGI = os.path.join(libdir, 'collection.cgi')
+    UPDATE_TCP_PORTS_SCRIPT = os.path.join(libdir, 'update-ports')
+    DU2WEBTREEMAP = os.path.join(libdir, 'du2webtreemap')
+    WEBTREEMAP = os.path.join(TEMPLATE_DIR, 'webtreemap')
 else:
     # running from source checkout
     here = os.path.abspath(os.path.dirname(__file__))
     DEFAULT_CONFIG_FILE = 'server-page.conf'
+    DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
     TEMPLATE_DIR = os.path.join(here, 'templates')
     COLLECTION_CGI = os.path.join(here, 'collection.cgi')
     UPDATE_TCP_PORTS_SCRIPT = os.path.join(here, 'update_tcp_ports_html.py')
-    DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
+    DU2WEBTREEMAP = os.path.join(here, 'webtreemap-du', 'du2webtreemap.py')
+    WEBTREEMAP = os.path.join(here, 'webtreemap')
 
 
 def get_fqdn():
@@ -66,6 +73,21 @@ def mkdir_with_parents(dirname):
         os.makedirs(dirname)
     except OSError, e:
         if e.errno == errno.EEXIST and os.path.isdir(dirname):
+            return False
+        else:
+            raise
+    return True
+
+
+def symlink(target, filename):
+    """Create a symlink named filename that points to target.
+
+    Does nothing if the symlink already exists.
+    """
+    try:
+        os.symlink(target, filename)
+    except OSError, e:
+        if e.errno == errno.EEXIST and os.path.islink(filename) and os.readlink(filename) == target:
             return False
         else:
             raise
@@ -105,6 +127,20 @@ def replace_file(filename, marker, new_contents):
     return True
 
 
+def pipeline(*args, **kwargs):
+    """Construct a shell pipeline."""
+    stdout = kwargs.pop('stdout', None)
+    assert not kwargs
+    children = []
+    for n, command in enumerate(args):
+        p = subprocess.Popen(command,
+            stdin=children[-1].stdout if children else None,
+            stdout=stdout if n == len(args) - 1 else subprocess.PIPE)
+        children.append(p)
+    for child in children:
+        child.wait()
+
+
 class Error(Exception):
     pass
 
@@ -122,6 +158,7 @@ class Builder(object):
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,
         INCLUDE='',
         APACHE_EXTRA_CONF='',
+        DISK_USAGE='',
     )
 
     # sub-builders
@@ -131,14 +168,28 @@ class Builder(object):
             if mkdir_with_parents(filename) and builder.verbose:
                 print("Created %s/" % filename)
 
+    class Symlink(object):
+        def __init__(self, target):
+            self.target = target
+
+        def build(self, filename, builder):
+            mkdir_with_parents(os.path.dirname(filename))
+            if symlink(self.target, filename) and builder.verbose:
+                print("Created %s" % filename)
+
     class Template(object):
         def __init__(self, template_name, marker=HTML_MARKER):
             self.template_name = template_name
             self.marker = marker
 
-        def build(self, filename, builder):
+        def build(self, filename, builder, extra_vars=None):
             template = builder.lookup.get_template(self.template_name)
-            new_contents = template.render(**builder.vars)
+            if extra_vars:
+                kw = builder.vars.copy()
+                kw.update(extra_vars)
+            else:
+                kw = builder.vars
+            new_contents = template.render(**kw)
             builder.replace_file(filename, self.marker, new_contents)
 
     class ScriptOutput(object):
@@ -151,6 +202,69 @@ class Builder(object):
             new_contents = os.popen(command).read()
             builder.replace_file(filename, self.marker, new_contents)
 
+    class DiskUsage(object):
+        def location_name(self, location):
+            # mimic collectd's mangling
+            # '/apps' -> 'apps'
+            # '/' -> 'root'
+            # '/var/log' -> 'var-log'
+            return location.lstrip('/').replace('/', '-') or 'root'
+
+        def disk_graph_url(self, location, timespan='trend'):
+            return ('/stats/{hostname}?action=show_graph;'
+                    'host={collectd_hostname};plugin=df;type=df;'
+                    'type_instance={location_name};timespan={timespan}'.format(
+                        hostname=self.hostname,
+                        collectd_hostname=self.collectd_hostname,
+                        location_name=self.location_name(location),
+                        timespan=timespan))
+
+        def has_disk_graph(self, location):
+            return os.path.exists('/var/lib/collectd/rrd/%s/df/df-%s.rrd' %
+                                  (self.collectd_hostname,
+                                   self.location_name(location)))
+
+        def build(self, dirname, builder):
+            locations = builder.vars['DISK_USAGE_LIST']
+            if not locations:
+                return
+            self.collectd_hostname = get_fqdn()
+            self.hostname = builder.vars['SHORTHOSTNAME']
+            index_html = os.path.join(dirname, 'index.html')
+            Builder.Template('du.html.in').build(index_html, builder,
+                extra_vars=dict(location_name=self.location_name,
+                                has_disk_graph=self.has_disk_graph,
+                                disk_graph_url=self.disk_graph_url))
+            webtreemap = os.path.join(dirname, 'webtreemap')
+            Builder.Symlink(WEBTREEMAP).build(webtreemap, builder)
+            today = time.strftime('%Y-%m-%d')
+            for location in locations:
+                location_name = self.location_name(location)
+                datadir = os.path.join(dirname, location_name)
+                du_file = os.path.join(datadir, 'du-%s.gz' % today)
+                js_file = os.path.join(datadir, 'du.js')
+                index_html = os.path.join(datadir, 'index.html')
+                if not os.path.exists(du_file):
+                    if builder.verbose:
+                        print('Creating %s' % du_file)
+                    mkdir_with_parents(datadir)
+                    started = time.time()
+                    with open(du_file, 'wb') as f:
+                        pipeline(['du', '-x', location], ['gzip'], stdout=f)
+                    duration = time.time() - started
+                    if builder.verbose:
+                        print('Creating %s' % js_file)
+                    with open(js_file, 'w') as f:
+                        pipeline(['zcat', du_file], [DU2WEBTREEMAP], stdout=f)
+                        timestamp = time.strftime('%Y-%m-%d %H:%M:%S %z')
+                        f.write('\nvar last_updated = "%s";\n' % timestamp)
+                        f.write('var duration = "%.0f";\n' % duration)
+                Builder.Template('du-page.html.in').build(index_html, builder,
+                    extra_vars=dict(location=location,
+                                    location_name=self.location_name,
+                                    has_disk_graph=self.has_disk_graph,
+                                    disk_graph_url=self.disk_graph_url))
+
     # things to build
 
     build_list = [
@@ -159,6 +273,8 @@ class Builder(object):
              Template('index.html.in', HTML_MARKER)),
         ('/var/www/{HOSTNAME}/ports/index.html',
              ScriptOutput('{UPDATE_TCP_PORTS_SCRIPT} -H {HOSTNAME} -o /dev/stdout')),
+        ('/var/www/{HOSTNAME}/du',
+             DiskUsage()),
         ('/var/log/apache2/{HOSTNAME}',
              Directory()),
         ('/etc/apache2/sites-available/{HOSTNAME}',
@@ -187,6 +303,7 @@ class Builder(object):
     def _compute_derived(self):
         self.vars['SHORTHOSTNAME'] = self.vars['HOSTNAME'].partition('.')[0]
         self.vars['TIMESTAMP'] = str(datetime.datetime.now())
+        self.vars['DISK_USAGE_LIST'] = self.vars['DISK_USAGE'].split()
 
     def replace_file(self, destination, marker, new_contents):
         if marker not in new_contents:
