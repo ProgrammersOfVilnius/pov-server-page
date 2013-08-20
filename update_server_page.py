@@ -224,6 +224,25 @@ class Builder(object):
                                   (self.collectd_hostname,
                                    self.location_name(location)))
 
+        @classmethod
+        def get_all_locations(cls):
+            locations = []
+            for line in os.popen("df -PT").readlines()[1:]:
+                bits = line.split()
+                # device, type, size, used, free, %, mountpoint
+                fstype = bits[1]
+                mountpoint = bits[-1]
+                if fstype not in ('tmpfs', 'devtmpfs', 'ecryptfs', 'nfs'):
+                    locations.append(mountpoint)
+            return locations
+
+        @classmethod
+        def parse(cls, disk_usage):
+            locations = disk_usage.split()
+            if locations == ['all']:
+                locations = cls.get_all_locations()
+            return locations
+
         def build(self, dirname, builder):
             locations = builder.vars['DISK_USAGE_LIST']
             if not locations:
@@ -303,7 +322,7 @@ class Builder(object):
     def _compute_derived(self):
         self.vars['SHORTHOSTNAME'] = self.vars['HOSTNAME'].partition('.')[0]
         self.vars['TIMESTAMP'] = str(datetime.datetime.now())
-        self.vars['DISK_USAGE_LIST'] = self.vars['DISK_USAGE'].split()
+        self.vars['DISK_USAGE_LIST'] = self.DiskUsage.parse(self.vars['DISK_USAGE'])
 
     def replace_file(self, destination, marker, new_contents):
         if marker not in new_contents:

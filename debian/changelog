@@ -1,6 +1,7 @@
 pov-server-page (0.5) UNRELEASED; urgency=low
 
   * Fix treemaps for disk_usage = /.
+  * Allow disk_usage = all.
 
  -- Marius Gedminas <marius@gedmin.as>  Tue, 20 Aug 2013 12:39:58 +0300
 
