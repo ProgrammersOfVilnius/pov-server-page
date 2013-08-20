@@ -40,10 +40,11 @@ if debian_package:
     DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
 else:
     # running from source checkout
+    here = os.path.abspath(os.path.dirname(__file__))
     DEFAULT_CONFIG_FILE = 'server-page.conf'
-    TEMPLATE_DIR = os.path.abspath(os.path.dirname(__file__))
-    COLLECTION_CGI = os.path.join(TEMPLATE_DIR, 'collection.cgi')
-    UPDATE_TCP_PORTS_SCRIPT = os.path.join(TEMPLATE_DIR, 'update_tcp_ports_html.py')
+    TEMPLATE_DIR = os.path.join(here, 'templates')
+    COLLECTION_CGI = os.path.join(here, 'collection.cgi')
+    UPDATE_TCP_PORTS_SCRIPT = os.path.join(here, 'update_tcp_ports_html.py')
     DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
 
 
