@@ -1,4 +1,4 @@
-pov-server-page (0.6) UNRELEASED; urgency=low
+pov-server-page (0.6) precise; urgency=low
 
   * Fix 'ValueError: Not a boolean:' when config file doesn't specify
     'enabled = ...'.
@@ -6,7 +6,7 @@ pov-server-page (0.6) UNRELEASED; urgency=low
   * Fix treemaps with weird filenames (non-UTF-8, ending in spaces).
   * Build treemap .js files when they're missing or outdated.
 
- -- Marius Gedminas <marius@gedmin.as>  Wed, 21 Aug 2013 08:54:42 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 21 Aug 2013 09:50:39 +0300
 
 pov-server-page (0.5) precise; urgency=low
 
