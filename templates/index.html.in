@@ -7,7 +7,7 @@
     <p><a href="stats">Server stats</a></p>
     <p><a href="ports">Local port assignments</a></p>
 % if DISK_USAGE_LIST:
-    <p><a href="du">Disk usage for ${', '.join(DISK_USAGE_LIST)}</a></p>
+    <p><a href="du">Disk usage for ${'all partitions' if DISK_USAGE == 'all' else ', '.join(DISK_USAGE_LIST)}</a></p>
 % endif
   </body>
 </html>
