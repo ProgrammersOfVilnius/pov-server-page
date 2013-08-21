@@ -339,6 +339,8 @@ class Builder(object):
             filename = self.destdir + destination.format(**self.vars)
             if filename not in skip:
                 subbuilder.build(filename, self)
+            elif self.verbose:
+                print("Skipping %s" % filename)
 
     def check(self):
         self._compute_derived()
