@@ -358,7 +358,7 @@ def main():
     opts, args = parser.parse_args()
     # Config file parsing
     cp = ConfigParser.SafeConfigParser(dict(
-        enabled=False,
+        enabled='0',
         **Builder.defaults
     ))
     if not cp.read([opts.config_file]):

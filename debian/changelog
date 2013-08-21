@@ -1,3 +1,10 @@
+pov-server-page (0.6) UNRELEASED; urgency=low
+
+  * Fix 'ValueError: Not a boolean:' when config file doesn't specify
+    'enabled = ...'.
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 21 Aug 2013 08:54:42 +0300
+
 pov-server-page (0.5) precise; urgency=low
 
   * Fix treemaps for disk_usage = /.
