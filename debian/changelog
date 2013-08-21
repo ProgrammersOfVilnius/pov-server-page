@@ -3,6 +3,7 @@ pov-server-page (0.6) UNRELEASED; urgency=low
   * Fix 'ValueError: Not a boolean:' when config file doesn't specify
     'enabled = ...'.
   * New options: 'skip', 'redirect'.
+  * Fix treemaps with weird filenames (non-UTF-8, ending in spaces).
 
  -- Marius Gedminas <marius@gedmin.as>  Wed, 21 Aug 2013 08:54:42 +0300
 
