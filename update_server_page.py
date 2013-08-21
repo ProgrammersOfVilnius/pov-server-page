@@ -159,6 +159,7 @@ class Builder(object):
         INCLUDE='',
         APACHE_EXTRA_CONF='',
         DISK_USAGE='',
+        SKIP='',
     )
 
     # sub-builders
@@ -333,9 +334,11 @@ class Builder(object):
     def build(self, verbose=False):
         self._compute_derived()
         self.verbose = verbose
+        skip = self.vars['SKIP'].split()
         for destination, subbuilder in self.build_list:
             filename = self.destdir + destination.format(**self.vars)
-            subbuilder.build(filename, self)
+            if filename not in skip:
+                subbuilder.build(filename, self)
 
     def check(self):
         self._compute_derived()
