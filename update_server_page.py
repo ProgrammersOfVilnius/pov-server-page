@@ -189,7 +189,7 @@ class Builder(object):
                 kw.update(extra_vars)
             else:
                 kw = builder.vars
-            new_contents = template.render(**kw)
+            new_contents = template.render(**kw).encode('UTF-8')
             builder.replace_file(filename, self.marker, new_contents)
 
     class ScriptOutput(object):
