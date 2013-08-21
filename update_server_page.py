@@ -62,6 +62,22 @@ def get_fqdn():
     return os.popen("hostname -f").read().strip()
 
 
+def newer(file1, file2):
+    """Is file1 newer than file2?
+
+    Returns True if file2 doesn't exist.  file1 must exist.
+    """
+    mtime1 = os.stat(file1).st_mtime
+    try:
+        mtime2 = os.stat(file2).st_mtime
+    except OSError, e:
+        if e.errno == errno.ENOENT:
+            return True
+        else:
+            raise
+    return mtime1 > mtime2
+
+
 def mkdir_with_parents(dirname):
     """Create a directory and all parent directories.
 
@@ -273,6 +289,11 @@ class Builder(object):
                     with open(du_file, 'wb') as f:
                         pipeline(['du', '-x', location], ['gzip'], stdout=f)
                     duration = time.time() - started
+                    need_build = True
+                else:
+                    duration = 0 # sadly, unknown
+                    need_build = newer(du_file, js_file)
+                if need_build:
                     if builder.verbose:
                         print('Creating %s' % js_file)
                     with open(js_file, 'w') as f:

@@ -4,6 +4,7 @@ pov-server-page (0.6) UNRELEASED; urgency=low
     'enabled = ...'.
   * New options: 'skip', 'redirect'.
   * Fix treemaps with weird filenames (non-UTF-8, ending in spaces).
+  * Build treemap .js files when they're missing or outdated.
 
  -- Marius Gedminas <marius@gedmin.as>  Wed, 21 Aug 2013 08:54:42 +0300
 
