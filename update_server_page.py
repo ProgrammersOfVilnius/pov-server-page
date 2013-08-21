@@ -160,6 +160,7 @@ class Builder(object):
         APACHE_EXTRA_CONF='',
         DISK_USAGE='',
         SKIP='',
+        REDIRECT='',
     )
 
     # sub-builders
@@ -331,13 +332,26 @@ class Builder(object):
         if replace_file(destination, marker, new_contents) and self.verbose:
             print("Created %s" % destination)
 
+    def parse_redirect(self, value):
+        redirect = {}
+        for line in value.splitlines():
+            line = line.strip()
+            if '=' not in line:
+                continue
+            source, destination = line.split('=', 1)
+            redirect[source.strip()] = destination.strip()
+        return redirect
+
     def build(self, verbose=False):
         self._compute_derived()
         self.verbose = verbose
         skip = self.vars['SKIP'].split()
+        redirect = self.parse_redirect(self.vars['REDIRECT'])
         for destination, subbuilder in self.build_list:
             filename = self.destdir + destination.format(**self.vars)
             if filename not in skip:
+                if filename in redirect:
+                    filename = redirect[filename]
                 subbuilder.build(filename, self)
             elif self.verbose:
                 print("Skipping %s" % filename)
