@@ -19,15 +19,22 @@ install:
 	install -m 644 webtreemap/webtreemap.js $(DESTDIR)/usr/share/pov-server-page/webtreemap/
 	install cron_daily.sh $(DESTDIR)/etc/cron.daily/pov-update-server-page
 
+.PHONY: clean-build-tree
+clean-build-tree:
+	rm -rf pkgbuild/$(source)
+	git archive --format=tar --prefix=pkgbuild/$(source)/ HEAD | tar -xf -
+	(cd webtreemap && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap/ HEAD) | tar -xf -
+	(cd webtreemap-du && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap-du/ HEAD) | tar -xf -
+
 .PHONY: source-package
-source-package:
-	debuild -S -i -k$(GPGKEY)
+source-package: clean-build-tree
+	cd pkgbuild/$(source) && debuild -S -i -k$(GPGKEY)
 
 .PHONY: upload-to-ppa
 upload-to-ppa: source-package
-	dput ppa:pov/ppa ../$(source)_$(version)_source.changes
+	dput ppa:pov/ppa pkgbuild/$(source)_$(version)_source.changes
 	git tag $(version)
 
 .PHONY: binary-package
-binary-package:
-	debuild -i -k$(GPGKEY)
+binary-package: clean-build-tree
+	cd pkgbuild/$(source) && debuild -i -k$(GPGKEY)
