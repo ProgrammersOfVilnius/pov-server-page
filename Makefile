@@ -1,11 +1,27 @@
 source := $(shell dpkg-parsechangelog | awk '$$1 == "Source:" { print $$2 }')
 version := $(shell dpkg-parsechangelog | awk '$$1 == "Version:" { print $$2 }')
 
+manpage = pov-update-server-page.rst
+
 .PHONY: all
 all: pov-update-server-page.8
 
 %.8: %.rst
 	rst2man $< > $@
+
+.PHONY: test check
+test check: check-version
+
+.PHONY: checkversion
+check-version:
+	@grep -q ":Version: $(version)" $(manpage) || { \
+	    echo "Version number in $(manpage) doesn't match debian/changelog ($(version))" 2>&1; \
+	    exit 1; \
+	}
+	@grep -q ":Date: $(date)" $(manpage) || { \
+	    echo "Date in $(manpage) doesn't match debian/changelog ($(date))" 2>&1; \
+	    exit 1; \
+	}
 
 .PHONY: install
 install:
