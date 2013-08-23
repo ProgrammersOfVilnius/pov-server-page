@@ -1,3 +1,10 @@
+pov-server-page (0.6.1) UNRELEASED; urgency=low
+
+  * Fix 'TypeError: decode() takes no keyword arguments' when system Python
+    is version 2.6 (i.e. lucid).
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 23 Aug 2013 09:33:21 +0300
+
 pov-server-page (0.6) precise; urgency=low
 
   * Fix 'ValueError: Not a boolean:' when config file doesn't specify
