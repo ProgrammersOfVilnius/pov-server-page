@@ -9,5 +9,8 @@
 % if DISK_USAGE_LIST:
     <p><a href="du">Disk usage for ${'all partitions' if DISK_USAGE == 'all' else ', '.join(DISK_USAGE_LIST)}</a></p>
 % endif
+% for link, title in EXTRA_LINKS_MAP:
+    <p><a href="${link}">${title}</a></p>
+% endfor
   </body>
 </html>

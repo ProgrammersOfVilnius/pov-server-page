@@ -174,6 +174,7 @@ class Builder(object):
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,
         INCLUDE='',
         APACHE_EXTRA_CONF='',
+        EXTRA_LINKS='',
         DISK_USAGE='',
         SKIP='',
         REDIRECT='',
@@ -346,6 +347,7 @@ class Builder(object):
         self.vars['SHORTHOSTNAME'] = self.vars['HOSTNAME'].partition('.')[0]
         self.vars['TIMESTAMP'] = str(datetime.datetime.now())
         self.vars['DISK_USAGE_LIST'] = self.DiskUsage.parse(self.vars['DISK_USAGE'])
+        self.vars['EXTRA_LINKS_MAP'] = self.parse_pairs(self.vars['EXTRA_LINKS'])
 
     def replace_file(self, destination, marker, new_contents):
         if marker not in new_contents:
@@ -353,21 +355,27 @@ class Builder(object):
         if replace_file(destination, marker, new_contents) and self.verbose:
             print("Created %s" % destination)
 
-    def parse_redirect(self, value):
-        redirect = {}
+    def parse_pairs(self, value):
+        result = []
         for line in value.splitlines():
             line = line.strip()
-            if '=' not in line:
+            if ' = ' in line:
+                source, destination = line.split(' = ', 1)
+            elif '=' in line:
+                source, destination = line.split('=', 1)
+            else:
                 continue
-            source, destination = line.split('=', 1)
-            redirect[source.strip()] = destination.strip()
-        return redirect
+            result.append((source.strip(), destination.strip()))
+        return result
+
+    def parse_map(self, value):
+        return dict(self.parse_pairs(value))
 
     def build(self, verbose=False):
         self._compute_derived()
         self.verbose = verbose
         skip = self.vars['SKIP'].split()
-        redirect = self.parse_redirect(self.vars['REDIRECT'])
+        redirect = self.parse_map(self.vars['REDIRECT'])
         for destination, subbuilder in self.build_list:
             filename = self.destdir + destination.format(**self.vars)
             if filename not in skip:

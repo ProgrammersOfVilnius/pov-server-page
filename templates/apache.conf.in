@@ -21,6 +21,7 @@
   CustomLog /var/log/apache2/${HOSTNAME}/access.log combined
 
   SSLEngine on
+  RewriteEngine on
 
 % if INCLUDE:
   Include ${INCLUDE}
@@ -30,7 +31,6 @@
   ${APACHE_EXTRA_CONF.strip().replace('\n', '\n  ')}
 
 % endif
-  RewriteEngine on
 
   # Collectd stats
   RewriteRule /stats/?$ /stats/${SHORTHOSTNAME} [R,L]
