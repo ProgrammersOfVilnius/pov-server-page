@@ -38,8 +38,12 @@ install:
 	install -m 644 webtreemap/webtreemap.js $(DESTDIR)/usr/share/pov-server-page/webtreemap/
 	install cron_daily.sh $(DESTDIR)/etc/cron.daily/pov-update-server-page
 
+
+VCS_STATUS = git status --porcelain
+
 .PHONY: clean-build-tree
 clean-build-tree:
+	@test -z "`$(VCS_STATUS) 2>&1`" || { echo; echo "Your working tree is not clean; please commit and try again" 1>&2; $(VCS_STATUS); exit 1; }
 	rm -rf pkgbuild/$(source)
 	git archive --format=tar --prefix=pkgbuild/$(source)/ HEAD | tar -xf -
 	(cd webtreemap && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap/ HEAD) | tar -xf -
