@@ -1,10 +1,10 @@
-pov-server-page (0.8) UNRELEASED; urgency=low
+pov-server-page (0.8) precise; urgency=low
 
   * Added manual page for pov-update-server-page.
   * Added 'zoperequest' graph to collection.cgi, from
     https://github.com/collectd/collectd/pull/91.
 
- -- Marius Gedminas <marius@gedmin.as>  Sun, 25 Aug 2013 20:20:19 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Sun, 25 Aug 2013 20:22:10 +0300
 
 pov-server-page (0.7) precise; urgency=low
 
