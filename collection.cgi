@@ -2856,6 +2856,28 @@ sub load_graph_definitions
     'GPRINT:max:MAX:%4.0lf Max,',
     'GPRINT:avg:LAST:%4.0lf Last\l'
     ],
+    zoperequest => [
+        '-v',
+        's',
+        'DEF:reqavg={file}:reqavg:AVERAGE',
+        'DEF:reqmin={file}:reqmin:MIN',
+        'DEF:reqmax={file}:reqmax:MAX',
+        'DEF:appavg={file}:appavg:AVERAGE',
+        'DEF:appmin={file}:appmin:MIN',
+        'DEF:appmax={file}:appmax:MAX',
+        "AREA:reqmax#$HalfBlue",
+        "AREA:reqmin#$Canvas",
+        "AREA:appmax#$HalfRed",
+        "AREA:appmin#$Canvas",
+        "LINE1:reqavg#$FullBlue:Total     ",
+        'GPRINT:reqmin:MIN:%5.1lf%s Min,',
+        'GPRINT:reqavg:AVERAGE:%5.1lf%s Avg,',
+        'GPRINT:reqmax:MAX:%5.1lf%s Max\l',
+        "LINE1:appavg#$FullRed:Processing",
+        'GPRINT:appmin:MIN:%5.1lf%s Min,',
+        'GPRINT:appavg:AVERAGE:%5.1lf%s Avg,',
+        'GPRINT:appmax:MAX:%5.1lf%s Max\l',
+    ],
   };
   $GraphDefs->{'if_multicast'} = $GraphDefs->{'ipt_packets'};
   $GraphDefs->{'if_tx_errors'} = $GraphDefs->{'if_rx_errors'};
