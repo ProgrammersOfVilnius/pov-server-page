@@ -169,6 +169,7 @@ class Builder(object):
 
     defaults = dict(
         HOSTNAME=get_fqdn(),
+        SERVER_ALIASES='',
         COLLECTION_CGI=COLLECTION_CGI,
         UPDATE_TCP_PORTS_SCRIPT=UPDATE_TCP_PORTS_SCRIPT,
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,
@@ -346,6 +347,7 @@ class Builder(object):
     def _compute_derived(self):
         self.vars['SHORTHOSTNAME'] = self.vars['HOSTNAME'].partition('.')[0]
         self.vars['TIMESTAMP'] = str(datetime.datetime.now())
+        self.vars['SERVER_ALIAS_LIST'] = self.vars['SERVER_ALIASES'].split()
         self.vars['DISK_USAGE_LIST'] = self.DiskUsage.parse(self.vars['DISK_USAGE'])
         self.vars['EXTRA_LINKS_MAP'] = self.parse_pairs(self.vars['EXTRA_LINKS'])
 

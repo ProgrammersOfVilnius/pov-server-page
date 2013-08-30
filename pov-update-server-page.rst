@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2013-08-23
-:Version: 0.8
+:Date: 2013-08-30
+:Version: 0.9
 :Manual section: 8
 
 
@@ -115,6 +115,14 @@ The following options are defined:
     Note: if you change the hostname, **pov-update-server-page** will not clean
     up old files under the old location.
 
+**server_aliases** (default: empty)
+
+    Additional server host name aliases.  Used in the ``ServerAlias``
+    Apache directive.
+
+    Note: accessing the server page using any of the aliases will redirect
+    to the canonical hostname.
+
 **include** (default: empty)
 
     Add an ``Include`` *FILENAME* directive in the generated Apache
@@ -213,6 +221,7 @@ The following options are defined:
         redirect =
           /var/www/foo.example.com/index.html = /var/www/foo.example.com/admin.html
 
+
 BUGS
 ====
 
@@ -220,4 +229,5 @@ If you specify ``disk_usage = / /root``, **pov-update-server-page** will try
 to store both snapshots in the same ``/var/www/``\ *HOSTNAME*\ ``/root``
 directory.
 
-You cannot skip individual files under ``/var/www/``\ *HOSTNAME*\ ``/du/``.
+You cannot skip individual files or subdirectories under
+``/var/www/``\ *HOSTNAME*\ ``/du/``.
