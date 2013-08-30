@@ -123,6 +123,14 @@ The following options are defined:
     Note: accessing the server page using any of the aliases will redirect
     to the canonical hostname.
 
+**canonical_redirect** (default: true)
+
+    Generate rewrite rules to redirect to the canonical hostname.
+
+    Turn this off if you need to test the apache configuration in
+    a machine you can't access directly and need to use SSH port
+    forwarding.
+
 **include** (default: empty)
 
     Add an ``Include`` *FILENAME* directive in the generated Apache

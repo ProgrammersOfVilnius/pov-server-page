@@ -29,9 +29,11 @@
   SSLEngine on
   RewriteEngine on
 
+% if CANONICAL_REDIRECT:
   RewriteCond %{HTTP_HOST} !=${HOSTNAME}
   RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R=301,L]
 
+% endif
 % if INCLUDE:
   Include ${INCLUDE}
 

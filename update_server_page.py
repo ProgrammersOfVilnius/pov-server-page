@@ -170,6 +170,7 @@ class Builder(object):
     defaults = dict(
         HOSTNAME=get_fqdn(),
         SERVER_ALIASES='',
+        CANONICAL_REDIRECT=True,
         COLLECTION_CGI=COLLECTION_CGI,
         UPDATE_TCP_PORTS_SCRIPT=UPDATE_TCP_PORTS_SCRIPT,
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,
@@ -341,7 +342,12 @@ class Builder(object):
     @classmethod
     def from_config(cls, cp, section='pov-server-page',
                     template_dir=TEMPLATE_DIR, destdir=''):
-        vars = dict((name, cp.get(section, name)) for name in cls.defaults)
+        vars = dict(
+            (name,
+             cp.getboolean(section, name) if isinstance(default, bool) else
+             cp.getint(section, name) if isinstance(default, int) else
+             cp.get(section, name))
+            for name, default in cls.defaults.items())
         return cls(vars, template_dir, destdir)
 
     def _compute_derived(self):

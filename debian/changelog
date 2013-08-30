@@ -1,6 +1,7 @@
 pov-server-page (0.9) UNRELEASED; urgency=low
 
   * New option: 'server_aliases'.
+  * New option: 'canonical_redirect'.
 
  -- Marius Gedminas <marius@gedmin.as>  Fri, 30 Aug 2013 14:41:10 +0300
 
