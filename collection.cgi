@@ -2308,6 +2308,18 @@ sub load_graph_definitions
     'GPRINT:sleeping_max:MAX:%5.1lf Max,',
     'GPRINT:sleeping_avg:LAST:%5.1lf Last\l'
     ],
+    fork_rate => ['-v', 'Fork rate', '-l', '0',
+    'DEF:avg={file}:value:AVERAGE',
+    'DEF:min={file}:value:MIN',
+    'DEF:max={file}:value:MAX',
+    "AREA:max#$HalfBlue",
+    "AREA:min#$Canvas",
+    "LINE1:avg#$FullBlue",
+    'GPRINT:min:MIN:%6.2lf Min,',
+    'GPRINT:avg:AVERAGE:%6.2lf Avg,',
+    'GPRINT:max:MAX:%6.2lf Max,',
+    'GPRINT:avg:LAST:%6.2lf Last\l'
+    ],
     ps_count => ['-v', 'Processes', '-l', '0',
     'DEF:procs_avg={file}:processes:AVERAGE',
     'DEF:procs_min={file}:processes:MIN',

@@ -2,7 +2,8 @@ pov-server-page (0.10) UNRELEASED; urgency=low
 
   * Fix AttributeError: 'bool' object has no attribute 'find'
     when config file didn't explicitly specify 'canonical_redirect'.
-  * Collectd stats: add support for apache_connections, apache_idle_workers.
+  * Collectd stats: add support for apache_connections, apache_idle_workers,
+    fork_rate.
 
  -- Marius Gedminas <marius@gedmin.as>  Sat, 31 Aug 2013 16:38:32 +0300
 
