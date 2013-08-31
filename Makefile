@@ -63,7 +63,7 @@ clean-build-tree:
 	(cd webtreemap-du && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap-du/ HEAD) | tar -xf -
 
 .PHONY: source-package
-source-package: clean-build-tree
+source-package: clean-build-tree test
 	cd pkgbuild/$(source) && debuild -S -i -k$(GPGKEY)
 
 .PHONY: upload-to-ppa
