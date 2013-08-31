@@ -1,3 +1,9 @@
+pov-server-page (0.10.1) precise; urgency=low
+
+  * Add python-nose to Build-Depends to fix build error.
+
+ -- Marius Gedminas <marius@gedmin.as>  Sat, 31 Aug 2013 23:31:07 +0300
+
 pov-server-page (0.10) precise; urgency=low
 
   * Fix AttributeError: 'bool' object has no attribute 'find'
