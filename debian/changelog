@@ -1,3 +1,9 @@
+pov-server-page (0.10.3) precise; urgency=low
+
+  * Add python-mako to Build-Depends to fix build error.
+
+ -- Marius Gedminas <marius@gedmin.as>  Sun, 01 Sep 2013 09:14:26 +0300
+
 pov-server-page (0.10.2) precise; urgency=low
 
   * Update version number in manual page to fix another build error.
