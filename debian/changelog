@@ -1,4 +1,4 @@
-pov-server-page (0.10.4) UNRELEASED; urgency=low
+pov-server-page (0.10.4) precise; urgency=low
 
   * Fix Apache configuration bug that didn't allow you to visit any URLs
     ending in /stats or /stats/.
