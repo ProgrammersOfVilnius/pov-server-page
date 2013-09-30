@@ -44,7 +44,7 @@
 % endif
 
   # Collectd stats
-  RewriteRule /stats/?$ /stats/${SHORTHOSTNAME} [R,L]
+  RewriteRule ^/stats/?$ /stats/${SHORTHOSTNAME} [R,L]
   ScriptAlias /stats/${SHORTHOSTNAME} ${COLLECTION_CGI}
 
   # Access control
