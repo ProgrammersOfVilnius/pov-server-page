@@ -1,3 +1,10 @@
+pov-server-page (0.10.5) UNRELEASED; urgency=low
+
+  * collection.cgi: fix CPU graph scale to 0--100%.  (Sometimes it would
+    show the scale up to 125% for no apparent reason.)
+
+ -- Marius Gedminas <marius@gedmin.as>  Tue, 08 Oct 2013 10:43:24 +0300
+
 pov-server-page (0.10.4) precise; urgency=low
 
   * Fix Apache configuration bug that didn't allow you to visit any URLs

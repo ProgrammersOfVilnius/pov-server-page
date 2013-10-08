@@ -3111,7 +3111,7 @@ sub meta_graph_cpu
   $opts->{'title'} = "$host/$plugin"
   . (defined ($plugin_instance) ? "-$plugin_instance" : '') . "/$type";
 
-  $opts->{'rrd_opts'} = ['-v', 'Percent'];
+  $opts->{'rrd_opts'} = ['-v', 'Percent', '-l', '0', '-u', '100'];
 
   my @files = ();
 
