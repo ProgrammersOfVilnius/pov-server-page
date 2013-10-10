@@ -4,6 +4,9 @@
   </head>
   <body>
     <h1>${HOSTNAME}</h1>
+% if CHANGELOG:
+    <p><a href="changelog">Changelog</a></p>
+% endif
     <p><a href="stats">Server stats</a></p>
     <p><a href="ports">Local port assignments</a></p>
 % if DISK_USAGE_LIST:

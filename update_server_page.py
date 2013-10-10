@@ -22,9 +22,12 @@ a2ensite and restart Apache::
 import ConfigParser
 import datetime
 import errno
+import grp
 import optparse
 import os
+import pwd
 import subprocess
+import stat
 import sys
 import time
 
@@ -41,6 +44,7 @@ if debian_package:
     libdir = '/usr/lib/pov-server-page'
     COLLECTION_CGI = os.path.join(libdir, 'collection.cgi')
     UPDATE_TCP_PORTS_SCRIPT = os.path.join(libdir, 'update-ports')
+    CHANGELOG2HTML_SCRIPT = os.path.join(libdir, 'changelog2html')
     DU2WEBTREEMAP = os.path.join(libdir, 'du2webtreemap')
     WEBTREEMAP = os.path.join(TEMPLATE_DIR, 'webtreemap')
 else:
@@ -51,6 +55,7 @@ else:
     TEMPLATE_DIR = os.path.join(here, 'templates')
     COLLECTION_CGI = os.path.join(here, 'collection.cgi')
     UPDATE_TCP_PORTS_SCRIPT = os.path.join(here, 'update_tcp_ports_html.py')
+    CHANGELOG2HTML_SCRIPT = os.path.join(here, 'changelog2html.py')
     DU2WEBTREEMAP = os.path.join(here, 'webtreemap-du', 'du2webtreemap.py')
     WEBTREEMAP = os.path.join(here, 'webtreemap')
 
@@ -331,6 +336,7 @@ class Builder(object):
     check_list = [
         ('/etc/apache2/mods-enabled/ssl.load', 'a2enmod ssl'),
         ('/etc/apache2/mods-enabled/rewrite.load', 'a2enmod rewrite'),
+        ('/etc/apache2/mods-enabled/wsgi.load', 'a2enmod wsgi'),
         ('/etc/apache2/sites-enabled/{HOSTNAME}', 'a2ensite {HOSTNAME}'),
         ('{AUTH_USER_FILE}', 'htpasswd -c {AUTH_USER_FILE} <username>')
     ]
@@ -370,6 +376,52 @@ class Builder(object):
         self.vars['SERVER_ALIAS_LIST'] = self.vars['SERVER_ALIASES'].split()
         self.vars['DISK_USAGE_LIST'] = self.DiskUsage.parse(self.vars['DISK_USAGE'])
         self.vars['EXTRA_LINKS_MAP'] = self.parse_pairs(self.vars['EXTRA_LINKS'])
+        self.vars['CHANGELOG2HTML_SCRIPT'] = CHANGELOG2HTML_SCRIPT
+        self.vars['CHANGELOG'] = self.file_readable_to('/root/Changelog',
+                                                       'www-data',
+                                                       'www-data')
+
+    def file_readable_to(self, filename, user, group):
+        try:
+            uid = pwd.getpwnam(user).pw_uid
+        except KeyError:
+            uid = -1
+        try:
+            gid = grp.getgrnam(user).gr_gid
+        except KeyError:
+            gid = -1
+        if not self.can_read(filename, uid, gid):
+            return False
+        dirname = os.path.dirname(filename)
+        while True:
+            if not self.can_execute(dirname, uid, gid):
+                return False
+            pardir = os.path.dirname(dirname)
+            if pardir == dirname:
+                return True
+            dirname = pardir
+
+    def can_read(self, filename, uid, gid):
+        try:
+            st = os.stat(filename)
+        except OSError:
+            return False
+        if st.st_uid == uid and stat.S_IMODE(st.st_mode) & stat.S_IRUSR:
+            return True
+        if st.st_gid == gid and stat.S_IMODE(st.st_mode) & stat.S_IRGRP:
+            return True
+        return stat.S_IMODE(st.st_mode) & stat.S_IROTH
+
+    def can_execute(self, filename, uid, gid):
+        try:
+            st = os.stat(filename)
+        except OSError:
+            return False
+        if st.st_uid == uid and stat.S_IMODE(st.st_mode) & stat.S_IXUSR:
+            return True
+        if st.st_gid == gid and stat.S_IMODE(st.st_mode) & stat.S_IXGRP:
+            return True
+        return stat.S_IMODE(st.st_mode) & stat.S_IXOTH
 
     def replace_file(self, destination, marker, new_contents):
         if marker not in new_contents:
