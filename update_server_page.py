@@ -341,6 +341,7 @@ class Builder(object):
         self.destdir = destdir
         for name, value in self.defaults.items():
             self.vars.setdefault(name, value)
+        self.needs_apache_reload = False
 
     @classmethod
     def ConfigParser(cls, **extra):
@@ -375,6 +376,8 @@ class Builder(object):
             new_contents = marker + '\n' + new_contents
         if replace_file(destination, marker, new_contents) and self.verbose:
             print("Created %s" % destination)
+            if destination.startswith('/etc/apache2'):
+                self.needs_apache_reload = True
 
     def parse_pairs(self, value):
         result = []
@@ -412,6 +415,8 @@ class Builder(object):
             filename = self.destdir + target.format(**self.vars)
             if not os.path.exists(filename):
                 print("Please run %s" % command.format(**self.vars))
+        if self.needs_apache_reload:
+            print("Please run apache2ctl configtest && apache2ctl graceful")
 
 
 def main():
