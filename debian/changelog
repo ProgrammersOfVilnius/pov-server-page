@@ -1,4 +1,4 @@
-pov-server-page (0.10.5) precise; urgency=low
+pov-server-page (0.11) precise; urgency=low
 
   * Page to show last 5 entries of /root/Changelog.
   * collection.cgi: fix CPU graph scale to 0--100%.  (Sometimes it would
