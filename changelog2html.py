@@ -98,7 +98,7 @@ def get_changelog(filename, _cache={}):
 
 
 def get_hostname():
-    return socket.gethostname()
+    return os.getenv('HOSTNAME', '') or socket.gethostname()
 
 
 def render_changelog():

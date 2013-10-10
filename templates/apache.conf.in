@@ -46,6 +46,9 @@
 % if CHANGELOG:
   # Changelog
   WSGIScriptAlias /changelog ${CHANGELOG2HTML_SCRIPT}
+  <Location /changelog>
+    SetEnv HOSTNAME "${HOSTNAME}"
+  </Location>
 
 % endif
   # Collectd stats
