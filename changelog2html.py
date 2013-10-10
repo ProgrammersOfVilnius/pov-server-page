@@ -131,7 +131,7 @@ def render_changelog():
 
 def wsgi_app(environ, start_response):
     PATH_INFO = environ['PATH_INFO']
-    if PATH_INFO != '/':
+    if PATH_INFO != '/' and PATH_INFO != '':
         status = '404 Not Found'
         headers = [('Content-Type', 'text/plain')]
         start_response(status, headers)
