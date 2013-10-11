@@ -380,6 +380,8 @@ class Builder(object):
         self.vars['CHANGELOG'] = self.file_readable_to('/root/Changelog',
                                                        'www-data',
                                                        'www-data')
+        if self.verbose and not self.vars['CHANGELOG']:
+            print("Skipping changelog view since /root/Changelog is not readable by user www-data")
 
     def file_readable_to(self, filename, user, group):
         try:
