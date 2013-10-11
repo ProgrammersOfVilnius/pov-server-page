@@ -1,3 +1,12 @@
+pov-server-page (0.12) UNRELEASED; urgency=low
+
+  * changelog2html: extract TODO items from the changelog.
+  * changelog2html: use preferred spelling of the server hostname from
+    /etc/pov/server-page.conf (via Apache's SetEnv; this was the intent from
+    the very beginning but the initial implementation was buggy).
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 11 Oct 2013 18:14:04 +0300
+
 pov-server-page (0.11) precise; urgency=low
 
   * Page to show last 5 entries of /root/Changelog.
