@@ -152,10 +152,18 @@ def wsgi_app(environ, start_response):
 application = wsgi_app  # for mod_wsgi
 
 
+def reloading_wsgi_app(environ, start_response):
+    # Horrible hack that gives me a fast development loop: reload the code on
+    # every request!
+    import changelog2html
+    reload(changelog2html)
+    return changelog2html.wsgi_app(environ, start_response)
+
+
 def main():
     from wsgiref.simple_server import make_server
     port = 8080
-    httpd = make_server('localhost', port, wsgi_app)
+    httpd = make_server('localhost', port, reloading_wsgi_app)
     print("Serving on http://localhost:%d" % port)
     try:
         httpd.serve_forever()
