@@ -14,6 +14,10 @@ __author__ = 'Marius Gedminas <marius@gedmin.as>'
 __version__ = '0.1'
 
 
+HOSTNAME = socket.gethostname()
+CHANGELOG_FILE = '/root/Changelog'
+
+
 class TextObject(object):
 
     def __init__(self):
@@ -97,13 +101,16 @@ def get_changelog(filename, _cache={}):
     return changelog
 
 
-def get_hostname():
-    return os.getenv('HOSTNAME', '') or socket.gethostname()
+def get_hostname(environ):
+    return environ.get('HOSTNAME') or os.getenv('HOSTNAME') or HOSTNAME
 
 
-def render_changelog():
-    changelog_file = os.getenv('CHANGELOG_FILE', '/root/Changelog')
-    changelog = get_changelog(changelog_file)
+def get_changelog_filename(environ):
+    return environ.get('CHANGELOG_FILE') or os.getenv('CHANGELOG_FILE') or CHANGELOG_FILE
+
+
+def render_changelog(environ):
+    changelog = get_changelog(get_changelog_filename(environ))
     return textwrap.dedent(u'''
         <html>
           <head>
@@ -121,7 +128,7 @@ def render_changelog():
             {more}
           </body>
         </html>
-        ''').format(hostname=get_hostname(),
+        ''').format(hostname=get_hostname(environ),
                     preamble=changelog.preamble.as_html(),
                     entries='\n'.join(e.as_html() for e in changelog.entries[:-5:-1]),
                     more='(%d older changelog entries are present)'
@@ -139,7 +146,7 @@ def wsgi_app(environ, start_response):
     status = '200 OK'
     headers = [('Content-Type', 'text/html; charset=UTF-8')]
     start_response(status, headers)
-    return [render_changelog().encode('UTF-8')]
+    return [render_changelog(environ).encode('UTF-8')]
 
 
 application = wsgi_app  # for mod_wsgi
