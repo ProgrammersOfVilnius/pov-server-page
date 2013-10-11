@@ -23,18 +23,26 @@ class TextObject(object):
     def __init__(self):
         self.text = []
 
+    def pre(self, slice=slice(None)):
+        return u'<pre>%s</pre>' % (
+            u''.join(cgi.escape(line) for line in self.text[slice]).rstrip())
+
     def as_html(self):
-        return u'<pre>%s</pre>' % u''.join(cgi.escape(line) for line in self.text)
+        return self.pre()
 
 
 class Preamble(TextObject):
-    pass
+    id = 0
+
+    def title(self):
+        return u'Preamble'
 
 
 class Entry(TextObject):
 
-    def __init__(self, year, month, day, hour, minute, timezone, user):
+    def __init__(self, id, year, month, day, hour, minute, timezone, user):
         TextObject.__init__(self)
+        self.id = id
         self.year = year
         self.month = month
         self.day = day
@@ -43,15 +51,39 @@ class Entry(TextObject):
         self.timezone = timezone
         self.user = user
 
+    def timestamp(self):
+        return u'{year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d} {timezone}'.format(
+                year=self.year, month=self.month, day=self.day,
+                hour=self.hour, minute=self.minute, timezone=self.timezone)
+
+    def title(self):
+        return u'{timestamp} {user}'.format(timestamp=self.timestamp(), user=self.user)
+
     def as_html(self):
         return (
-            u'<h3>{year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d} {timezone} {user}</h3>\n'
-            u'{text}'.format(
-                year=self.year, month=self.month, day=self.day,
-                hour=self.hour, minute=self.minute, timezone=self.timezone,
-                user=self.user,
-                text=u'<pre>%s</pre>' % u''.join(cgi.escape(line)
-                                                 for line in self.text[1:]).rstrip()))
+            u'<h3>{title}</h3>\n'
+            u'{text}'
+        ).format(
+            title=cgi.escape(self.title()),
+            text=self.pre(slice(1, None)), # skip self.text[0] because it's the header
+        )
+
+
+class ToDoItem(TextObject):
+
+    def __init__(self, entry=None, prefix=None, title=None):
+        TextObject.__init__(self)
+        self.entry = entry
+        self.prefix = prefix
+        self.title = title
+
+    def as_html(self):
+        return (
+            u'<li>{title} ({entry})</li>'
+        ).format(
+            title=cgi.escape(self.title.strip()),
+            entry=cgi.escape(self.entry.title()),
+        )
 
 
 class Changelog(object):
@@ -60,10 +92,12 @@ class Changelog(object):
         r'^(?P<year>\d\d\d\d)-(?P<month>\d\d)-(?P<day>\d\d)'
         r' (?P<hour>\d\d):(?P<minute>\d\d)(?: (?P<timezone>[-+]\d\d\d\d))?'
         r'(?:: (?P<user>.*))?$')
+    _todo_item = re.compile('^(?P<prefix>.*)- \[ ] (?P<title>.*)')
 
     def __init__(self, filename=None):
         self.preamble = Preamble()
         self.entries = []
+        self.todo = []
         self.mtime = None
         if filename:
             self.read(filename)
@@ -74,23 +108,35 @@ class Changelog(object):
             self.parse(fp)
 
     def parse(self, fp):
-        entry = None
+        entry = self.preamble
+        todo = None
         for line in fp:
             line = line.decode('UTF-8', 'replace')
             m = self._entry_header.match(line)
             if m is not None:
-                entry = Entry(int(m.group('year')),
-                              int(m.group('month')),
-                              int(m.group('day')),
-                              int(m.group('hour')),
-                              int(m.group('minute')),
-                              m.group('timezone'),
-                              m.group('user'))
+                entry = Entry(id=len(self.entries) + 1,
+                              year=int(m.group('year')),
+                              month=int(m.group('month')),
+                              day=int(m.group('day')),
+                              hour=int(m.group('hour')),
+                              minute=int(m.group('minute')),
+                              timezone=m.group('timezone'),
+                              user=m.group('user'))
                 self.entries.append(entry)
-            if entry is not None:
-                entry.text.append(line)
-            else:
-                self.preamble.text.append(line)
+            entry.text.append(line)
+            m = self._todo_item.match(line)
+            if m is not None:
+                todo = ToDoItem(entry=entry,
+                                prefix=m.group('prefix'),
+                                title=m.group('title'))
+                todo.text.append(line)
+                self.todo.append(todo)
+            elif todo is not None:
+                if line.startswith(todo.prefix + '  '):
+                    todo.title += line[len(todo.prefix) + 1:]
+                    todo.text.append(line)
+                else:
+                    todo = None
 
 
 def get_changelog(filename, _cache={}):
@@ -121,6 +167,8 @@ def render_changelog(environ):
 
             {preamble}
 
+            {todos}
+
             <h2>Latest entries</h2>
 
             {entries}
@@ -130,10 +178,26 @@ def render_changelog(environ):
         </html>
         ''').format(hostname=get_hostname(environ),
                     preamble=changelog.preamble.as_html(),
+                    todos=render_todos(changelog),
                     entries='\n'.join(e.as_html() for e in changelog.entries[:-5:-1]),
                     more='(%d older changelog entries are present)'
                             % (len(changelog.entries) - 5)
                                  if len(changelog.entries) > 5 else '')
+
+
+def render_todos(changelog):
+    if not changelog.todo:
+        return u''
+    return textwrap.dedent(u'''
+        <h2>To do list</h2>
+
+        <ul class="todo">
+        {items}
+        </ul>
+        ''').format(items='\n'.join('  ' + i.as_html()
+                                    for i in sorted(changelog.todo,
+                                                    reverse=True,
+                                                    key=lambda i: i.entry.id)))
 
 
 def wsgi_app(environ, start_response):
