@@ -1,8 +1,8 @@
-pov-server-page (0.13) UNRELEASED; urgency=low
+pov-server-page (0.13) precise; urgency=low
 
   * collection.cgi: add support for the contextswitch plugin.
 
- -- Marius Gedminas <marius@gedmin.as>  Thu, 17 Oct 2013 13:24:18 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 17 Oct 2013 13:26:24 +0300
 
 pov-server-page (0.12) precise; urgency=low
 
