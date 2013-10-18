@@ -341,7 +341,8 @@ class Builder(object):
         ('{AUTH_USER_FILE}', 'htpasswd -c {AUTH_USER_FILE} <username>')
     ]
 
-    def __init__(self, vars, template_dir=TEMPLATE_DIR, destdir=''):
+    def __init__(self, vars, template_dir=TEMPLATE_DIR, destdir='', verbose=False):
+        self.verbose = verbose
         self.vars = vars
         self.lookup = TemplateLookup(directories=[template_dir])
         self.destdir = destdir
@@ -449,9 +450,10 @@ class Builder(object):
     def parse_map(self, value):
         return dict(self.parse_pairs(value))
 
-    def build(self, verbose=False):
+    def build(self, verbose=None):
+        if verbose is not None:
+            self.verbose = verbose
         self._compute_derived()
-        self.verbose = verbose
         skip = self.vars['SKIP'].split()
         redirect = self.parse_map(self.vars['REDIRECT'])
         for destination, subbuilder in self.build_list:
