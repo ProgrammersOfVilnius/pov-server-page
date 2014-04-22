@@ -31,6 +31,6 @@ Usage
     chmod +x /root  # make /root/Changelog readable by www-data
     pov-update-server-page -v
     a2enmod rewrite ssl wsgi
-    a2ensite $(hostname -f)
+    a2ensite $(hostname -f).conf
     apache2ctl configtest && apache2ctl graceful
 

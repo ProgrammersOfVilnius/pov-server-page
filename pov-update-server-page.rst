@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2013-10-18
-:Version: 0.13.1
+:Date: 2014-04-22
+:Version: 0.14.0
 :Manual section: 8
 
 
@@ -57,10 +57,10 @@ HOW IT WORKS
 ============
 
 More specifically, it creates a number of files under ``/var/www/``\ *HOSTNAME*
-and an Apache site in ``/etc/apache2/sites-available/``\ *HOSTNAME*.  It also
+and an Apache site in ``/etc/apache2/sites-available/``\ *HOSTNAME*\ ``.conf``.  It also
 creates a directory for Apache logs under ``/var/log/apache2/``\ *HOSTNAME*.
 Then it tells you what commands you need to run to enable that site (usually
-something like ``a2enmod ssl rewrite; a2ensite`` *HOSTNAME*\ ``; htpasswd -c``
+something like ``a2enmod ssl rewrite; a2ensite`` *HOSTNAME*\ ``.conf; htpasswd -c``
 *PASSWDFILE*).
 
 It is private: the site configuration will require SSL and password

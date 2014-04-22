@@ -3,7 +3,7 @@
 Build a generic server page.  Useful for sysadmins.
 
 Reads a configuration file (/etc/pov/server-page.conf by default) and creates
-an Apache vhost in /etc/apache2/sites-enabled/{hostname}, as well as a
+an Apache vhost in /etc/apache2/sites-enabled/{hostname}.conf, as well as a
 static website in /var/www/{hostname}.
 
 For full setup you also need to create the directory for Apache logs, enable
@@ -14,7 +14,7 @@ a2ensite and restart Apache::
     htpasswd -c /etc/pov/fridge.passwd username
     a2enmod ssl rewrite
     # skipping SSL cert setup: too long
-    a2ensite $(hostname -f)
+    a2ensite $(hostname -f).conf
     apache2ctl configtest && apache2ctl graceful
 
 """
@@ -330,14 +330,14 @@ class Builder(object):
              DiskUsage()),
         ('/var/log/apache2/{HOSTNAME}',
              Directory()),
-        ('/etc/apache2/sites-available/{HOSTNAME}',
+        ('/etc/apache2/sites-available/{HOSTNAME}.conf',
              Template('apache.conf.in', CONFIG_MARKER)),
     ]
     check_list = [
         ('/etc/apache2/mods-enabled/ssl.load', 'a2enmod ssl'),
         ('/etc/apache2/mods-enabled/rewrite.load', 'a2enmod rewrite'),
         ('/etc/apache2/mods-enabled/wsgi.load', 'a2enmod wsgi'),
-        ('/etc/apache2/sites-enabled/{HOSTNAME}', 'a2ensite {HOSTNAME}'),
+        ('/etc/apache2/sites-enabled/{HOSTNAME}.conf', 'a2ensite {HOSTNAME}.conf'),
         ('{AUTH_USER_FILE}', 'htpasswd -c {AUTH_USER_FILE} <username>')
     ]
 
