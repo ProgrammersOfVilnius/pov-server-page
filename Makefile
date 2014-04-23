@@ -88,4 +88,4 @@ vagrant-test-install: binary-package
 
 .PHONY: pbuilder-test-build
 pbuilder-test-build: source-package
-	pbuilder-dist precise build pkgbuild/$(source)_$(version).dsc
+	pbuilder-dist lucid build pkgbuild/$(source)_$(version).dsc
