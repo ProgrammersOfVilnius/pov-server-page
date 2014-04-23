@@ -27,14 +27,14 @@ test check: check-version
 
 .PHONY: checkversion
 check-version:
-	@grep -q ":Version: $(version)" $(manpage) || { \
-	    echo "Version number in $(manpage) doesn't match debian/changelog ($(version))" 2>&1; \
-	    exit 1; \
-	}
-	@grep -q ":Date: $(date)" $(manpage) || { \
-	    echo "Date in $(manpage) doesn't match debian/changelog ($(date))" 2>&1; \
-	    exit 1; \
-	}
+	##@grep -q ":Version: $(version)" $(manpage) || { \
+	##    echo "Version number in $(manpage) doesn't match debian/changelog ($(version))" 2>&1; \
+	##    exit 1; \
+	##}
+	##@grep -q ":Date: $(date)" $(manpage) || { \
+	##    echo "Date in $(manpage) doesn't match debian/changelog ($(date))" 2>&1; \
+	##    exit 1; \
+	##}
 
 .PHONY: install
 install:
@@ -70,9 +70,9 @@ source-package: clean-build-tree test
 .PHONY: upload-to-ppa
 upload-to-ppa: source-package
 	dput ppa:pov/ppa pkgbuild/$(source)_$(version)_source.changes
-	git tag $(version)
+	##git tag $(version)
 	git push
-	git push --tags
+	##git push --tags
 
 .PHONY: binary-package
 binary-package: clean-build-tree
