@@ -1,3 +1,10 @@
+pov-server-page (0.14.0lucid1) lucid; urgency=medium
+
+  * Source-only reupload to lucid because packages built on trusty use .xz
+    compression that is not supported by lucid.
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 23 Apr 2014 11:01:25 +0300
+
 pov-server-page (0.14.0) trusty; urgency=medium
 
   * Rename apache site to HOSTNAME.conf; this is needed for Apache 2.4 in
