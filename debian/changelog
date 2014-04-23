@@ -1,3 +1,9 @@
+pov-server-page (0.14.0lucid2) lucid; urgency=medium
+
+  * Downgrade debhelper build dependency to 7.0.0 (lucid has 7.4.15).
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 23 Apr 2014 11:22:26 +0300
+
 pov-server-page (0.14.0lucid1) lucid; urgency=medium
 
   * Source-only reupload to lucid because packages built on trusty use .xz
