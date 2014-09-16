@@ -1,3 +1,9 @@
+pov-server-page (0.14.2) precise; urgency=medium
+
+  * Fix server_aliases handling that made it unusable.
+
+ -- Marius Gedminas <marius@gedmin.as>  Tue, 16 Sep 2014 14:14:56 +0300
+
 pov-server-page (0.14.1) trusty; urgency=medium
 
   * update-ports: Fix IndexError when pmap_dump omits program name.
