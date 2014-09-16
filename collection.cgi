@@ -3223,6 +3223,10 @@ sub meta_graph_df
   $opts->{'number_format'} = '%5.1lf%s';
   $opts->{'rrd_opts'} = ['-l', 0, '-b', '1024', '-v', 'Bytes'];
 
+  $opts->{'exclude_from_trend'} = { '0free' => 1, '1reserved' => 1 };
+  $opts->{'trend_lower_limit'} = 0;
+  $opts->{'trend_upper_limit'} = 'max';
+
   my @files = ();
 
   $opts->{'colors'} =
