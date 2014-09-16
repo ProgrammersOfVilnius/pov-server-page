@@ -15,7 +15,7 @@ from cgi import escape
 from collections import namedtuple, defaultdict
 
 
-__version__ = '0.4.3'
+__version__ = '0.4.4'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -102,7 +102,13 @@ def pmap_dump():
     with subprocess.Popen(['pmap_dump'], stdout=subprocess.PIPE,
                           stderr=open('/dev/null', 'w')).stdout as f:
         for line in f:
-            parts = line.split()
+            parts = line.split(None, 4)
+            if len(parts) < 5:
+                # sometimes pmap_dump outputs lines with no program name
+                # in my experiments these were duplicating the proto+port from
+                # a line above, with different 1st two fields (which mean
+                # no-idea-what, the format is undocumented)
+                continue
             proto = parts[2]
             port = parts[3]
             program = parts[4]
