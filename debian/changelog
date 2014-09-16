@@ -1,3 +1,9 @@
+pov-server-page (0.14.1) trusty; urgency=medium
+
+  * update-ports: Fix IndexError when pmap_dump omits program name.
+
+ -- Marius Gedminas <marius@gedmin.as>  Tue, 16 Sep 2014 09:40:00 +0300
+
 pov-server-page (0.14.0) trusty; urgency=medium
 
   * Rename apache site to HOSTNAME.conf; this is needed for Apache 2.4 in
