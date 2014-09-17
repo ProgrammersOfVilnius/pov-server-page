@@ -240,6 +240,12 @@ class Builder(object):
             return location.lstrip('/').replace('/', '-') or 'root'
 
         def disk_graph_url(self, location, timespan='trend'):
+            if self.has_disk_graph_v5(location):
+                return self.disk_graph_url_v5(location, timespan)
+            else:
+                return self.disk_graph_url_v4(location, timespan)
+
+        def disk_graph_url_v4(self, location, timespan='trend'):
             return ('/stats/{hostname}?action=show_graph;'
                     'host={collectd_hostname};plugin=df;type=df;'
                     'type_instance={location_name};timespan={timespan}'.format(
@@ -248,8 +254,26 @@ class Builder(object):
                         location_name=self.location_name(location),
                         timespan=timespan))
 
+        def disk_graph_url_v5(self, location, timespan='trend'):
+            return ('/stats/{hostname}?action=show_graph;'
+                    'host={collectd_hostname};plugin=df;type=df_complex;'
+                    'plugin_instance={location_name};timespan={timespan}'.format(
+                        hostname=self.hostname,
+                        collectd_hostname=self.collectd_hostname,
+                        location_name=self.location_name(location),
+                        timespan=timespan))
+
         def has_disk_graph(self, location):
+            return (self.has_disk_graph_v4(location) or
+                    self.has_disk_graph_v5(location))
+
+        def has_disk_graph_v4(self, location):
             return os.path.exists('/var/lib/collectd/rrd/%s/df/df-%s.rrd' %
+                                  (self.collectd_hostname,
+                                   self.location_name(location)))
+
+        def has_disk_graph_v5(self, location):
+            return os.path.exists('/var/lib/collectd/rrd/%s/df-%s/df_complex-used.rrd' %
                                   (self.collectd_hostname,
                                    self.location_name(location)))
 

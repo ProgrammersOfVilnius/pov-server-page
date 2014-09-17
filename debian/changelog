@@ -1,3 +1,9 @@
+pov-server-page (0.16.0) precise; urgency=medium
+
+  * Disk usage page: support graphs from collectd 5.x (df_complex).
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 17 Sep 2014 09:59:19 +0300
+
 pov-server-page (0.15.0) precise; urgency=medium
 
   * collection.cgi: merge with latest upstream version:
