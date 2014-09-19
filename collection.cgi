@@ -2576,7 +2576,7 @@ sub load_graph_definitions
     'GPRINT:max:MAX:%5.1lf%s%% Max,',
     'GPRINT:avg:LAST:%5.1lf%s%% Last\l'
     ],
-    swap => ['-v', 'Bytes', '-b', '1024',
+    swap => ['-v', 'Bytes', '-b', '1024', '-l', '0',
     'DEF:avg={file}:value:AVERAGE',
     'DEF:min={file}:value:MIN',
     'DEF:max={file}:value:MAX',
@@ -3341,7 +3341,7 @@ sub meta_graph_memory
   . (defined ($plugin_instance) ? "-$plugin_instance" : '') . "/$type";
   $opts->{'number_format'} = '%5.1lf%s';
 
-  $opts->{'rrd_opts'} = ['-b', '1024', '-v', 'Bytes'];
+  $opts->{'rrd_opts'} = ['-b', '1024', '-v', 'Bytes', '-l', '0'];
   $opts->{'exclude_from_trend'} = { '0free' => 1, '1cached' => 1, '2buffered' => 1 };
   $opts->{'trend_lower_limit'} = 0;
   $opts->{'trend_upper_limit'} = 'max';
