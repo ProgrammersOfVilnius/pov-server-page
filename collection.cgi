@@ -1824,7 +1824,7 @@ sub load_graph_definitions
     'GPRINT:max:MAX:%4.1lf Max,',
     'GPRINT:avg:LAST:%4.1lf Last\l'
     ],
-    memory => ['-b', '1024', '-v', 'Bytes',
+    memory => ['-b', '1024', '-v', 'Bytes', '-l', '0',
     'DEF:avg={file}:value:AVERAGE',
     'DEF:min={file}:value:MIN',
     'DEF:max={file}:value:MAX',
