@@ -299,6 +299,7 @@ def mako_error_handler(context, error):
 
 def Template(*args, **kw):
     return mako.template.Template(error_handler=mako_error_handler,
+                                  default_filters=['h'],
                                   *args, **kw)
 
 
@@ -359,7 +360,7 @@ main_template = Template(textwrap.dedent('''
           </form>
         </div>
 
-        ${changelog.preamble.as_html()}
+        ${changelog.preamble.as_html()|n}
 
     % if changelog.todo:
         <h2>To do list</h2>
@@ -380,7 +381,7 @@ main_template = Template(textwrap.dedent('''
 
     %     for entry in changelog.entries[:-n:-1]:
         <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
-        ${entry.pre(slice(1, None))}
+        ${entry.pre(slice(1, None))|n}
     %     endfor
 
     %     if len(changelog.entries) > n:
@@ -419,14 +420,14 @@ all_template = Template(textwrap.dedent('''
           </form>
         </div>
 
-        ${changelog.preamble.as_html()}
+        ${changelog.preamble.as_html()|n}
 
     % if not changelog.entries:
     <p>The changelog is empty.</p>
     % else:
     %     for entry in changelog.entries:
     <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
-        ${entry.pre(slice(1, None))}
+        ${entry.pre(slice(1, None))|n}
     %     endfor
     % endif
       </body>
@@ -477,7 +478,7 @@ year_template = Template(textwrap.dedent('''
 
     %     for entry in entries:
     <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
-        ${entry.pre(slice(1, None))}
+        ${entry.pre(slice(1, None))|n}
     %     endfor
     % endif
 
@@ -541,7 +542,7 @@ month_template = Template(textwrap.dedent('''
 
     %     for entry in entries:
     <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
-        ${entry.pre(slice(1, None))}
+        ${entry.pre(slice(1, None))|n}
     %     endfor
     % endif
 
@@ -604,7 +605,7 @@ day_template = Template(textwrap.dedent('''
 
     %     for entry in entries:
         <h3 id="e${entry.id}">${entry.title()} <a class="permalink" href="${entry.url(prefix)}">&para;</a></h3>
-        ${entry.pre(slice(1, None))}
+        ${entry.pre(slice(1, None))|n}
     %     endfor
     % endif
 
@@ -655,7 +656,7 @@ search_template = Template(textwrap.dedent('''
 
     % for entry in entries:
         <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
-        ${entry.pre(slice(1, None))}
+        ${entry.pre(slice(1, None))|n}
     % endfor
 
       </body>
