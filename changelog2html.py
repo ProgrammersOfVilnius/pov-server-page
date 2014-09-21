@@ -395,6 +395,44 @@ def main_page(environ):
     return main_template.render(hostname=hostname, changelog=changelog)
 
 
+all_template = Template(textwrap.dedent('''
+    <html>
+      <head>
+        <title>All entries - /root/Changelog on ${hostname}</title>
+        <link rel="stylesheet" href="/style.css" />
+      </head>
+      <body>
+        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+
+        <div class="searchbox">
+          <form action="search" method="get">
+            <input type="text" name="q" class="searchtext" accesskey="s" />
+            <input type="submit" value="Search" class="searchbutton" />
+          </form>
+        </div>
+
+        ${changelog.preamble.as_html()}
+
+    % if not changelog.entries:
+    <p>The changelog is empty.</p>
+    % else:
+    %     for entry in changelog.entries:
+    <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+        ${entry.pre(slice(1, None))}
+    %     endfor
+    % endif
+      </body>
+    </html>
+'''))
+
+
+@path(r'/all')
+def all_page(environ):
+    hostname = get_hostname(environ)
+    changelog = get_changelog(get_changelog_filename(environ))
+    return all_template.render(hostname=hostname, changelog=changelog)
+
+
 year_template = Template(textwrap.dedent('''
     <html>
       <head>
