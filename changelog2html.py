@@ -64,6 +64,9 @@ class Entry(TextObject):
         self.timezone = timezone
         self.user = user
 
+    def search(self, query):
+        return any(query in line for line in self.text)
+
     def date(self):
         return datetime.date(self.year, self.month, self.day)
 
@@ -125,6 +128,11 @@ class Changelog(object):
 
     def filter(self, year, month, day):
         return self.date_index.get(datetime.date(year, month, day), [])
+
+    def search(self, query):
+        for entry in reversed(self.entries):
+            if entry.search(query):
+                yield entry
 
     def read(self, filename):
         with open(filename) as fp:
@@ -296,6 +304,12 @@ STYLESHEET = textwrap.dedent('''
         color: black;
     }
 
+    .searchbox {
+        position: absolute;
+        top: 1em;
+        right: 1em;
+    }
+
     .navbar strong {
         padding: 0 4px;
     }
@@ -328,6 +342,13 @@ main_template = Template(textwrap.dedent('''
       </head>
       <body>
         <h1>/root/Changelog on ${hostname}</h1>
+
+        <div class="searchbox">
+          <form action="search" method="get">
+            <input type="text" name="q" class="searchtext" autofocus accesskey="s" />
+            <input type="submit" value="Search" class="searchbutton" />
+          </form>
+        </div>
 
         ${changelog.preamble.as_html()}
 
@@ -440,6 +461,44 @@ def day_page(environ, year, month, day):
                                prev_date=prev_date,
                                next_url=date_url(next_date),
                                next_date=next_date)
+
+
+search_template = Template(textwrap.dedent('''
+    <html>
+      <head>
+        <title>${query} - /root/Changelog on ${hostname}</title>
+        <link rel="stylesheet" href="/style.css" />
+      </head>
+      <body>
+        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+
+        <div class="searchbox">
+          <form action="search" method="get">
+            <input type="text" name="q" class="searchtext" autofocus value="${query}" accesskey="s" />
+            <input type="submit" value="Search" class="searchbutton" />
+          </form>
+        </div>
+
+        <p>${len(entries)} results for '${query}'</h2>
+
+    % for entry in entries:
+        <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+        ${entry.pre(slice(1, None))}
+    % endfor
+
+      </body>
+    </html>
+'''))
+
+
+@path(r'/search')
+def search_page(environ):
+    form = cgi.parse_qs(environ.get('QUERY_STRING', ''))
+    query = form.get('q', [''])[0]
+    hostname = get_hostname(environ)
+    changelog = get_changelog(get_changelog_filename(environ))
+    entries = list(changelog.search(query))
+    return search_template.render(hostname=hostname, query=query, entries=entries)
 
 
 def wsgi_app(environ, start_response):
