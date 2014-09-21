@@ -78,9 +78,10 @@ class Entry(TextObject):
     def title(self):
         return u'{timestamp} {user}'.format(timestamp=self.timestamp(), user=self.user)
 
-    def url(self):
-        return u'/{year:04d}/{month:02d}/{day:02d}/#e{id}'.format(
-            year=self.year, month=self.month, day=self.day, id=self.id)
+    def url(self, prefix):
+        return u'{prefix}/{year:04d}/{month:02d}/{day:02d}/#e{id}'.format(
+            prefix=prefix, year=self.year, month=self.month, day=self.day,
+            id=self.id)
 
     def as_html(self):
         return (
@@ -251,6 +252,11 @@ def dispatch(environ):
     return partial(not_found, environ)
 
 
+def get_prefix(environ):
+    script_name = environ['SCRIPT_NAME']
+    return script_name.rstrip('/')
+
+
 #
 # Pretty error messages
 #
@@ -341,13 +347,13 @@ main_template = Template(textwrap.dedent('''
     <html>
       <head>
         <title>/root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="/style.css" />
+        <link rel="stylesheet" href="${prefix}/style.css" />
       </head>
       <body>
         <h1>/root/Changelog on ${hostname}</h1>
 
         <div class="searchbox">
-          <form action="search" method="get">
+          <form action="${prefix}/search" method="get">
             <input type="text" name="q" class="searchtext" autofocus accesskey="s" />
             <input type="submit" value="Search" class="searchbutton" />
           </form>
@@ -361,7 +367,7 @@ main_template = Template(textwrap.dedent('''
         <ul class="todo">
     <% todos = sorted(changelog.todo, reverse=True, key=lambda i: i.entry.id) %>
     %     for item in todos:
-          <li><a href="${item.entry.url()}">${item.title}</a></li>
+          <li><a href="${item.entry.url(prefix)}">${item.title}</a></li>
     %     endfor
         </ul>
     % endif
@@ -373,12 +379,12 @@ main_template = Template(textwrap.dedent('''
         <h2>Latest entries</h2>
 
     %     for entry in changelog.entries[:-n:-1]:
-        <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+        <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
         ${entry.pre(slice(1, None))}
     %     endfor
 
     %     if len(changelog.entries) > n:
-        <a href="${changelog.entries[-n].url()}">
+        <a href="${changelog.entries[-n].url(prefix)}">
         (${len(changelog.entries) - n} older changelog entries are present)
         </a>
     %     endif
@@ -390,22 +396,24 @@ main_template = Template(textwrap.dedent('''
 
 @path('/')
 def main_page(environ):
+    prefix = get_prefix(environ)
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
-    return main_template.render(hostname=hostname, changelog=changelog)
+    return main_template.render(hostname=hostname, changelog=changelog,
+                                prefix=prefix)
 
 
 all_template = Template(textwrap.dedent('''
     <html>
       <head>
         <title>All entries - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="/style.css" />
+        <link rel="stylesheet" href="${prefix}/style.css" />
       </head>
       <body>
-        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+        <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
-          <form action="search" method="get">
+        <form action="${prefix}/search" method="get">
             <input type="text" name="q" class="searchtext" accesskey="s" />
             <input type="submit" value="Search" class="searchbutton" />
           </form>
@@ -417,7 +425,7 @@ all_template = Template(textwrap.dedent('''
     <p>The changelog is empty.</p>
     % else:
     %     for entry in changelog.entries:
-    <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+    <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
         ${entry.pre(slice(1, None))}
     %     endfor
     % endif
@@ -428,19 +436,21 @@ all_template = Template(textwrap.dedent('''
 
 @path(r'/all')
 def all_page(environ):
+    prefix = get_prefix(environ)
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
-    return all_template.render(hostname=hostname, changelog=changelog)
+    return all_template.render(hostname=hostname, changelog=changelog,
+                               prefix=prefix)
 
 
 year_template = Template(textwrap.dedent('''
     <html>
       <head>
         <title>${date} - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="/style.css" />
+        <link rel="stylesheet" href="${prefix}/style.css" />
       </head>
       <body>
-        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+        <h1><a href="{$prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
           <form action="search" method="get">
@@ -466,7 +476,7 @@ year_template = Template(textwrap.dedent('''
     % else:
 
     %     for entry in entries:
-    <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+    <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
         ${entry.pre(slice(1, None))}
     %     endfor
     % endif
@@ -479,6 +489,7 @@ year_template = Template(textwrap.dedent('''
 
 @path(r'/(\d\d\d\d)')
 def year_page(environ, year):
+    prefix = get_prefix(environ)
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
     entries = changelog.filter(year=int(year))
@@ -486,26 +497,26 @@ def year_page(environ, year):
     year_last = datetime.date(int(year), 12, 31)
     prev_date = changelog.prev_date(year_1st)
     next_date = changelog.next_date(year_last)
-    return year_template.render(hostname=hostname,
-                                date=year,
-                                entries=entries,
-                                prev_url=prev_date and prev_date.strftime('/%Y'),
-                                prev_date=prev_date and prev_date.strftime('%Y'),
-                                next_url=next_date and next_date.strftime('/%Y'),
-                                next_date=next_date and next_date.strftime('%Y'))
+    return year_template.render(
+        hostname=hostname, date=year, entries=entries,
+        prev_url=prev_date and (prefix + prev_date.strftime('/%Y')),
+        prev_date=prev_date and prev_date.strftime('%Y'),
+        next_url=next_date and (prefix + next_date.strftime('/%Y')),
+        next_date=next_date and next_date.strftime('%Y'),
+        prefix=prefix)
 
 
 month_template = Template(textwrap.dedent('''
     <html>
       <head>
         <title>${date} - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="/style.css" />
+        <link rel="stylesheet" href="${prefix}/style.css" />
       </head>
       <body>
-        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+        <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
-          <form action="search" method="get">
+          <form action="${prefix}/search" method="get">
             <input type="text" name="q" class="searchtext" accesskey="s" />
             <input type="submit" value="Search" class="searchbutton" />
           </form>
@@ -529,7 +540,7 @@ month_template = Template(textwrap.dedent('''
     % else:
 
     %     for entry in entries:
-    <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+    <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
         ${entry.pre(slice(1, None))}
     %     endfor
     % endif
@@ -540,12 +551,9 @@ month_template = Template(textwrap.dedent('''
 '''))
 
 
-def month_url(date):
-    return date.strftime('/%Y/%m') if date else None
-
-
 @path(r'/(\d\d\d\d)/(\d\d)')
 def month_page(environ, year, month):
+    prefix = get_prefix(environ)
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
     entries = changelog.filter(year=int(year), month=int(month))
@@ -553,23 +561,23 @@ def month_page(environ, year, month):
     month_last = (month_1st + datetime.timedelta(31)).replace(day=1) - datetime.timedelta(1)
     prev_date = changelog.prev_date(month_1st)
     next_date = changelog.next_date(month_last)
-    return month_template.render(hostname=hostname,
-                                 date='%s-%s' % (year, month),
-                                 entries=entries,
-                                 prev_url=month_url(prev_date),
-                                 prev_date=prev_date and prev_date.strftime('%Y-%m'),
-                                 next_url=month_url(next_date),
-                                 next_date=next_date and next_date.strftime('%Y-%m'))
+    return month_template.render(
+        hostname=hostname, date='%s-%s' % (year, month), entries=entries,
+        prev_url=prev_date and (prefix + prev_date.strftime('/%Y/%m')),
+        prev_date=prev_date and prev_date.strftime('%Y-%m'),
+        next_url=next_date and (prefix + next_date.strftime('/%Y/%m')),
+        next_date=next_date and next_date.strftime('%Y-%m'),
+        prefix=prefix)
 
 
 day_template = Template(textwrap.dedent('''
     <html>
       <head>
         <title>${date} - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="/style.css" />
+        <link rel="stylesheet" href="${prefix}/style.css" />
       </head>
       <body>
-        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+        <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
           <form action="search" method="get">
@@ -595,7 +603,7 @@ day_template = Template(textwrap.dedent('''
     % else:
 
     %     for entry in entries:
-        <h3 id="e${entry.id}">${entry.title()} <a class="permalink" href="${entry.url()}">&para;</a></h3>
+        <h3 id="e${entry.id}">${entry.title()} <a class="permalink" href="${entry.url(prefix)}">&para;</a></h3>
         ${entry.pre(slice(1, None))}
     %     endfor
     % endif
@@ -606,12 +614,9 @@ day_template = Template(textwrap.dedent('''
 '''))
 
 
-def date_url(date):
-    return date.strftime('/%Y/%m/%d') if date else None
-
-
 @path(r'/(\d\d\d\d)/(\d\d)/(\d\d)')
 def day_page(environ, year, month, day):
+    prefix = get_prefix(environ)
     try:
         date = datetime.date(int(year), int(month), int(day))
     except ValueError:
@@ -621,23 +626,23 @@ def day_page(environ, year, month, day):
     entries = changelog.date_index.get(date, [])
     prev_date = changelog.prev_date(date)
     next_date = changelog.next_date(date)
-    return day_template.render(date=date,
-                               hostname=hostname,
-                               entries=entries,
-                               prev_url=date_url(prev_date),
-                               prev_date=prev_date,
-                               next_url=date_url(next_date),
-                               next_date=next_date)
+    return day_template.render(
+        date=date, hostname=hostname, entries=entries,
+        prev_url=prev_date and (prefix + prev_date.strftime('/%Y/%m/%d')),
+        prev_date=prev_date,
+        next_url=next_date and (prefix + next_date.strftime('/%Y/%m/%d')),
+        next_date=next_date,
+        prefix=prefix)
 
 
 search_template = Template(textwrap.dedent('''
     <html>
       <head>
         <title>${query} - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="/style.css" />
+        <link rel="stylesheet" href="${prefix}/style.css" />
       </head>
       <body>
-        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+        <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
           <form action="search" method="get">
@@ -649,7 +654,7 @@ search_template = Template(textwrap.dedent('''
         <p>${len(entries)} results for '${query}'</h2>
 
     % for entry in entries:
-        <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+        <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
         ${entry.pre(slice(1, None))}
     % endfor
 
@@ -660,12 +665,14 @@ search_template = Template(textwrap.dedent('''
 
 @path(r'/search')
 def search_page(environ):
+    prefix = get_prefix(environ)
     form = cgi.parse_qs(environ.get('QUERY_STRING', ''))
     query = form.get('q', [''])[0]
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
     entries = list(changelog.search(query))
-    return search_template.render(hostname=hostname, query=query, entries=entries)
+    return search_template.render(hostname=hostname, query=query,
+                                  entries=entries, prefix=prefix)
 
 
 def wsgi_app(environ, start_response):
