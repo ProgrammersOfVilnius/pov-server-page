@@ -89,3 +89,4 @@ vagrant-test-install: binary-package
 .PHONY: pbuilder-test-build
 pbuilder-test-build: source-package
 	pbuilder-dist precise build pkgbuild/$(source)_$(version).dsc
+	echo "Look for the package in ~/pbuilder/precise_result/"
