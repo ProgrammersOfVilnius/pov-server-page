@@ -271,7 +271,7 @@ def mako_error_handler(context, error):
 
     https://gist.github.com/mgedmin/4269249
     """
-    rich_tb = mako.exceptions.RichTraceback(error)
+    rich_tb = mako.exceptions.RichTraceback()
     rich_iter = iter(rich_tb.traceback)
     tb = sys.exc_info()[-1]
     source = {}
@@ -290,7 +290,7 @@ def mako_error_handler(context, error):
                 linecache.cache[filename] = (None, None, lines, filename)
             if (filename, lineno) not in annotated:
                 annotated.add((filename, lineno))
-                extra = '    # {} line {} in {}:\n    # {}'.format(*cur_rich)
+                extra = '    # {0} line {1} in {2}:\n    # {3}'.format(*cur_rich)
                 lines[lineno-1] += extra
         tb = tb.tb_next
     # Don't return False -- that will lose the actual Mako frame.  Instead
