@@ -65,7 +65,7 @@ class Entry(TextObject):
         self.user = user
 
     def search(self, query):
-        return any(query in line for line in self.text)
+        return any(query in line.lower() for line in self.text)
 
     def date(self):
         return datetime.date(self.year, self.month, self.day)
@@ -134,6 +134,7 @@ class Changelog(object):
                    (not day or e.day == day)]
 
     def search(self, query):
+        query = query.lower()
         for entry in reversed(self.entries):
             if entry.search(query):
                 yield entry
