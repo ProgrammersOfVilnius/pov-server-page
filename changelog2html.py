@@ -8,6 +8,7 @@ import os
 import textwrap
 import socket
 import cgi
+from functools import partial
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
@@ -200,17 +201,74 @@ def render_todos(changelog):
                                                     key=lambda i: i.entry.id)))
 
 
+#
+# And now let's invent our own web microframework
+# (because we're minimizing dependencies to those packages available in
+# Ubuntu 10.04 for reasons)
+#
+
+class Response(object):
+
+    def __init__(self, body='', status='200 OK', headers={}):
+        self.body = body
+        self.status = status
+        self.headers = {'Content-Type': 'text/html; charset=UTF-8'}
+        self.headers.update(headers)
+
+
+PATHS = []
+
+
+def path(pattern):
+    def wrapper(fn):
+        PATHS.append((pattern, re.compile('^(?:%s)/?$' % pattern), fn))
+        return fn
+    return wrapper
+
+
+def not_found(environ):
+    return Response('<h1>404 Not Found</h1>', status='404 Not Found')
+
+
+def dispatch(environ):
+    path_info = environ['PATH_INFO'] or '/'
+    for pattern, rx, view in PATHS:
+        m = rx.match(path_info)
+        if m:
+            return partial(view, environ, *m.groups())
+    return partial(not_found, environ)
+
+
+@path('/')
+def main_page(environ):
+    return render_changelog(environ)
+
+
+@path(r'/(\d\d\d\d)')
+def year_page(environ, year):
+    return '<h1>%s</h1>' % year
+
+
+@path(r'/(\d\d\d\d)/(\d\d)')
+def month_page(environ, year, month):
+    return '<h1>%s-%s</h1>' % (year, month)
+
+
+@path(r'/(\d\d\d\d)/(\d\d)/(\d\d)')
+def day_page(environ, year, month, day):
+    return '<h1>%s-%s-%s</h1>' % (year, month, day)
+
+
 def wsgi_app(environ, start_response):
-    PATH_INFO = environ['PATH_INFO']
-    if PATH_INFO != '/' and PATH_INFO != '':
-        status = '404 Not Found'
-        headers = [('Content-Type', 'text/plain')]
-        start_response(status, headers)
-        return ['404 Not Found: ' + PATH_INFO]
-    status = '200 OK'
-    headers = [('Content-Type', 'text/html; charset=UTF-8')]
-    start_response(status, headers)
-    return [render_changelog(environ).encode('UTF-8')]
+    view = dispatch(environ)
+    response = view()
+    if not isinstance(response, Response):
+        response = Response(response)
+    start_response(response.status, sorted(response.headers.items()))
+    body = response.body
+    if not isinstance(body, bytes):
+        body = body.encode('UTF-8')
+    return [body]
 
 
 application = wsgi_app  # for mod_wsgi
