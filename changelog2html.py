@@ -126,8 +126,11 @@ class Changelog(object):
         if filename:
             self.read(filename)
 
-    def filter(self, year, month, day):
-        return self.date_index.get(datetime.date(year, month, day), [])
+    def filter(self, year=None, month=None, day=None):
+        return [e for e in self.entries
+                if (not year or e.year == year) and
+                   (not month or e.month == month) and
+                   (not day or e.day == day)]
 
     def search(self, query):
         for entry in reversed(self.entries):
@@ -394,12 +397,77 @@ def main_page(environ):
 
 @path(r'/(\d\d\d\d)')
 def year_page(environ, year):
+    hostname = get_hostname(environ)
+    changelog = get_changelog(get_changelog_filename(environ))
+    entries = changelog.filter(year=int(year))
     return '<h1>%s</h1>' % year
+
+
+month_template = Template(textwrap.dedent('''
+    <html>
+      <head>
+        <title>${date} - /root/Changelog on ${hostname}</title>
+        <link rel="stylesheet" href="/style.css" />
+      </head>
+      <body>
+        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+
+        <div class="searchbox">
+          <form action="search" method="get">
+            <input type="text" name="q" class="searchtext" autofocus accesskey="s" />
+            <input type="submit" value="Search" class="searchbutton" />
+          </form>
+        </div>
+
+
+    <%block name="navbar">
+        <div class="navbar">
+    % if prev_url:
+          <a href="${prev_url}">&laquo; ${prev_date}</a>
+    % endif
+          <strong>${date}</strong>
+    % if next_url:
+          <a href="${next_url}">${next_date} &raquo;</a>
+    % endif
+        </div>
+    </%block>
+
+    % if not entries:
+        <p>No entries for this month.</p>
+    % else:
+
+    %     for entry in entries:
+    <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+        ${entry.pre(slice(1, None))}
+    %     endfor
+    % endif
+
+        ${navbar()}
+      </body>
+    </html>
+'''))
+
+
+def month_url(date):
+    return date.strftime('/%Y/%m') if date else None
 
 
 @path(r'/(\d\d\d\d)/(\d\d)')
 def month_page(environ, year, month):
-    return '<h1>%s-%s</h1>' % (year, month)
+    hostname = get_hostname(environ)
+    changelog = get_changelog(get_changelog_filename(environ))
+    entries = changelog.filter(year=int(year), month=int(month))
+    month_1st = datetime.date(int(year), int(month), 1)
+    month_last = (month_1st + datetime.timedelta(31)).replace(day=1) - datetime.timedelta(1)
+    prev_date = changelog.prev_date(month_1st)
+    next_date = changelog.next_date(month_last)
+    return month_template.render(hostname=hostname,
+                                 date='%s-%s' % (year, month),
+                                 entries=entries,
+                                 prev_url=month_url(prev_date),
+                                 prev_date=prev_date and prev_date.strftime('%Y-%m'),
+                                 next_url=month_url(next_date),
+                                 next_date=next_date and next_date.strftime('%Y-%m'))
 
 
 day_template = Template(textwrap.dedent('''
@@ -410,6 +478,13 @@ day_template = Template(textwrap.dedent('''
       </head>
       <body>
         <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+
+        <div class="searchbox">
+          <form action="search" method="get">
+            <input type="text" name="q" class="searchtext" accesskey="s" />
+            <input type="submit" value="Search" class="searchbutton" />
+          </form>
+        </div>
 
     <%block name="navbar">
         <div class="navbar">
