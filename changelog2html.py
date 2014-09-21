@@ -418,7 +418,7 @@ all_template = Template(textwrap.dedent('''
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
-        <form action="${prefix}/search" method="get">
+          <form action="${prefix}/search" method="get">
             <input type="text" name="q" class="searchtext" accesskey="s" />
             <input type="submit" value="Search" class="searchbutton" />
           </form>
@@ -458,7 +458,7 @@ year_template = Template(textwrap.dedent('''
         <h1><a href="{$prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
-          <form action="search" method="get">
+          <form action="${prefix}/search" method="get">
             <input type="text" name="q" class="searchtext" accesskey="s" />
             <input type="submit" value="Search" class="searchbutton" />
           </form>
@@ -527,7 +527,6 @@ month_template = Template(textwrap.dedent('''
           </form>
         </div>
 
-
     <%block name="navbar">
         <div class="navbar">
     % if prev_url:
@@ -585,7 +584,7 @@ day_template = Template(textwrap.dedent('''
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
-          <form action="search" method="get">
+          <form action="${prefix}/search" method="get">
             <input type="text" name="q" class="searchtext" accesskey="s" />
             <input type="submit" value="Search" class="searchbutton" />
           </form>
@@ -650,7 +649,7 @@ search_template = Template(textwrap.dedent('''
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
-          <form action="search" method="get">
+          <form action="${prefix}/search" method="get">
             <input type="text" name="q" class="searchtext" value="${query}" accesskey="s" />
             <input type="submit" value="Search" class="searchbutton" />
           </form>
