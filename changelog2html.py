@@ -465,7 +465,7 @@ year_template = Template(textwrap.dedent('''
           </form>
         </div>
 
-    <%block name="navbar">
+    <%def name="navbar()">
         <div class="navbar">
     % if prev_url:
           <a href="${prev_url}">&laquo; ${prev_date}</a>
@@ -475,7 +475,8 @@ year_template = Template(textwrap.dedent('''
           <a href="${next_url}">${next_date} &raquo;</a>
     % endif
         </div>
-    </%block>
+    </%def>
+        ${navbar()}
 
     % if not entries:
         <p>No entries for this year.</p>
@@ -528,7 +529,7 @@ month_template = Template(textwrap.dedent('''
           </form>
         </div>
 
-    <%block name="navbar">
+    <%def name="navbar()">
         <div class="navbar">
     % if prev_url:
           <a href="${prev_url}">&laquo; ${prev_date}</a>
@@ -538,7 +539,8 @@ month_template = Template(textwrap.dedent('''
           <a href="${next_url}">${next_date} &raquo;</a>
     % endif
         </div>
-    </%block>
+    </%def>
+        ${navbar()}
 
     % if not entries:
         <p>No entries for this month.</p>
@@ -591,7 +593,7 @@ day_template = Template(textwrap.dedent('''
           </form>
         </div>
 
-    <%block name="navbar">
+    <%def name="navbar()">
         <div class="navbar">
     % if prev_url:
           <a href="${prev_url}">&laquo; ${prev_date}</a>
@@ -601,7 +603,8 @@ day_template = Template(textwrap.dedent('''
           <a href="${next_url}">${next_date} &raquo;</a>
     % endif
         </div>
-    </%block>
+    </%def>
+        ${navbar()}
 
     % if not entries:
         <p>No entries for this date.</p>
