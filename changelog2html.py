@@ -8,16 +8,25 @@ import os
 import textwrap
 import socket
 import cgi
+import sys
+import linecache
 from functools import partial
+
+import mako.template
+import mako.exceptions
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.1'
+__version__ = '0.2'
 
 
 HOSTNAME = socket.gethostname()
 CHANGELOG_FILE = '/root/Changelog'
 
+
+#
+# Data model
+#
 
 class TextObject(object):
 
@@ -140,6 +149,10 @@ class Changelog(object):
                     todo = None
 
 
+#
+# Environment
+#
+
 def get_changelog(filename, _cache={}):
     changelog = _cache.get(filename)
     mtime = os.stat(filename).st_mtime
@@ -154,51 +167,6 @@ def get_hostname(environ):
 
 def get_changelog_filename(environ):
     return environ.get('CHANGELOG_FILE') or os.getenv('CHANGELOG_FILE') or CHANGELOG_FILE
-
-
-def render_changelog(environ):
-    changelog = get_changelog(get_changelog_filename(environ))
-    return textwrap.dedent(u'''
-        <html>
-          <head>
-            <title>/root/Changelog on {hostname}</title>
-          </head>
-          <body>
-            <h1>/root/Changelog on {hostname}</h1>
-
-            {preamble}
-
-            {todos}
-
-            <h2>Latest entries</h2>
-
-            {entries}
-
-            {more}
-          </body>
-        </html>
-        ''').format(hostname=get_hostname(environ),
-                    preamble=changelog.preamble.as_html(),
-                    todos=render_todos(changelog),
-                    entries='\n'.join(e.as_html() for e in changelog.entries[:-5:-1]),
-                    more='(%d older changelog entries are present)'
-                            % (len(changelog.entries) - 5)
-                                 if len(changelog.entries) > 5 else '')
-
-
-def render_todos(changelog):
-    if not changelog.todo:
-        return u''
-    return textwrap.dedent(u'''
-        <h2>To do list</h2>
-
-        <ul class="todo">
-        {items}
-        </ul>
-        ''').format(items='\n'.join('  ' + i.as_html()
-                                    for i in sorted(changelog.todo,
-                                                    reverse=True,
-                                                    key=lambda i: i.entry.id)))
 
 
 #
@@ -239,9 +207,101 @@ def dispatch(environ):
     return partial(not_found, environ)
 
 
+#
+# Pretty error messages
+#
+
+
+def mako_error_handler(context, error):
+    """Decorate tracebacks when Mako errors happen.
+
+    Evil hack: walk the traceback frames, find compiled Mako templates,
+    stuff their (transformed) source into linecache.cache.
+
+    https://gist.github.com/mgedmin/4269249
+    """
+    rich_tb = mako.exceptions.RichTraceback(error)
+    rich_iter = iter(rich_tb.traceback)
+    tb = sys.exc_info()[-1]
+    source = {}
+    annotated = set()
+    while tb is not None:
+        cur_rich = next(rich_iter)
+        f = tb.tb_frame
+        co = f.f_code
+        filename = co.co_filename
+        lineno = tb.tb_lineno
+        if filename.startswith('memory:'):
+            lines = source.get(filename)
+            if lines is None:
+                info = mako.template._get_module_info(filename)
+                lines = source[filename] = info.module_source.splitlines(True)
+                linecache.cache[filename] = (None, None, lines, filename)
+            if (filename, lineno) not in annotated:
+                annotated.add((filename, lineno))
+                extra = '    # {} line {} in {}:\n    # {}'.format(*cur_rich)
+                lines[lineno-1] += extra
+        tb = tb.tb_next
+    # Don't return False -- that will lose the actual Mako frame.  Instead
+    # re-raise.
+    raise
+
+
+def Template(*args, **kw):
+    return mako.template.Template(error_handler=mako_error_handler,
+                                  *args, **kw)
+
+
+#
+# Views
+#
+
+
+main_template = Template(textwrap.dedent('''
+    <html>
+      <head>
+        <title>/root/Changelog on ${hostname}</title>
+      </head>
+      <body>
+        <h1>/root/Changelog on ${hostname}</h1>
+
+        ${changelog.preamble.as_html()}
+
+    % if changelog.todo:
+        <h2>To do list</h2>
+
+        <ul class="todo">
+    <% todos = sorted(changelog.todo, reverse=True, key=lambda i: i.entry.id) %>
+    %     for item in todos:
+          ${item.as_html()}
+    %     endfor
+        </ul>
+    % endif
+
+    % if not changelog.entries:
+        <p>The changelog is empty.</p>
+    % else:
+    <% n = 5 %>
+        <h2>Latest entries</h2>
+
+    %     for entry in changelog.entries[:-n:-1]:
+        ${entry.as_html()}
+    %     endfor
+
+    %     if len(changelog.entries) > n:
+        (${len(changelog.entries) - n} older changelog entries are present)
+    %     endif
+    % endif
+      </body>
+    </html>
+'''))
+
+
 @path('/')
 def main_page(environ):
-    return render_changelog(environ)
+    hostname = get_hostname(environ)
+    changelog = get_changelog(get_changelog_filename(environ))
+    return main_template.render(hostname=hostname, changelog=changelog)
 
 
 @path(r'/(\d\d\d\d)')
