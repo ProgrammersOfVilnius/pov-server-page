@@ -395,12 +395,66 @@ def main_page(environ):
     return main_template.render(hostname=hostname, changelog=changelog)
 
 
+year_template = Template(textwrap.dedent('''
+    <html>
+      <head>
+        <title>${date} - /root/Changelog on ${hostname}</title>
+        <link rel="stylesheet" href="/style.css" />
+      </head>
+      <body>
+        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+
+        <div class="searchbox">
+          <form action="search" method="get">
+            <input type="text" name="q" class="searchtext" accesskey="s" />
+            <input type="submit" value="Search" class="searchbutton" />
+          </form>
+        </div>
+
+    <%block name="navbar">
+        <div class="navbar">
+    % if prev_url:
+          <a href="${prev_url}">&laquo; ${prev_date}</a>
+    % endif
+          <strong>${date}</strong>
+    % if next_url:
+          <a href="${next_url}">${next_date} &raquo;</a>
+    % endif
+        </div>
+    </%block>
+
+    % if not entries:
+        <p>No entries for this year.</p>
+    % else:
+
+    %     for entry in entries:
+    <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+        ${entry.pre(slice(1, None))}
+    %     endfor
+    % endif
+
+        ${navbar()}
+      </body>
+    </html>
+'''))
+
+
 @path(r'/(\d\d\d\d)')
 def year_page(environ, year):
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
     entries = changelog.filter(year=int(year))
-    return '<h1>%s</h1>' % year
+    year_1st = datetime.date(int(year), 1, 1)
+    year_last = datetime.date(int(year), 12, 31)
+    prev_date = changelog.prev_date(year_1st)
+    next_date = changelog.next_date(year_last)
+    return year_template.render(hostname=hostname,
+                                date=year,
+                                entries=entries,
+                                prev_url=prev_date and prev_date.strftime('/%Y'),
+                                prev_date=prev_date and prev_date.strftime('%Y'),
+                                next_url=next_date and next_date.strftime('/%Y'),
+                                next_date=next_date and next_date.strftime('%Y'))
 
 
 month_template = Template(textwrap.dedent('''
@@ -414,7 +468,7 @@ month_template = Template(textwrap.dedent('''
 
         <div class="searchbox">
           <form action="search" method="get">
-            <input type="text" name="q" class="searchtext" autofocus accesskey="s" />
+            <input type="text" name="q" class="searchtext" accesskey="s" />
             <input type="submit" value="Search" class="searchbutton" />
           </form>
         </div>
@@ -549,7 +603,7 @@ search_template = Template(textwrap.dedent('''
 
         <div class="searchbox">
           <form action="search" method="get">
-            <input type="text" name="q" class="searchtext" autofocus value="${query}" accesskey="s" />
+            <input type="text" name="q" class="searchtext" value="${query}" accesskey="s" />
             <input type="submit" value="Search" class="searchbutton" />
           </form>
         </div>
