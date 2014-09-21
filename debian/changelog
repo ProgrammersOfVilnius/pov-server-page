@@ -1,8 +1,9 @@
-pov-server-page (0.16.1) UNRELEASED; urgency=medium
+pov-server-page (0.17.0) precise; urgency=medium
 
+  * changelog2html: add navigation for older entries and search.
   * collection.cgi: make sure memory and swap graphs always start at 0.
 
- -- Marius Gedminas <marius@gedmin.as>  Fri, 19 Sep 2014 15:07:37 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Sun, 21 Sep 2014 18:12:08 +0300
 
 pov-server-page (0.16.0) precise; urgency=medium
 

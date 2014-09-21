@@ -456,7 +456,7 @@ year_template = Template(textwrap.dedent('''
         <link rel="stylesheet" href="${prefix}/style.css" />
       </head>
       <body>
-        <h1><a href="{$prefix}/">/root/Changelog on ${hostname}</a></h1>
+        <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
           <form action="${prefix}/search" method="get">
