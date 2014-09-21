@@ -300,7 +300,7 @@ def mako_error_handler(context, error):
 
 def Template(*args, **kw):
     return mako.template.Template(error_handler=mako_error_handler,
-                                  default_filters=['h'],
+                                  default_filters=['unicode', 'h'],
                                   *args, **kw)
 
 
@@ -405,8 +405,8 @@ def main_page(environ):
     prefix = get_prefix(environ)
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
-    return main_template.render(hostname=hostname, changelog=changelog,
-                                prefix=prefix)
+    return main_template.render_unicode(
+        hostname=hostname, changelog=changelog, prefix=prefix)
 
 
 all_template = Template(textwrap.dedent('''
@@ -445,8 +445,8 @@ def all_page(environ):
     prefix = get_prefix(environ)
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
-    return all_template.render(hostname=hostname, changelog=changelog,
-                               prefix=prefix)
+    return all_template.render_unicode(
+        hostname=hostname, changelog=changelog, prefix=prefix)
 
 
 year_template = Template(textwrap.dedent('''
@@ -504,8 +504,8 @@ def year_page(environ, year):
     year_last = datetime.date(int(year), 12, 31)
     prev_date = changelog.prev_date(year_1st)
     next_date = changelog.next_date(year_last)
-    return year_template.render(
-        hostname=hostname, date=year, entries=entries,
+    return year_template.render_unicode(
+        hostname=hostname, date=str(year), entries=entries,
         prev_url=prev_date and (prefix + prev_date.strftime('/%Y')),
         prev_date=prev_date and prev_date.strftime('%Y'),
         next_url=next_date and (prefix + next_date.strftime('/%Y')),
@@ -568,7 +568,7 @@ def month_page(environ, year, month):
     month_last = (month_1st + datetime.timedelta(31)).replace(day=1) - datetime.timedelta(1)
     prev_date = changelog.prev_date(month_1st)
     next_date = changelog.next_date(month_last)
-    return month_template.render(
+    return month_template.render_unicode(
         hostname=hostname, date='%s-%s' % (year, month), entries=entries,
         prev_url=prev_date and (prefix + prev_date.strftime('/%Y/%m')),
         prev_date=prev_date and prev_date.strftime('%Y-%m'),
@@ -634,12 +634,12 @@ def day_page(environ, year, month, day):
     entries = changelog.date_index.get(date, [])
     prev_date = changelog.prev_date(date)
     next_date = changelog.next_date(date)
-    return day_template.render(
-        date=date, hostname=hostname, entries=entries,
+    return day_template.render_unicode(
+        date=str(date), hostname=hostname, entries=entries,
         prev_url=prev_date and (prefix + prev_date.strftime('/%Y/%m/%d')),
-        prev_date=prev_date,
+        prev_date=str(prev_date),
         next_url=next_date and (prefix + next_date.strftime('/%Y/%m/%d')),
-        next_date=next_date,
+        next_date=str(next_date),
         prefix=prefix)
 
 
@@ -675,12 +675,12 @@ search_template = Template(textwrap.dedent('''
 def search_page(environ):
     prefix = get_prefix(environ)
     form = cgi.parse_qs(environ.get('QUERY_STRING', ''))
-    query = form.get('q', [''])[0]
+    query = unicode(form.get('q', [''])[0], 'UTF-8')
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
     entries = list(changelog.search(query))
-    return search_template.render(hostname=hostname, query=query,
-                                  entries=entries, prefix=prefix)
+    return search_template.render_unicode(
+        hostname=hostname, query=query, entries=entries, prefix=prefix)
 
 
 def wsgi_app(environ, start_response):
