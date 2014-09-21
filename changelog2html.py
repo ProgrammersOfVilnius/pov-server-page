@@ -10,6 +10,7 @@ import socket
 import cgi
 import sys
 import linecache
+import datetime
 from functools import partial
 
 import mako.template
@@ -34,6 +35,8 @@ class TextObject(object):
         self.text = []
 
     def pre(self, slice=slice(None)):
+        if not self.text:
+            return ''
         return u'<pre>%s</pre>' % (
             u''.join(cgi.escape(line) for line in self.text[slice]).rstrip())
 
@@ -61,6 +64,9 @@ class Entry(TextObject):
         self.timezone = timezone
         self.user = user
 
+    def date(self):
+        return datetime.date(self.year, self.month, self.day)
+
     def timestamp(self):
         return u'{year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d} {timezone}'.format(
                 year=self.year, month=self.month, day=self.day,
@@ -68,6 +74,10 @@ class Entry(TextObject):
 
     def title(self):
         return u'{timestamp} {user}'.format(timestamp=self.timestamp(), user=self.user)
+
+    def url(self):
+        return u'/{year:04d}/{month:02d}/{day:02d}/#e{id}'.format(
+            year=self.year, month=self.month, day=self.day, id=self.id)
 
     def as_html(self):
         return (
@@ -109,8 +119,12 @@ class Changelog(object):
         self.entries = []
         self.todo = []
         self.mtime = None
+        self.date_index = {}
         if filename:
             self.read(filename)
+
+    def filter(self, year, month, day):
+        return self.date_index.get(datetime.date(year, month, day), [])
 
     def read(self, filename):
         with open(filename) as fp:
@@ -147,6 +161,24 @@ class Changelog(object):
                     todo.text.append(line)
                 else:
                     todo = None
+        self.build_index()
+
+    def build_index(self):
+        self.date_index = {}
+        for e in self.entries:
+            self.date_index.setdefault(e.date(), []).append(e)
+
+    def prev_date(self, date):
+        try:
+            return max((d for d in self.date_index if d < date))
+        except ValueError:
+            return None
+
+    def next_date(self, date):
+        try:
+            return min((d for d in self.date_index if d > date))
+        except ValueError:
+            return None
 
 
 #
@@ -177,10 +209,11 @@ def get_changelog_filename(environ):
 
 class Response(object):
 
-    def __init__(self, body='', status='200 OK', headers={}):
+    def __init__(self, body='', content_type='text/html; charset=UTF-8',
+                 status='200 OK', headers={}):
         self.body = body
         self.status = status
-        self.headers = {'Content-Type': 'text/html; charset=UTF-8'}
+        self.headers = {'Content-Type': content_type}
         self.headers.update(headers)
 
 
@@ -257,10 +290,41 @@ def Template(*args, **kw):
 #
 
 
+STYLESHEET = textwrap.dedent('''
+    h1 > a {
+        text-decoration: none;
+        color: black;
+    }
+
+    .navbar strong {
+        padding: 0 4px;
+    }
+
+    a.permalink {
+        padding: 0 4px;
+        color: white;
+        text-decoration: none;
+    }
+    h3:hover > a.permalink {
+        color: #ccc;
+    }
+    a.permalink:hover, a.permalink:active {
+        color: white !important;
+        background: #ccc;
+    }
+''')
+
+
+@path('/style.css')
+def stylesheet(environ):
+    return Response(STYLESHEET, content_type='text/css')
+
+
 main_template = Template(textwrap.dedent('''
     <html>
       <head>
         <title>/root/Changelog on ${hostname}</title>
+        <link rel="stylesheet" href="/style.css" />
       </head>
       <body>
         <h1>/root/Changelog on ${hostname}</h1>
@@ -273,7 +337,7 @@ main_template = Template(textwrap.dedent('''
         <ul class="todo">
     <% todos = sorted(changelog.todo, reverse=True, key=lambda i: i.entry.id) %>
     %     for item in todos:
-          ${item.as_html()}
+          <li><a href="${item.entry.url()}">${item.title}</a></li>
     %     endfor
         </ul>
     % endif
@@ -285,11 +349,14 @@ main_template = Template(textwrap.dedent('''
         <h2>Latest entries</h2>
 
     %     for entry in changelog.entries[:-n:-1]:
-        ${entry.as_html()}
+        <h3><a href="${entry.url()}">${entry.title()}</a></h3>
+        ${entry.pre(slice(1, None))}
     %     endfor
 
     %     if len(changelog.entries) > n:
+        <a href="${changelog.entries[-n].url()}">
         (${len(changelog.entries) - n} older changelog entries are present)
+        </a>
     %     endif
     % endif
       </body>
@@ -314,9 +381,65 @@ def month_page(environ, year, month):
     return '<h1>%s-%s</h1>' % (year, month)
 
 
+day_template = Template(textwrap.dedent('''
+    <html>
+      <head>
+        <title>${date} - /root/Changelog on ${hostname}</title>
+        <link rel="stylesheet" href="/style.css" />
+      </head>
+      <body>
+        <h1><a href="/">/root/Changelog on ${hostname}</a></h1>
+
+    <%block name="navbar">
+        <div class="navbar">
+    % if prev_url:
+          <a href="${prev_url}">&laquo; ${prev_date}</a>
+    % endif
+          <strong>${date}</strong>
+    % if next_url:
+          <a href="${next_url}">${next_date} &raquo;</a>
+    % endif
+        </div>
+    </%block>
+
+    % if not entries:
+        <p>No entries for this date.</p>
+    % else:
+
+    %     for entry in entries:
+        <h3 id="e${entry.id}">${entry.title()} <a class="permalink" href="${entry.url()}">&para;</a></h3>
+        ${entry.pre(slice(1, None))}
+    %     endfor
+    % endif
+
+        ${navbar()}
+      </body>
+    </html>
+'''))
+
+
+def date_url(date):
+    return date.strftime('/%Y/%m/%d') if date else None
+
+
 @path(r'/(\d\d\d\d)/(\d\d)/(\d\d)')
 def day_page(environ, year, month, day):
-    return '<h1>%s-%s-%s</h1>' % (year, month, day)
+    try:
+        date = datetime.date(int(year), int(month), int(day))
+    except ValueError:
+        return not_found(environ)
+    hostname = get_hostname(environ)
+    changelog = get_changelog(get_changelog_filename(environ))
+    entries = changelog.date_index.get(date, [])
+    prev_date = changelog.prev_date(date)
+    next_date = changelog.next_date(date)
+    return day_template.render(date=date,
+                               hostname=hostname,
+                               entries=entries,
+                               prev_url=date_url(prev_date),
+                               prev_date=prev_date,
+                               next_url=date_url(next_date),
+                               next_date=next_date)
 
 
 def wsgi_app(environ, start_response):
