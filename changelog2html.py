@@ -314,6 +314,10 @@ STYLESHEET = textwrap.dedent('''
         color: black;
     }
 
+    h3:target {
+        background: #ffe;
+    }
+
     .searchbox {
         position: absolute;
         top: 1em;
