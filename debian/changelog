@@ -1,3 +1,9 @@
+pov-server-page (0.17.1) UNRELEASED; urgency=medium
+
+  * changelog2html: fix error when preamble contains todo items.
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 08 Oct 2014 09:31:36 +0300
+
 pov-server-page (0.17.0) precise; urgency=medium
 
   * changelog2html: add navigation for older entries and search.

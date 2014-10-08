@@ -18,7 +18,7 @@ import mako.exceptions
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.2'
+__version__ = '0.3'
 
 
 HOSTNAME = socket.gethostname()
@@ -49,6 +49,9 @@ class Preamble(TextObject):
 
     def title(self):
         return u'Preamble'
+
+    def url(self, prefix):
+        return prefix + '/'
 
 
 class Entry(TextObject):
