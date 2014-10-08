@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2014-09-21
-:Version: 0.17.0
+:Date: 2014-10-08
+:Version: 0.17.1
 :Manual section: 8
 
 
@@ -26,12 +26,13 @@ DESCRIPTION
 This script sets up web page for your server, listing the following
 information:
 
+  - contents of /root/Changelog
   - graphs for collectd
   - open TCP ports
   - disk usage treemaps (if configured)
 
-There's an accompanying cron script that updates the dynamic bits once a
-day.
+There's an accompanying cron script that updates the open ports list
+and disk usage numbers once a day.
 
 
 

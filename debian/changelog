@@ -1,4 +1,4 @@
-pov-server-page (0.17.1) UNRELEASED; urgency=medium
+pov-server-page (0.17.1) precise; urgency=medium
 
   * changelog2html: fix error when preamble contains todo items.
 
