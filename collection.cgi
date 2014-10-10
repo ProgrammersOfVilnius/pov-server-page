@@ -2361,7 +2361,7 @@ sub load_graph_definitions
     'GPRINT:max:MAX:%6.2lf Max,',
     'GPRINT:avg:LAST:%6.2lf Last\l'
     ],
-    ps_code => ['-v', 'Bytes',
+    ps_code => ['-v', 'Bytes', '-l', '0',
     'DEF:avg={file}:value:AVERAGE',
     'DEF:min={file}:value:MIN',
     'DEF:max={file}:value:MAX',
@@ -2392,7 +2392,7 @@ sub load_graph_definitions
     'GPRINT:procs_max:MAX:%5.1lf Max,',
     'GPRINT:procs_avg:LAST:%5.1lf Last\l'
     ],
-    ps_count_trend => ['-v', 'Processes',
+    ps_count_trend => ['-v', 'Processes', '-l', '0',
     'DEF:procs_avg={file}:processes:AVERAGE',
     'DEF:procs_min={file}:processes:MIN',
     'DEF:procs_max={file}:processes:MAX',
@@ -2424,7 +2424,7 @@ sub load_graph_definitions
     'GPRINT:procs_avg:LAST:%5.1lf Last\l',
     "LINE1:procs_trend#$FullMagenta:Trend since last week\\n:dashes=3",
     ],
-    ps_cputime => ['-v', 'Jiffies',
+    ps_cputime => ['-v', 'Jiffies', '-l', '0',
     'DEF:user_avg_raw={file}:user:AVERAGE',
     'DEF:user_min_raw={file}:user:MIN',
     'DEF:user_max_raw={file}:user:MAX',
@@ -2451,7 +2451,7 @@ sub load_graph_definitions
     'GPRINT:syst_max:MAX:%5.1lf%s Max,',
     'GPRINT:syst_avg:LAST:%5.1lf%s Last\l'
     ],
-    ps_data => ['-v', 'Bytes',
+    ps_data => ['-v', 'Bytes', '-l', '0',
     'DEF:avg={file}:value:AVERAGE',
     'DEF:min={file}:value:MIN',
     'DEF:max={file}:value:MAX',
@@ -2462,7 +2462,7 @@ sub load_graph_definitions
     'GPRINT:max:MAX:%5.1lf%s Max,',
     'GPRINT:avg:LAST:%5.1lf%s Last\l'
     ],
-    ps_disk_octets => ['-v', 'Bytes/s',
+    ps_disk_octets => ['-v', 'Bytes/s', '-l', '0',
     'DEF:out_min={file}:write:MIN',
     'DEF:out_avg={file}:write:AVERAGE',
     'DEF:out_max={file}:write:MAX',
@@ -2491,7 +2491,7 @@ sub load_graph_definitions
     'GPRINT:inc_avg:LAST:%5.1lf%s Last',
     'GPRINT:inc_avg_sum:LAST:(ca. %5.1lf%sB Total)\l'
     ],
-    ps_disk_ops => ['-v', 'Ops/s',
+    ps_disk_ops => ['-v', 'Ops/s', '-l', '0',
     'DEF:out_min={file}:write:MIN',
     'DEF:out_avg={file}:write:AVERAGE',
     'DEF:out_max={file}:write:MAX',
@@ -2511,7 +2511,7 @@ sub load_graph_definitions
     'GPRINT:inc_max:MAX:%6.2lf Max,',
     'GPRINT:inc_avg:LAST:%6.2lf Last\l'
     ],
-    ps_pagefaults => ['-v', 'Pagefaults/s',
+    ps_pagefaults => ['-v', 'Pagefaults/s', '-l', '0',
     'DEF:minor_avg={file}:minflt:AVERAGE',
     'DEF:minor_min={file}:minflt:MIN',
     'DEF:minor_max={file}:minflt:MAX',
@@ -2560,7 +2560,7 @@ sub load_graph_definitions
     'GPRINT:avg:LAST:%5.1lf%s Last\l',
     "LINE1:trend#$FullMagenta:Trend since last week\\n:dashes=3",
     ],
-    ps_stacksize => ['-v', 'Bytes',
+    ps_stacksize => ['-v', 'Bytes', '-l', '0',
     'DEF:avg={file}:value:AVERAGE',
     'DEF:min={file}:value:MIN',
     'DEF:max={file}:value:MAX',
