@@ -1,3 +1,11 @@
+pov-server-page (0.18.0) precise; urgency=medium
+
+  * collection.cgi:
+    - support ps_code, ps_data, ps_disk_ops, ps_disk_octets,
+    - make sure all ps_* graphs always start at 0.
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 10 Oct 2014 09:25:12 +0300
+
 pov-server-page (0.17.1) precise; urgency=medium
 
   * changelog2html: fix error when preamble contains todo items.
