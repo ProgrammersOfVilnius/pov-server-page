@@ -361,6 +361,7 @@ class Builder(object):
         ('/etc/apache2/mods-enabled/ssl.load', 'a2enmod ssl'),
         ('/etc/apache2/mods-enabled/rewrite.load', 'a2enmod rewrite'),
         ('/etc/apache2/mods-enabled/wsgi.load', 'a2enmod wsgi'),
+        ('/etc/apache2/mods-enabled/cgid.load', 'a2enmod cgid'),
         ('/etc/apache2/sites-enabled/{HOSTNAME}.conf', 'a2ensite {HOSTNAME}.conf'),
         ('{AUTH_USER_FILE}', 'htpasswd -c {AUTH_USER_FILE} <username>')
     ]

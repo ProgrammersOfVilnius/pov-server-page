@@ -1,3 +1,9 @@
+pov-server-page (0.18.1) UNRELEASED; urgency=medium
+
+  * pov-update-server-page: remind the user to run a2enmod cgid.
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 31 Oct 2014 15:11:57 +0200
+
 pov-server-page (0.18.0) precise; urgency=medium
 
   * collection.cgi:
