@@ -3671,7 +3671,7 @@ sub meta_graph_swap
   $opts->{'title'} = "$host/$plugin"
   . (defined ($plugin_instance) ? "-$plugin_instance" : '') . "/$type";
   $opts->{'number_format'} = '%5.1lf%s';
-  $opts->{'rrd_opts'} = ['-v', 'Bytes'];
+  $opts->{'rrd_opts'} = ['-v', 'Bytes', '-l', '0'];
 
   $opts->{'exclude_from_trend'} = { '0Free' => 1 };
   $opts->{'trend_lower_limit'} = 0;
