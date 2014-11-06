@@ -8,7 +8,7 @@
     <p><a href="changelog">Changelog</a></p>
 % endif
     <p><a href="stats">Server stats</a></p>
-    <p><a href="ports">Local port assignments</a></p>
+    <p><a href="ports">Open TCP ports</a></p>
 % if DISK_USAGE_LIST:
     <p><a href="du">Disk usage for ${'all partitions' if DISK_USAGE == 'all' else ', '.join(DISK_USAGE_LIST)}</a></p>
 % endif
