@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2014-10-10
-:Version: 0.18.0
+:Date: 2014-11-06
+:Version: 0.19.0
 :Manual section: 8
 
 
@@ -29,7 +29,9 @@ information:
   - contents of /root/Changelog
   - graphs for collectd
   - open TCP ports
+  - SSH host key fingerprints
   - disk usage treemaps (if configured)
+  - last entries in /root/Changelog (if readable by www-data)
 
 There's an accompanying cron script that updates the open ports list
 and disk usage numbers once a day.
@@ -212,6 +214,7 @@ The following options are defined:
 
         skip =
           /var/www/foo.example.com/index.html
+          /var/www/foo.example.com/ssh/index.html
           /var/www/foo.example.com/du
 
 **redirect** (default: empty)

@@ -1,0 +1,24 @@
+<%!
+import glob
+import subprocess
+
+def get_host_pub_key_files():
+    return glob.glob('/etc/ssh/ssh_host_*_key.pub')
+
+def get_fingerprint_line(keyfile):
+    return subprocess.Popen(['ssh-keygen', '-l', '-f', keyfile],
+                            stdout=subprocess.PIPE).communicate()[0].strip()
+%>
+<html>
+  <head>
+    <title>SSH host key fingerprints</title>
+  </head>
+  <body>
+    <h1>${HOSTNAME} SSH host key fingerprints</h1>
+    <pre>
+% for keyfile in get_host_pub_key_files():
+${get_fingerprint_line(keyfile)}
+% endfor
+    </pre>
+  </body>
+</html>

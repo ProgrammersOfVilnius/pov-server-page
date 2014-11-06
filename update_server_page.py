@@ -353,6 +353,8 @@ class Builder(object):
          Template('index.html.in', HTML_MARKER)),
         ('/var/www/{HOSTNAME}/ports/index.html',
          ScriptOutput('{UPDATE_TCP_PORTS_SCRIPT} -H {HOSTNAME} -o /dev/stdout')),
+        ('/var/www/{HOSTNAME}/ssh/index.html',
+         Template('ssh.html.in', HTML_MARKER)),
         ('/var/www/{HOSTNAME}/du',
          DiskUsage()),
         ('/var/log/apache2/{HOSTNAME}',
