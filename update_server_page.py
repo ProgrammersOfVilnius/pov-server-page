@@ -154,7 +154,8 @@ def pipeline(*args, **kwargs):
     assert not kwargs
     children = []
     for n, command in enumerate(args):
-        p = subprocess.Popen(command,
+        p = subprocess.Popen(
+            command,
             stdin=children[-1].stdout if children else None,
             stdout=stdout if n == len(args) - 1 else subprocess.PIPE)
         children.append(p)
@@ -303,7 +304,8 @@ class Builder(object):
             self.collectd_hostname = get_fqdn()
             self.hostname = builder.vars['SHORTHOSTNAME']
             index_html = os.path.join(dirname, 'index.html')
-            Builder.Template('du.html.in').build(index_html, builder,
+            Builder.Template('du.html.in').build(
+                index_html, builder,
                 extra_vars=dict(location_name=self.location_name,
                                 has_disk_graph=self.has_disk_graph,
                                 disk_graph_url=self.disk_graph_url))
@@ -336,7 +338,8 @@ class Builder(object):
                         timestamp = time.strftime('%Y-%m-%d %H:%M:%S %z')
                         f.write('\nvar last_updated = "%s";\n' % timestamp)
                         f.write('var duration = "%.0f";\n' % duration)
-                Builder.Template('du-page.html.in').build(index_html, builder,
+                Builder.Template('du-page.html.in').build(
+                    index_html, builder,
                     extra_vars=dict(location=location,
                                     location_name=self.location_name,
                                     has_disk_graph=self.has_disk_graph,
@@ -347,15 +350,15 @@ class Builder(object):
     build_list = [
         # (destination, subbuilder)
         ('/var/www/{HOSTNAME}/index.html',
-             Template('index.html.in', HTML_MARKER)),
+         Template('index.html.in', HTML_MARKER)),
         ('/var/www/{HOSTNAME}/ports/index.html',
-             ScriptOutput('{UPDATE_TCP_PORTS_SCRIPT} -H {HOSTNAME} -o /dev/stdout')),
+         ScriptOutput('{UPDATE_TCP_PORTS_SCRIPT} -H {HOSTNAME} -o /dev/stdout')),
         ('/var/www/{HOSTNAME}/du',
-             DiskUsage()),
+         DiskUsage()),
         ('/var/log/apache2/{HOSTNAME}',
-             Directory()),
+         Directory()),
         ('/etc/apache2/sites-available/{HOSTNAME}.conf',
-             Template('apache.conf.in', CONFIG_MARKER)),
+         Template('apache.conf.in', CONFIG_MARKER)),
     ]
     check_list = [
         ('/etc/apache2/mods-enabled/ssl.load', 'a2enmod ssl'),
