@@ -1,11 +1,11 @@
-pov-server-page (0.19.0) UNRELEASED; urgency=medium
+pov-server-page (0.19.0) precise; urgency=medium
 
   * pov-update-server-page:
     - remind the user to run a2enmod cgid,
     - add a page listing SSH host key fingerprints.
-  * collection.cgi: pin swap grap to 0 for real this time.
+  * collection.cgi: pin swap graph to 0 for real this time.
 
- -- Marius Gedminas <marius@gedmin.as>  Thu, 06 Nov 2014 21:44:14 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 06 Nov 2014 21:47:25 +0200
 
 pov-server-page (0.18.0) precise; urgency=medium
 
