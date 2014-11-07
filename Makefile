@@ -81,7 +81,7 @@ binary-package: clean-build-tree
 vagrant-test-install: binary-package
 	cp pkgbuild/$(source)_$(version)_all.deb $(VAGRANT_DIR)/
 	cd $(VAGRANT_DIR) && vagrant up
-	ssh $(VAGRANT_SSH_ALIAS) 'sudo DEBIAN_FRONTEND=noninteractive dpkg -i /vagrant/$(source)_$(version)_all.deb; sudo apt-get install -f -y'
+	ssh $(VAGRANT_SSH_ALIAS) 'sudo DEBIAN_FRONTEND=noninteractive dpkg -i /vagrant/$(source)_$(version)_all.deb; sudo apt-get install -f -y && sudo pov-update-server-page -v'
 
 .PHONY: pbuilder-test-build
 pbuilder-test-build: source-package
