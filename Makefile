@@ -44,12 +44,9 @@ install:
 	install changelog2html.py $(DESTDIR)/usr/lib/pov-server-page/changelog2html
 	install collection.cgi $(DESTDIR)/usr/lib/pov-server-page/collection.cgi
 	install webtreemap-du/du2webtreemap.py $(DESTDIR)/usr/lib/pov-server-page/du2webtreemap
-	install -m 644 templates/apache.conf.in $(DESTDIR)/usr/share/pov-server-page/
-	install -m 644 templates/index.html.in $(DESTDIR)/usr/share/pov-server-page/
-	install -m 644 templates/du.html.in $(DESTDIR)/usr/share/pov-server-page/
-	install -m 644 templates/du-page.html.in $(DESTDIR)/usr/share/pov-server-page/
 	install -m 644 webtreemap/webtreemap.css $(DESTDIR)/usr/share/pov-server-page/webtreemap/
 	install -m 644 webtreemap/webtreemap.js $(DESTDIR)/usr/share/pov-server-page/webtreemap/
+	for f in templates/*.in; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/; done
 	install cron_daily.sh $(DESTDIR)/etc/cron.daily/pov-update-server-page
 
 
