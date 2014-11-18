@@ -12,7 +12,7 @@
   RewriteEngine on
 
   # Redirect everything to HTTPS
-  RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R=301,L]
+  RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R=302,L]
 </VirtualHost>
 
 <VirtualHost *:443>
@@ -31,7 +31,7 @@
 
 % if CANONICAL_REDIRECT:
   RewriteCond %{HTTP_HOST} !=${HOSTNAME}
-  RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R=301,L]
+  RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R=302,L]
 
 % endif
 % if INCLUDE:
