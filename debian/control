@@ -8,7 +8,7 @@ Homepage: https://github.com/ProgrammersOfVilnius/pov-server-page
 
 Package: pov-server-page
 Architecture: all
-Depends: apache2, libapache2-mod-wsgi, collectd, perl, librrds-perl, libhtml-parser-perl, python, python-mako, ${perl:Depends}, ${python:Depends}, ${misc:Depends}
+Depends: apache2, libapache2-mod-wsgi, collectd, perl, librrds-perl, libhtml-parser-perl, python, python-mako, ${perl:Depends}, ${misc:Depends}
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
  .
