@@ -25,6 +25,11 @@ all: pov-update-server-page.8
 test check: check-version
 	nosetests
 
+.PHONY: coverage
+coverage:
+	coverage run -m nose
+	coverage report
+
 .PHONY: checkversion
 check-version:
 	@grep -q ":Version: $(version)" $(manpage) || { \

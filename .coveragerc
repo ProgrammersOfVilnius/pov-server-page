@@ -1,0 +1,9 @@
+[run]
+source = update_server_page,changelog2html,update_tcp_ports_html
+cover_pylib = False
+
+[report]
+exclude_lines =
+    pragma: nocover
+    except ImportError:
+    except NameError:
