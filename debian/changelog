@@ -1,3 +1,12 @@
+pov-server-page (0.20.0) precise; urgency=medium
+
+  * pov-update-server-page:
+    - delete old disk usage snapshots,
+    - new options: disk_usage_delete_old, disk_usage_keep_daily,
+      disk_usage_keep_monthly, disk_usage_keep_yearly.
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 09 Jan 2015 11:54:53 +0200
+
 pov-server-page (0.19.2) precise; urgency=medium
 
   * Change canonical hostname redirect to use code 302, not 301.

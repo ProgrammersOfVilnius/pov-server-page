@@ -22,12 +22,13 @@ a2ensite and restart Apache::
 import ConfigParser
 import datetime
 import errno
+import glob
 import grp
 import optparse
 import os
 import pwd
-import subprocess
 import stat
+import subprocess
 import sys
 import time
 
@@ -187,6 +188,10 @@ class Builder(object):
         APACHE_EXTRA_CONF='',
         EXTRA_LINKS='',
         DISK_USAGE='',
+        DISK_USAGE_DELETE_OLD=True,
+        DISK_USAGE_KEEP_DAILY=60,
+        DISK_USAGE_KEEP_MONTHLY=12,
+        DISK_USAGE_KEEP_YEARLY=5,
         SKIP='',
         REDIRECT='',
     )
@@ -301,6 +306,10 @@ class Builder(object):
             locations = builder.vars['DISK_USAGE_LIST']
             if not locations:
                 return
+            delete_old = builder.vars['DISK_USAGE_DELETE_OLD']
+            keep_daily = builder.vars['DISK_USAGE_KEEP_DAILY']
+            keep_monthly = builder.vars['DISK_USAGE_KEEP_MONTHLY']
+            keep_yearly = builder.vars['DISK_USAGE_KEEP_YEARLY']
             self.collectd_hostname = get_fqdn()
             self.hostname = builder.vars['SHORTHOSTNAME']
             index_html = os.path.join(dirname, 'index.html')
@@ -315,6 +324,11 @@ class Builder(object):
             for location in locations:
                 location_name = self.location_name(location)
                 datadir = os.path.join(dirname, location_name)
+                if delete_old:
+                    if builder.verbose:
+                        print('Deleting old snapshots in %s' % datadir)
+                    self.delete_old_files(datadir, keep_daily,
+                                          keep_monthly, keep_yearly)
                 du_file = os.path.join(datadir, 'du-%s.gz' % today)
                 js_file = os.path.join(datadir, 'du.js')
                 index_html = os.path.join(datadir, 'index.html')
@@ -344,6 +358,35 @@ class Builder(object):
                                     location_name=self.location_name,
                                     has_disk_graph=self.has_disk_graph,
                                     disk_graph_url=self.disk_graph_url))
+
+        def delete_old_files(self, datadir, keep_daily, keep_monthly,
+                             keep_yearly):
+            files = glob.glob(os.path.join(datadir, 'du-????-??-??.gz'))
+            keep = self.files_to_keep(files, keep_daily, keep_monthly, keep_yearly)
+            delete = set(files) - keep
+            for fn in sorted(delete):
+                os.unlink(fn)
+
+        @staticmethod
+        def files_to_keep(files, keep_daily=0, keep_monthly=0, keep_yearly=0):
+            files = sorted(files)
+            keep = set()
+            if keep_daily:
+                keep.update(files[-keep_daily:])
+            if keep_monthly or keep_yearly:
+                monthly = {}
+                yearly = {}
+                for fn in files:
+                    date = os.path.basename(fn)[len('du-'):-len('.gz')]
+                    monthly.setdefault(date[:4+1+2], fn)
+                    yearly.setdefault(date[:4], fn)
+                if keep_monthly:
+                    keep.update(fn for date, fn in
+                                sorted(monthly.items())[-keep_monthly:])
+                if keep_yearly:
+                    keep.update(fn for date, fn in
+                                sorted(yearly.items())[-keep_yearly:])
+            return keep
 
     # things to build
 

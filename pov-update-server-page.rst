@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2014-11-18
-:Version: 0.19.2
+:Date: 2015-01-09
+:Version: 0.20.0
 :Manual section: 8
 
 
@@ -191,15 +191,30 @@ The following options are defined:
 
     Note: running **du**\ (1) can take a long time.
 
-    Note: snapshots are never cleaned up and may fill up your ``/var``.
-    This will likely change in a future version of **pov-update-server-page**.
-
     Note: if you remove a directory from this list, it will be removed
     from the links, but old snapshots will not be cleaned up.
 
     Example::
 
         disk_usage = all
+
+**disk_usage_delete_old** (default: true)
+
+    Should old disk usage snapshots be cleaned up?
+
+**disk_usage_keep_daily** (default: 60)
+
+    When deleting old disk usage snapshot keep the last N.
+
+**disk_usage_keep_monthly** (default: 12)
+
+    When deleting old disk usage snapshot keep at least one for each of
+    the last N months.
+
+**disk_usage_keep_yearly** (default: 5)
+
+    When deleting old disk usage snapshot keep at least one for each of
+    the last N years.
 
 **skip** (default: empty)
 
