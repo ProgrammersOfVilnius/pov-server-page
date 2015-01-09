@@ -13,6 +13,11 @@ Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
  .
  This package sets up an apache virtualhost for your fully-qualified hostname
- that displays collectd graphs.
+ that shows:
+   - contents of /root/Changelog
+   - graphs for collectd
+   - open TCP ports
+   - SSH host key fingerprints
+   - disk usage treemaps (if configured)
  .
- Some manual setup is also required.
+ Some manual setup is required: see /usr/share/doc/pov-server-page/README.rst.
