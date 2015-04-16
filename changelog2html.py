@@ -536,25 +536,29 @@ def year_page(environ, year):
     year_last = datetime.date(int(year), 12, 31)
     prev_date = changelog.prev_date(year_1st)
     next_date = changelog.next_date(year_last)
+    prev_url = prev_date and (prefix + prev_date.strftime('/%Y'))
+    next_url = next_date and (prefix + next_date.strftime('/%Y'))
     calendar = year_calendar(
         changelog, int(year), prefix,
+        prev_url=prev_url, next_url=next_url,
         url=lambda e: '{prefix}/{year:04}/{month:02}'.format(
             prefix=prefix, year=e.year, month=e.month))
     return year_template.render_unicode(
         hostname=hostname, date=str(year), entries=entries,
-        prev_url=prev_date and (prefix + prev_date.strftime('/%Y')),
+        prev_url=prev_url,
         prev_date=prev_date and prev_date.strftime('%Y'),
-        next_url=next_date and (prefix + next_date.strftime('/%Y')),
+        next_url=next_url,
         next_date=next_date and next_date.strftime('%Y'),
         calendar=calendar,
         prefix=prefix)
 
 
-def year_calendar(changelog, year, prefix, url):
+def year_calendar(changelog, year, prefix, url, prev_url=None, next_url=None):
+    header = year_header(year, prefix, prev_url=prev_url, next_url=next_url)
     matrix = [range(1, 7), range(7, 13)]
     return html_table([[month_link(changelog, year, month, url)
                         for month in row] for row in matrix],
-                      'calendar', header=year_header(year, prefix))
+                      'calendar', header=header)
 
 
 def month_link(changelog, year, month, url):
@@ -567,11 +571,18 @@ def month_link(changelog, year, month, url):
         return '<a href="%s">%d</a>' % (url(entries[0]), month)
 
 
-def year_header(year, prefix):
+def year_header(year, prefix, prev_url=None, next_url=None):
     title = '<a href="{prefix}/{year:04}">{year:04}</a>'.format(
         year=year, prefix=prefix)
-    return '<thead><tr><th colspan="6">{title}</th></tr></thead>'.format(
-        title=title)
+    prev = '<a href="{}">&laquo;</a>'.format(prev_url) if prev_url else ''
+    next = '<a href="{}">&raquo;</a>'.format(next_url) if next_url else ''
+    return ('<thead>'
+            '<tr>'
+            '<th>{prev}</th>'
+            '<th colspan="4">{title}</th>'
+            '<th>{next}</th>'
+            '</tr>'
+            '</thead>'.format(prev=prev, next=next, title=title))
 
 
 month_template = Template(textwrap.dedent('''
@@ -630,25 +641,31 @@ def month_page(environ, year, month):
     month_1st = datetime.date(int(year), int(month), 1)
     month_last = (month_1st + datetime.timedelta(31)).replace(day=1) - datetime.timedelta(1)
     prev_date = changelog.prev_date(month_1st)
+    prev_url = prev_date and (prefix + prev_date.strftime('/%Y/%m'))
     next_date = changelog.next_date(month_last)
+    next_url = next_date and (prefix + next_date.strftime('/%Y/%m'))
     calendar = month_calendar(changelog, int(year), int(month), prefix,
+                              prev_url=prev_url, next_url=next_url,
                               url=lambda e: e.target)
     return month_template.render_unicode(
         hostname=hostname, date='%s-%s' % (year, month), entries=entries,
-        prev_url=prev_date and (prefix + prev_date.strftime('/%Y/%m')),
+        prev_url=prev_url,
         prev_date=prev_date and prev_date.strftime('%Y-%m'),
-        next_url=next_date and (prefix + next_date.strftime('/%Y/%m')),
+        next_url=next_url,
         next_date=next_date and next_date.strftime('%Y-%m'),
         calendar=calendar,
         prefix=prefix)
 
 
-def month_calendar(changelog, year, month, prefix, url):
+def month_calendar(changelog, year, month, prefix, url, prev_url=None,
+                   next_url=None):
+    header = month_header(year, month, prefix, prev_url=prev_url,
+                          next_url=next_url)
     matrix = calendar.monthcalendar(year, month)
     return html_table([[day_link(changelog, year, month, day, url)
                         for day in row]
                        for row in matrix], 'calendar',
-                      header=month_header(year, month, prefix))
+                      header=header)
 
 
 def day_link(changelog, year, month, day, url):
@@ -661,13 +678,20 @@ def day_link(changelog, year, month, day, url):
         return '<a href="%s">%d</a>' % (url(entries[0]), day)
 
 
-def month_header(year, month, prefix):
+def month_header(year, month, prefix, prev_url=None, next_url=None):
     title = (
         '<a href="{prefix}/{year:04}">{year:04}</a>-'
         '<a href="{prefix}/{year:04}/{month:02}">{month:02}</a>'.format(
             year=year, month=month, prefix=prefix))
-    return '<thead><tr><th colspan="7">{title}</th></tr></thead>'.format(
-        title=title)
+    prev = '<a href="{}">&laquo;</a>'.format(prev_url) if prev_url else ''
+    next = '<a href="{}">&raquo;</a>'.format(next_url) if next_url else ''
+    return ('<thead>'
+            '<tr>'
+            '<th>{prev}</th>'
+            '<th colspan="5">{title}</th>'
+            '<th>{next}</th>'
+            '</tr>'
+            '</thead>'.format(prev=prev, next=next, title=title))
 
 
 def html_table(matrix, css_class, header=''):
