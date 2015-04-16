@@ -18,7 +18,7 @@ import mako.exceptions
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.3'
+__version__ = '0.4'
 
 
 HOSTNAME = socket.gethostname()
@@ -710,10 +710,25 @@ def reloading_wsgi_app(environ, start_response):
 
 
 def main():
+    import optparse
     from wsgiref.simple_server import make_server
-    port = 8080
-    httpd = make_server('localhost', port, reloading_wsgi_app)
-    print("Serving on http://localhost:%d" % port)
+    parser = optparse.OptionParser(
+        'usage: %prog [options] [filename]',
+        description="Launch web server showing /root/Changelog")
+    parser.add_option('-p', '--port', type='int', default=8080)
+    parser.add_option('--public', default=False,
+                      help='accept non-localhost connections')
+    parser.add_option('--name', help='override hostname in page title')
+    opts, args = parser.parse_args()
+    if opts.name:
+        os.environ['HOSTNAME'] = opts.name
+    if len(args) > 1:
+        parser.error("too many arguments")
+    if args:
+        os.environ['CHANGELOG_FILE'] = args[0]
+    host = '0.0.0.0' if opts.public else 'localhost'
+    httpd = make_server(host, opts.port, reloading_wsgi_app)
+    print("Serving on http://%s:%d" % (host, opts.port))
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
