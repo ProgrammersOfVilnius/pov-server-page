@@ -3,14 +3,15 @@
 WSGI application that renders /root/Changelog
 """
 
-import re
-import os
-import textwrap
-import socket
+import calendar
 import cgi
-import sys
-import linecache
 import datetime
+import linecache
+import os
+import re
+import socket
+import sys
+import textwrap
 from functools import partial
 
 import mako.template
@@ -313,6 +314,10 @@ def Template(*args, **kw):
 
 
 STYLESHEET = textwrap.dedent('''
+    body {
+        margin: 1em;
+    }
+
     h1 > a {
         text-decoration: none;
         color: black;
@@ -343,6 +348,17 @@ STYLESHEET = textwrap.dedent('''
     a.permalink:hover, a.permalink:active {
         color: white !important;
         background: #ccc;
+    }
+
+    .calendar {
+        float: right;
+        padding: 1em;
+        margin-top: -1ex;
+        background: #ececec;
+    }
+    .calendar td {
+        width: 2.75ex;
+        text-align: right;
     }
 ''')
 
@@ -532,6 +548,8 @@ month_template = Template(textwrap.dedent('''
           </form>
         </div>
 
+        ${calendar|n}
+
     <%def name="navbar()">
         <div class="navbar">
     % if prev_url:
@@ -550,7 +568,7 @@ month_template = Template(textwrap.dedent('''
     % else:
 
     %     for entry in entries:
-    <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
+    <h3 id="e${entry.id}"><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
         ${entry.pre(slice(1, None))|n}
     %     endfor
     % endif
@@ -571,13 +589,38 @@ def month_page(environ, year, month):
     month_last = (month_1st + datetime.timedelta(31)).replace(day=1) - datetime.timedelta(1)
     prev_date = changelog.prev_date(month_1st)
     next_date = changelog.next_date(month_last)
+    calendar = month_calendar(changelog, int(year), int(month))
     return month_template.render_unicode(
         hostname=hostname, date='%s-%s' % (year, month), entries=entries,
         prev_url=prev_date and (prefix + prev_date.strftime('/%Y/%m')),
         prev_date=prev_date and prev_date.strftime('%Y-%m'),
         next_url=next_date and (prefix + next_date.strftime('/%Y/%m')),
         next_date=next_date and next_date.strftime('%Y-%m'),
+        calendar=calendar,
         prefix=prefix)
+
+
+def month_calendar(changelog, year, month):
+    matrix = calendar.monthcalendar(year, month)
+    return html_table([[day_link(changelog, year, month, day) for day in row]
+                       for row in matrix], 'calendar')
+
+
+def day_link(changelog, year, month, day):
+    if not day:
+        return ''
+    entries = changelog.filter(year=year, month=month, day=day)
+    if not entries:
+        return str(day)
+    else:
+        return '<a href="#e%s">%d</a>' % (entries[0].id, day)
+
+
+def html_table(matrix, css_class):
+    return '<table class="%s">%s</table>' % (
+        css_class,
+        ''.join(['<tr>%s</tr>' % ''.join(['<td>%s</td>' % cell for cell in row])
+                 for row in matrix]))
 
 
 day_template = Template(textwrap.dedent('''
