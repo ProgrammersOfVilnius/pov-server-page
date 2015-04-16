@@ -83,9 +83,17 @@ class Entry(TextObject):
         return u'{timestamp} {user}'.format(timestamp=self.timestamp(), user=self.user)
 
     def url(self, prefix):
-        return u'{prefix}/{year:04d}/{month:02d}/{day:02d}/#e{id}'.format(
+        return u'{prefix}/{year:04d}/{month:02d}/{day:02d}/{target}'.format(
             prefix=prefix, year=self.year, month=self.month, day=self.day,
-            id=self.id)
+            target=self.target)
+
+    @property
+    def anchor(self):
+        return u'e{id}'.format(id=self.id)
+
+    @property
+    def target(self):
+        return u'#{anchor}'.format(anchor=self.anchor)
 
     def as_html(self):
         return (
@@ -568,7 +576,7 @@ month_template = Template(textwrap.dedent('''
     % else:
 
     %     for entry in entries:
-    <h3 id="e${entry.id}"><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
+    <h3 id="${entry.anchor}"><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
         ${entry.pre(slice(1, None))|n}
     %     endfor
     % endif
@@ -589,7 +597,8 @@ def month_page(environ, year, month):
     month_last = (month_1st + datetime.timedelta(31)).replace(day=1) - datetime.timedelta(1)
     prev_date = changelog.prev_date(month_1st)
     next_date = changelog.next_date(month_last)
-    calendar = month_calendar(changelog, int(year), int(month))
+    calendar = month_calendar(changelog, int(year), int(month),
+                              url=lambda e: e.target)
     return month_template.render_unicode(
         hostname=hostname, date='%s-%s' % (year, month), entries=entries,
         prev_url=prev_date and (prefix + prev_date.strftime('/%Y/%m')),
@@ -600,20 +609,21 @@ def month_page(environ, year, month):
         prefix=prefix)
 
 
-def month_calendar(changelog, year, month):
+def month_calendar(changelog, year, month, url):
     matrix = calendar.monthcalendar(year, month)
-    return html_table([[day_link(changelog, year, month, day) for day in row]
+    return html_table([[day_link(changelog, year, month, day, url)
+                        for day in row]
                        for row in matrix], 'calendar')
 
 
-def day_link(changelog, year, month, day):
+def day_link(changelog, year, month, day, url):
     if not day:
         return ''
     entries = changelog.filter(year=year, month=month, day=day)
     if not entries:
         return str(day)
     else:
-        return '<a href="#e%s">%d</a>' % (entries[0].id, day)
+        return '<a href="%s">%d</a>' % (url(entries[0]), day)
 
 
 def html_table(matrix, css_class):
@@ -639,6 +649,8 @@ day_template = Template(textwrap.dedent('''
           </form>
         </div>
 
+        ${calendar|n}
+
     <%def name="navbar()">
         <div class="navbar">
     % if prev_url:
@@ -657,7 +669,7 @@ day_template = Template(textwrap.dedent('''
     % else:
 
     %     for entry in entries:
-        <h3 id="e${entry.id}">${entry.title()} <a class="permalink" href="${entry.url(prefix)}">&para;</a></h3>
+        <h3 id="${entry.anchor}">${entry.title()} <a class="permalink" href="${entry.url(prefix)}">&para;</a></h3>
         ${entry.pre(slice(1, None))|n}
     %     endfor
     % endif
@@ -680,12 +692,15 @@ def day_page(environ, year, month, day):
     entries = changelog.date_index.get(date, [])
     prev_date = changelog.prev_date(date)
     next_date = changelog.next_date(date)
+    calendar = month_calendar(changelog, int(year), int(month),
+                              url=lambda e: e.target)
     return day_template.render_unicode(
         date=str(date), hostname=hostname, entries=entries,
         prev_url=prev_date and (prefix + prev_date.strftime('/%Y/%m/%d')),
         prev_date=str(prev_date),
         next_url=next_date and (prefix + next_date.strftime('/%Y/%m/%d')),
         next_date=str(next_date),
+        calendar=calendar,
         prefix=prefix)
 
 
