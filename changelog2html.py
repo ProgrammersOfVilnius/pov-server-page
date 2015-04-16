@@ -364,6 +364,9 @@ STYLESHEET = textwrap.dedent('''
         margin-top: -1ex;
         background: #ececec;
     }
+    .calendar th {
+        padding-bottom: 1ex;
+    }
     .calendar td {
         width: 2.75ex;
         text-align: right;
@@ -597,7 +600,7 @@ def month_page(environ, year, month):
     month_last = (month_1st + datetime.timedelta(31)).replace(day=1) - datetime.timedelta(1)
     prev_date = changelog.prev_date(month_1st)
     next_date = changelog.next_date(month_last)
-    calendar = month_calendar(changelog, int(year), int(month),
+    calendar = month_calendar(changelog, int(year), int(month), prefix,
                               url=lambda e: e.target)
     return month_template.render_unicode(
         hostname=hostname, date='%s-%s' % (year, month), entries=entries,
@@ -609,11 +612,12 @@ def month_page(environ, year, month):
         prefix=prefix)
 
 
-def month_calendar(changelog, year, month, url):
+def month_calendar(changelog, year, month, prefix, url):
     matrix = calendar.monthcalendar(year, month)
     return html_table([[day_link(changelog, year, month, day, url)
                         for day in row]
-                       for row in matrix], 'calendar')
+                       for row in matrix], 'calendar',
+                      header=month_header(year, month, prefix))
 
 
 def day_link(changelog, year, month, day, url):
@@ -626,9 +630,17 @@ def day_link(changelog, year, month, day, url):
         return '<a href="%s">%d</a>' % (url(entries[0]), day)
 
 
-def html_table(matrix, css_class):
-    return '<table class="%s">%s</table>' % (
+def month_header(year, month, prefix):
+    title = '<a href="{prefix}/{year:04}/{month:02}">{year:04}-{month:02}</a>'.format(
+        year=year, month=month, prefix=prefix)
+    return '<thead><tr><th colspan="7">{title}</th></tr></thead>'.format(
+        title=title)
+
+
+def html_table(matrix, css_class, header=''):
+    return '<table class="%s">%s<tbody>%s</tbody></table>' % (
         css_class,
+        header,
         ''.join(['<tr>%s</tr>' % ''.join(['<td>%s</td>' % cell for cell in row])
                  for row in matrix]))
 
@@ -692,7 +704,7 @@ def day_page(environ, year, month, day):
     entries = changelog.date_index.get(date, [])
     prev_date = changelog.prev_date(date)
     next_date = changelog.next_date(date)
-    calendar = month_calendar(changelog, int(year), int(month),
+    calendar = month_calendar(changelog, int(year), int(month), prefix,
                               url=lambda e: e.target)
     return day_template.render_unicode(
         date=str(date), hostname=hostname, entries=entries,
