@@ -631,8 +631,10 @@ def day_link(changelog, year, month, day, url):
 
 
 def month_header(year, month, prefix):
-    title = '<a href="{prefix}/{year:04}/{month:02}">{year:04}-{month:02}</a>'.format(
-        year=year, month=month, prefix=prefix)
+    title = (
+        '<a href="{prefix}/{year:04}">{year:04}</a>-'
+        '<a href="{prefix}/{year:04}/{month:02}">{month:02}</a>'.format(
+            year=year, month=month, prefix=prefix))
     return '<thead><tr><th colspan="7">{title}</th></tr></thead>'.format(
         title=title)
 
