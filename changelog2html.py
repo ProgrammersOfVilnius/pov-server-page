@@ -495,6 +495,8 @@ year_template = Template(textwrap.dedent('''
           </form>
         </div>
 
+        ${calendar|n}
+
     <%def name="navbar()">
         <div class="navbar">
     % if prev_url:
@@ -534,13 +536,42 @@ def year_page(environ, year):
     year_last = datetime.date(int(year), 12, 31)
     prev_date = changelog.prev_date(year_1st)
     next_date = changelog.next_date(year_last)
+    calendar = year_calendar(
+        changelog, int(year), prefix,
+        url=lambda e: '{prefix}/{year:04}/{month:02}'.format(
+            prefix=prefix, year=e.year, month=e.month))
     return year_template.render_unicode(
         hostname=hostname, date=str(year), entries=entries,
         prev_url=prev_date and (prefix + prev_date.strftime('/%Y')),
         prev_date=prev_date and prev_date.strftime('%Y'),
         next_url=next_date and (prefix + next_date.strftime('/%Y')),
         next_date=next_date and next_date.strftime('%Y'),
+        calendar=calendar,
         prefix=prefix)
+
+
+def year_calendar(changelog, year, prefix, url):
+    matrix = [range(1, 7), range(7, 13)]
+    return html_table([[month_link(changelog, year, month, url)
+                        for month in row] for row in matrix],
+                      'calendar', header=year_header(year, prefix))
+
+
+def month_link(changelog, year, month, url):
+    if not month:
+        return ''
+    entries = changelog.filter(year=year, month=month)
+    if not entries:
+        return str(month)
+    else:
+        return '<a href="%s">%d</a>' % (url(entries[0]), month)
+
+
+def year_header(year, prefix):
+    title = '<a href="{prefix}/{year:04}">{year:04}</a>'.format(
+        year=year, prefix=prefix)
+    return '<thead><tr><th colspan="6">{title}</th></tr></thead>'.format(
+        title=title)
 
 
 month_template = Template(textwrap.dedent('''
