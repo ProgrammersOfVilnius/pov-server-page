@@ -34,5 +34,5 @@ Usage
     pov-update-server-page -v
     a2enmod rewrite ssl wsgi cgid
     a2ensite $(hostname -f).conf
-    apache2ctl configtest && apache2ctl graceful
+    service apache2 reload
 

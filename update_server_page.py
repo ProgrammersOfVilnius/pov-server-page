@@ -15,7 +15,7 @@ a2ensite and restart Apache::
     a2enmod ssl rewrite
     # skipping SSL cert setup: too long
     a2ensite $(hostname -f).conf
-    apache2ctl configtest && apache2ctl graceful
+    service apache2 reload
 
 """
 
@@ -545,7 +545,7 @@ class Builder(object):
             if not os.path.exists(filename):
                 print("Please run %s" % command.format(**self.vars))
         if self.needs_apache_reload:
-            print("Please run apache2ctl configtest && apache2ctl graceful")
+            print("Please run service apache2 reload")
 
 
 def main():
