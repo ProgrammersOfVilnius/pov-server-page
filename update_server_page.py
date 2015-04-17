@@ -306,6 +306,10 @@ class Builder(object):
             locations = builder.vars['DISK_USAGE_LIST']
             if not locations:
                 return
+            if builder.quick:
+                if builder.verbose:
+                    print('Skipping disk usage')
+                return
             delete_old = builder.vars['DISK_USAGE_DELETE_OLD']
             keep_daily = builder.vars['DISK_USAGE_KEEP_DAILY']
             keep_monthly = builder.vars['DISK_USAGE_KEEP_MONTHLY']
@@ -414,8 +418,10 @@ class Builder(object):
         ('{AUTH_USER_FILE}', 'htpasswd -c {AUTH_USER_FILE} <username>')
     ]
 
-    def __init__(self, vars, template_dir=TEMPLATE_DIR, destdir='', verbose=False):
+    def __init__(self, vars, template_dir=TEMPLATE_DIR, destdir='',
+                 verbose=False, quick=False):
         self.verbose = verbose
+        self.quick = quick
         self.vars = vars
         self.lookup = TemplateLookup(directories=[template_dir])
         self.destdir = destdir
@@ -523,9 +529,11 @@ class Builder(object):
     def parse_map(self, value):
         return dict(self.parse_pairs(value))
 
-    def build(self, verbose=None):
+    def build(self, verbose=None, quick=None):
         if verbose is not None:
             self.verbose = verbose
+        if quick is not None:
+            self.quick = quick
         self._compute_derived()
         skip = self.vars['SKIP'].split()
         redirect = self.parse_map(self.vars['REDIRECT'])
@@ -553,11 +561,18 @@ def main():
     description = "Generate Apache configuration for a server page"
     parser = optparse.OptionParser('usage: %prog [options] [var=value ...]',
                                    description=description)
-    parser.add_option('-v', '--verbose', action='store_true')
+    parser.add_option('-v', '--verbose', action='store_true',
+                      help="show what is happening")
+    parser.add_option('--quick', action='store_true', default=False,
+                      help='skip expensive steps (disk usage)')
     parser.add_option('--no-checks', action='store_false', dest='checks',
+                      help="don't check system configuration"
+                           " (suppresses 'Please run ...' suggestions)",
                       default=True)
     parser.add_option('-c', '--config-file', default=DEFAULT_CONFIG_FILE)
-    parser.add_option('--destdir', default='')
+    parser.add_option('--destdir', default='',
+                      help='prepend DESTDIR/ in front of all created files'
+                           ' (for testing)')
     opts, args = parser.parse_args()
     # Config file parsing
     cp = Builder.ConfigParser()
@@ -576,7 +591,7 @@ def main():
     # Build /var/www/{hostname} and /etc/apache2/sites-available/
     builder = Builder.from_config(cp, destdir=opts.destdir)
     try:
-        builder.build(verbose=opts.verbose)
+        builder.build(verbose=opts.verbose, quick=opts.quick)
         if opts.checks:
             builder.check()
     except Error, e:
