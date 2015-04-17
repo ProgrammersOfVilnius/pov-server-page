@@ -1,9 +1,9 @@
-pov-server-page (0.21.0ubuntu1) UNRELEASED; urgency=medium
+pov-server-page (0.21.0) precise; urgency=medium
 
   * changelog2html: calendar-based navigation.
   * pov-update-server-page: --quick mode, better --help.
 
- -- Marius Gedminas <marius@gedmin.as>  Fri, 17 Apr 2015 11:44:09 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 17 Apr 2015 11:46:34 +0300
 
 pov-server-page (0.20.0) precise; urgency=medium
 

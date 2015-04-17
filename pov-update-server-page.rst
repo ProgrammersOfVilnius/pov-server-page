@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2015-01-09
-:Version: 0.20.0
+:Date: 2015-04-17
+:Version: 0.21.0
 :Manual section: 8
 
 
@@ -43,6 +43,7 @@ OPTIONS
 
 -h, --help          Print a help message and exit.
 -v, --verbose       Verbose output: show what files are being created.
+--quick             Skip expensive build steps (disk usage pages).
 -c FILENAME, --config-file=FILENAME
                     Use the specified config file instead of
                     ``/etc/pov/server-page.conf``.
@@ -258,3 +259,5 @@ directory.
 
 You cannot skip individual files or subdirectories under
 ``/var/www/``\ *HOSTNAME*\ ``/du/``.
+
+Report bugs at https://github.com/ProgrammersOfVilnius/pov-server-page/issues/
