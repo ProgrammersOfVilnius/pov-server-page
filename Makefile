@@ -1,6 +1,7 @@
 source := $(shell dpkg-parsechangelog | awk '$$1 == "Source:" { print $$2 }')
 version := $(shell dpkg-parsechangelog | awk '$$1 == "Version:" { print $$2 }')
 date := $(shell dpkg-parsechangelog | grep ^Date: | cut -d: -f 2- | date --date="$$(cat)" +%Y-%m-%d)
+target_distribution := $(shell dpkg-parsechangelog | awk '$$1 == "Distribution:" { print $$2 }')
 
 manpage = pov-update-server-page.rst
 
@@ -41,6 +42,13 @@ check-version:
 	    exit 1; \
 	}
 
+.PHONY: check-target
+check-target:
+	@test "$(target_distribution)" = "precise" || { \
+	    echo "Distribution in debian/changelog should be 'precise'" 2>&1; \
+	    exit 1; \
+	}
+
 .PHONY: install
 install:
 	install -m 644 server-page.conf $(DESTDIR)/etc/pov/server-page.conf
@@ -66,7 +74,7 @@ clean-build-tree:
 	(cd webtreemap-du && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap-du/ HEAD) | tar -xf -
 
 .PHONY: source-package
-source-package: clean-build-tree test
+source-package: clean-build-tree test check-target
 	cd pkgbuild/$(source) && debuild -S -i -k$(GPGKEY)
 
 .PHONY: upload-to-ppa release
