@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2015-04-17
-:Version: 0.21.0
+:Date: 2015-04-21
+:Version: 0.22.0
 :Manual section: 8
 
 
@@ -137,7 +137,7 @@ The following options are defined:
 
 **include** (default: empty)
 
-    Add an ``Include`` *FILENAME* directive in the generated Apache
+    Add one or more ``Include`` *FILENAME* directive in the generated Apache
     configuration.
 
     You need to use this (or **apache_extra_conf**) to specify the SSL
@@ -145,7 +145,10 @@ The following options are defined:
 
     Example::
 
-        include = /etc/apache2/my-ssl-cert.conf
+        include =
+          /etc/apache2/conf-available/my-ssl-cert.conf
+          /etc/apache2/conf-available/other-snippet.conf
+          /opt/someservice/apache.conf
 
 **apache_extra_conf** (default: empty)
 

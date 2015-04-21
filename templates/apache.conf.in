@@ -35,14 +35,15 @@
 
 % endif
 % if INCLUDE:
-  Include ${INCLUDE}
+%     for filename in INCLUDE.split():
+  Include ${filename}
+%     endfor
 
 % endif
 % if APACHE_EXTRA_CONF:
   ${APACHE_EXTRA_CONF.strip().replace('\n', '\n  ')}
 
 % endif
-
 % if CHANGELOG:
   # Changelog
   WSGIScriptAlias /changelog ${CHANGELOG2HTML_SCRIPT}
