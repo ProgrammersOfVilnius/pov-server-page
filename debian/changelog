@@ -1,8 +1,8 @@
-pov-server-page (0.22.0) UNRELEASED; urgency=medium
+pov-server-page (0.22.0) precise; urgency=medium
 
   * pov-update-server-page: allow multiple files in 'include'.
 
- -- Marius Gedminas <marius@gedmin.as>  Tue, 21 Apr 2015 11:28:03 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Tue, 21 Apr 2015 13:24:53 +0300
 
 pov-server-page (0.21.0) precise; urgency=medium
 
