@@ -2989,6 +2989,18 @@ sub load_graph_definitions
     'GPRINT:max:MAX:%4.0lf Max,',
     'GPRINT:avg:LAST:%4.0lf Last\l'
     ],
+    mail_counter => [
+    'DEF:avg={file}:value:AVERAGE',
+    'DEF:min={file}:value:MIN',
+    'DEF:max={file}:value:MAX',
+    "AREA:max#$HalfBlue",
+    "AREA:min#$Canvas",
+    "LINE1:avg#$FullBlue:Value",
+    'GPRINT:min:MIN:%4.0lf Min,',
+    'GPRINT:avg:AVERAGE:%4.0lf Avg,',
+    'GPRINT:max:MAX:%4.0lf Max,',
+    'GPRINT:avg:LAST:%4.0lf Last\l'
+    ],
     files => [
     'DEF:avg={file}:value:AVERAGE',
     'DEF:min={file}:value:MIN',
