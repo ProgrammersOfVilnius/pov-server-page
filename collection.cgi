@@ -1298,7 +1298,7 @@ sub load_graph_definitions
     'GPRINT:inc_max:MAX:%6.2lf Max,',
     'GPRINT:inc_avg:LAST:%6.2lf Last\l'
     ],
-    disk_time => ['-v', 'Seconds/s',
+    disk_time => ['-v', 'Avg seconds/op',
     'DEF:out_min_raw={file}:write:MIN',
     'DEF:out_avg_raw={file}:write:AVERAGE',
     'DEF:out_max_raw={file}:write:MAX',
