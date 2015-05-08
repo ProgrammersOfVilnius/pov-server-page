@@ -1,8 +1,11 @@
 pov-server-page (0.23.0) UNRELEASED; urgency=medium
 
-  * collection.cgi: add support for the mail_counter type (GH: #11).
+  * collection.cgi:
+    - add support for the mail_counter type (GH: #11),
+    - limit CPU graph to 100%,
+    - make sure entropy graph starts at 0.
 
- -- Marius Gedminas <marius@gedmin.as>  Thu, 30 Apr 2015 12:31:23 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 08 May 2015 08:20:56 +0300
 
 pov-server-page (0.22.0) precise; urgency=medium
 

@@ -1107,7 +1107,7 @@ sub load_graph_definitions
     'GPRINT:max:MAX:%4.1lf Max,',
     'GPRINT:avg:LAST:%4.1lf Last\l'
     ],
-    cpu => ['-v', 'CPU load',
+    cpu => ['-v', 'CPU load', '-l', '0', '-u', '100',
     'DEF:avg={file}:value:AVERAGE',
     'DEF:min={file}:value:MIN',
     'DEF:max={file}:value:MAX',
@@ -1419,7 +1419,7 @@ sub load_graph_definitions
     'GPRINT:max:MAX:%4.1lf Max,',
     'GPRINT:avg:LAST:%4.1lf Last\l'
     ],
-    conntrack => ['-v', 'Entries',
+    conntrack => ['-v', 'Entries', '-l', '0',
     'DEF:avg={file}:entropy:AVERAGE',
     'DEF:min={file}:entropy:MIN',
     'DEF:max={file}:entropy:MAX',
