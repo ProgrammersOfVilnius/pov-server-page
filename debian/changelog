@@ -1,8 +1,9 @@
 pov-server-page (0.24.0) UNRELEASED; urgency=medium
 
   * Added apache2-utils to Recommends, because it provides htpasswd.
+  * pov-update-server-page: -q as a shorter --quick.
 
- -- Marius Gedminas <marius@gedmin.as>  Tue, 12 May 2015 11:05:12 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 14 May 2015 14:22:26 +0300
 
 pov-server-page (0.23.0) precise; urgency=medium
 

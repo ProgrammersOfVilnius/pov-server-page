@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2015-05-08
-:Version: 0.23.0
+:Date: 2015-05-14
+:Version: 0.24.0
 :Manual section: 8
 
 
@@ -43,7 +43,7 @@ OPTIONS
 
 -h, --help          Print a help message and exit.
 -v, --verbose       Verbose output: show what files are being created.
---quick             Skip expensive build steps (disk usage pages).
+-q, --quick         Skip expensive build steps (disk usage pages).
 -c FILENAME, --config-file=FILENAME
                     Use the specified config file instead of
                     ``/etc/pov/server-page.conf``.

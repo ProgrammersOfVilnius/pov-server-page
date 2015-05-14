@@ -563,7 +563,7 @@ def main():
                                    description=description)
     parser.add_option('-v', '--verbose', action='store_true',
                       help="show what is happening")
-    parser.add_option('--quick', action='store_true', default=False,
+    parser.add_option('-q', '--quick', action='store_true', default=False,
                       help='skip expensive steps (disk usage)')
     parser.add_option('--no-checks', action='store_false', dest='checks',
                       help="don't check system configuration"
