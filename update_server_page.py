@@ -19,7 +19,6 @@ a2ensite and restart Apache::
 
 """
 
-import ConfigParser
 import datetime
 import errno
 import glob
@@ -31,6 +30,12 @@ import stat
 import subprocess
 import sys
 import time
+
+try:
+    from ConfigParser import SafeConfigParser
+except ImportError:
+    from configparser import ConfigParser as SafeConfigParser
+
 
 from mako.lookup import TemplateLookup
 
@@ -76,7 +81,7 @@ def newer(file1, file2):
     mtime1 = os.stat(file1).st_mtime
     try:
         mtime2 = os.stat(file2).st_mtime
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.ENOENT:
             return True
         else:
@@ -93,7 +98,7 @@ def mkdir_with_parents(dirname):
     """
     try:
         os.makedirs(dirname)
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.EEXIST and os.path.isdir(dirname):
             return False
         else:
@@ -108,7 +113,7 @@ def symlink(target, filename):
     """
     try:
         os.symlink(target, filename)
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.EEXIST and os.path.islink(filename) and os.readlink(filename) == target:
             return False
         else:
@@ -138,7 +143,7 @@ def replace_file(filename, marker, new_contents):
                 return False
             if marker not in old_contents:
                 raise Error('Refusing to overwrite %s' % filename)
-    except IOError, e:
+    except IOError as e:
         if e.errno == errno.ENOENT:
             pass
         else:
@@ -431,7 +436,7 @@ class Builder(object):
 
     @classmethod
     def ConfigParser(cls, **extra):
-        cp = ConfigParser.SafeConfigParser()
+        cp = SafeConfigParser()
         cp.add_section(cls.section)
         for name, value in cls.defaults.items():
             cp.set(cls.section, name, str(value))
@@ -594,7 +599,7 @@ def main():
         builder.build(verbose=opts.verbose, quick=opts.quick)
         if opts.checks:
             builder.check()
-    except Error, e:
+    except Error as e:
         sys.exit(str(e))
 
 

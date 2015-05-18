@@ -36,3 +36,10 @@ Usage
     a2ensite $(hostname -f).conf
     service apache2 reload
 
+
+Usage with Python 3
+-------------------
+
+::
+
+    apt-get install pov-update-server-page libapache2-mod-wsgi-py3 python3-mako

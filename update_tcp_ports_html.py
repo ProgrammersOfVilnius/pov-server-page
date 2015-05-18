@@ -3,6 +3,7 @@
 Update TCP port assignments page in /var/www/HOSTNAME/ports/index.html.
 """
 
+import io
 import optparse
 import os
 import pwd
@@ -13,9 +14,10 @@ import subprocess
 import time
 from cgi import escape
 from collections import namedtuple, defaultdict
+from contextlib import contextmanager
 
 
-__version__ = '0.4.4'
+__version__ = '0.5.0'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -75,9 +77,18 @@ ROW_TEMPLATE = string.Template("""\
 NetStatTuple = namedtuple('NetStatTuple', 'proto ip port pid program')
 
 
+@contextmanager
+def pipe(*command):
+    with open('/dev/null', 'wb') as devnull:
+        with subprocess.Popen(command, stdout=subprocess.PIPE,
+                              stderr=devnull).stdout as f:
+            if bytes is not str:  # Python 3
+                f = io.TextIOWrapper(f, encoding='UTF-8', errors='replace')
+            yield f
+
+
 def netstat():
-    with subprocess.Popen(['netstat', '-tnlvp'], stdout=subprocess.PIPE,
-                          stderr=open('/dev/null', 'w')).stdout as f:
+    with pipe('netstat', '-tnlvp') as f:
         for line in f:
             if line == 'Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name\n':
                 break
@@ -99,8 +110,7 @@ def netstat():
 
 
 def pmap_dump():
-    with subprocess.Popen(['pmap_dump'], stdout=subprocess.PIPE,
-                          stderr=open('/dev/null', 'w')).stdout as f:
+    with pipe('pmap_dump') as f:
         for line in f:
             parts = line.split(None, 4)
             if len(parts) < 5:
@@ -116,8 +126,7 @@ def pmap_dump():
 
 
 def rpcinfo_dump():
-    with subprocess.Popen(['rpcinfo', '-p'], stdout=subprocess.PIPE,
-                          stderr=open('/dev/null', 'w')).stdout as f:
+    with pipe('rpcinfo', '-p') as f:
         for line in f:
             # line is 'program vers proto port service'
             parts = line.split()
@@ -182,7 +191,7 @@ def get_program(pid):
     if len(argv) >= 1 and ''.join(argv[1:]) == '' and ' ' in argv[0]:
         # programs that change their argv like postgrey or spamd
         argv = argv[0].split()
-    args = map(escape, map(format_arg, argv))
+    args = [escape(format_arg(arg)) for arg in argv]
     if not args:
         return ''
     # extract progname
@@ -200,7 +209,7 @@ def get_html_cmdline(pid):
     if len(argv) >= 1 and ''.join(argv[1:]) == '' and ' ' in argv[0]:
         # programs that change their argv like postgrey or spamd
         argv = argv[0].split()
-    args = map(escape, map(format_arg, argv))
+    args = [escape(format_arg(arg)) for arg in argv]
     if not args:
         return ''
     # highlight progname

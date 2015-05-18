@@ -6,6 +6,7 @@ WSGI application that renders /root/Changelog
 import calendar
 import cgi
 import datetime
+import io
 import linecache
 import os
 import re
@@ -19,7 +20,7 @@ import mako.exceptions
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.4'
+__version__ = '0.5'
 
 
 HOSTNAME = socket.gethostname()
@@ -152,7 +153,7 @@ class Changelog(object):
                 yield entry
 
     def read(self, filename):
-        with open(filename) as fp:
+        with io.open(filename, encoding='UTF-8', errors='replace') as fp:
             self.mtime = os.fstat(fp.fileno()).st_mtime
             self.parse(fp)
 
@@ -160,7 +161,6 @@ class Changelog(object):
         entry = self.preamble
         todo = None
         for line in fp:
-            line = line.decode('UTF-8', 'replace')
             m = self._entry_header.match(line)
             if m is not None:
                 entry = Entry(id=len(self.entries) + 1,
@@ -805,7 +805,9 @@ search_template = Template(textwrap.dedent('''
 def search_page(environ):
     prefix = get_prefix(environ)
     form = cgi.parse_qs(environ.get('QUERY_STRING', ''))
-    query = unicode(form.get('q', [''])[0], 'UTF-8')
+    query = form.get('q', [''])[0]
+    if isinstance(query, bytes):
+        query = query.decode('UTF-8')
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
     entries = list(changelog.search(query))
@@ -832,6 +834,10 @@ def reloading_wsgi_app(environ, start_response):
     # Horrible hack that gives me a fast development loop: reload the code on
     # every request!
     import changelog2html
+    try:
+        from importlib import reload
+    except ImportError:
+        pass
     reload(changelog2html)
     return changelog2html.wsgi_app(environ, start_response)
 

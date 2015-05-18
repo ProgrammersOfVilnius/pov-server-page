@@ -3,12 +3,14 @@ Section: admin
 Priority: extra
 Maintainer: Marius Gedminas <marius@gedmin.as>
 Build-Depends: debhelper (>= 8.0.0), python-docutils, python-nose, python-mako
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Homepage: https://github.com/ProgrammersOfVilnius/pov-server-page
 
 Package: pov-server-page
 Architecture: all
-Depends: apache2, libapache2-mod-wsgi, collectd, perl, librrds-perl, libhtml-parser-perl, python, python-mako, ${perl:Depends}, ${misc:Depends}
+Depends: apache2, libapache2-mod-wsgi | libapache2-mod-wsgi-py3, collectd,
+ perl, librrds-perl, libhtml-parser-perl, python, python-mako, ${perl:Depends},
+ ${misc:Depends}
 Recommends: apache2-utils
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
