@@ -1,8 +1,8 @@
-pov-server-page (0.24.1) UNRELEASED; urgency=medium
+pov-server-page (0.24.1) precise; urgency=medium
 
   * Suppress df warning on Ubuntu 12.04 LTS.
 
- -- Marius Gedminas <marius@gedmin.as>  Tue, 23 Jun 2015 10:25:14 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Tue, 23 Jun 2015 10:32:48 +0300
 
 pov-server-page (0.24.0) precise; urgency=medium
 
