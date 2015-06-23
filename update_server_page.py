@@ -291,7 +291,7 @@ class Builder(object):
         @classmethod
         def get_all_locations(cls):
             locations = []
-            for line in os.popen("df -PT").readlines()[1:]:
+            for line in os.popen("df -PT -x debugfs").readlines()[1:]:
                 bits = line.split()
                 # device, type, size, used, free, %, mountpoint
                 fstype = bits[1]
