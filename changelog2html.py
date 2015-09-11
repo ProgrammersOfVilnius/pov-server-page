@@ -20,11 +20,12 @@ import mako.exceptions
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.5'
+__version__ = '0.6'
 
 
 HOSTNAME = socket.gethostname()
 CHANGELOG_FILE = '/root/Changelog'
+MOTD_FILE = '/etc/motd'
 
 
 #
@@ -206,6 +207,36 @@ class Changelog(object):
             return None
 
 
+class Motd(object):
+
+    def __init__(self, filename=None):
+        self.raw = ''
+        if filename:
+            self.read(filename)
+
+    def read(self, filename):
+        self.raw = ''
+        try:
+            with io.open(filename, encoding='UTF-8', errors='replace') as fp:
+                self.raw = fp.read()
+        except IOError:
+            pass
+        self.text = strip_ansi(self.raw)
+
+    def as_html(self):
+        return u'<pre class="motd">%s</pre>' % cgi.escape(self.text)
+
+
+# CSI: starts with ESC [, followed optionally by a ?, followed by up to 16
+# decimal parameters separated by semicolons, followed by a single character
+# (usually a lowercase or uppercase letter, but could be @ or `).
+ANSI_RX = re.compile(ur'\033\[\??(\d+(;\d+)*)?(.)')
+
+
+def strip_ansi(text):
+    return ANSI_RX.sub('', text)
+
+
 #
 # Environment
 #
@@ -224,6 +255,11 @@ def get_hostname(environ):
 
 def get_changelog_filename(environ):
     return environ.get('CHANGELOG_FILE') or os.getenv('CHANGELOG_FILE') or CHANGELOG_FILE
+
+
+def get_motd(environ):
+    filename = environ.get('MOTD_FILE') or os.getenv('MOTD_FILE') or MOTD_FILE
+    return Motd(filename)
 
 
 #
@@ -395,6 +431,8 @@ main_template = Template(textwrap.dedent('''
           </form>
         </div>
 
+        ${motd.as_html()|n}
+
         ${changelog.preamble.as_html()|n}
 
     % if changelog.todo:
@@ -435,8 +473,9 @@ def main_page(environ):
     prefix = get_prefix(environ)
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
+    motd = get_motd(environ)
     return main_template.render_unicode(
-        hostname=hostname, changelog=changelog, prefix=prefix)
+        hostname=hostname, motd=motd, changelog=changelog, prefix=prefix)
 
 
 all_template = Template(textwrap.dedent('''
