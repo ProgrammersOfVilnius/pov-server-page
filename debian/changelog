@@ -1,9 +1,9 @@
-pov-server-page (0.25.0) UNRELEASED; urgency=medium
+pov-server-page (0.25.0) precise; urgency=medium
 
   * changelog2html 0.9:
     - show /etc/motd.
 
- -- Marius Gedminas <marius@gedmin.as>  Fri, 11 Sep 2015 11:17:01 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 11 Sep 2015 11:25:43 +0300
 
 pov-server-page (0.24.1) precise; urgency=medium
 
