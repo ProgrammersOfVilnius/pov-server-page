@@ -5,11 +5,14 @@ except ImportError:
 
 import changelog2html as c2h
 
+from nose.tools import assert_equal
+
 
 TESTENV = {
     'HOSTNAME': 'example.com',
     'SCRIPT_NAME': '/',
     'CHANGELOG_FILE': 'testlog',
+    'MOTD_FILE': '/dev/null'
 }
 
 
@@ -96,3 +99,13 @@ def doctest_main_page():
         </html>
 
     """
+
+
+def test_strip_ansi():
+    assert_equal(c2h.strip_ansi('Hello, \033[1;37minvisible\033[m world'),
+                 'Hello, invisible world')
+
+
+def test_ansi2html():
+    assert_equal(c2h.ansi2html('Hello, \033[1;37minvisible\033[m world! <>&'),
+                 'Hello, <span style="color: #ededeb">invisible</span> world! &lt;&gt;&amp;')
