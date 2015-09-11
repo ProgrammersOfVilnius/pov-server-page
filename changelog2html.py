@@ -830,14 +830,16 @@ def wsgi_app(environ, start_response):
 application = wsgi_app  # for mod_wsgi
 
 
+try:
+    from importlib import reload
+except ImportError:
+    pass
+
+
 def reloading_wsgi_app(environ, start_response):
     # Horrible hack that gives me a fast development loop: reload the code on
     # every request!
     import changelog2html
-    try:
-        from importlib import reload
-    except ImportError:
-        pass
     reload(changelog2html)
     return changelog2html.wsgi_app(environ, start_response)
 
