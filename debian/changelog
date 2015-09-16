@@ -1,3 +1,11 @@
+pov-server-page (0.26.0) UNRELEASED; urgency=medium
+
+  * debian/control:
+    - depend on collectd-core instead of collectd, to avoid pulling in Java
+      and other unnecessary stuff.
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 16 Sep 2015 09:26:23 +0300
+
 pov-server-page (0.25.0) precise; urgency=medium
 
   * changelog2html 0.9:
