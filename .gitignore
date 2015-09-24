@@ -5,3 +5,4 @@ pkgbuild
 *.8
 *.pyc
 .coverage
+.tox/
