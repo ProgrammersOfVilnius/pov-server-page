@@ -1,3 +1,10 @@
+pov-server-page (0.26.1) precise; urgency=medium
+
+  * changelog2html 0.6.1:
+    - fix breakage on Python 3 (GH: #12).
+
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 24 Sep 2015 20:53:18 +0300
+
 pov-server-page (0.26.0) precise; urgency=medium
 
   * debian/control:
@@ -8,7 +15,7 @@ pov-server-page (0.26.0) precise; urgency=medium
 
 pov-server-page (0.25.0) precise; urgency=medium
 
-  * changelog2html 0.9:
+  * changelog2html 0.6:
     - show /etc/motd.
 
  -- Marius Gedminas <marius@gedmin.as>  Fri, 11 Sep 2015 11:25:43 +0300

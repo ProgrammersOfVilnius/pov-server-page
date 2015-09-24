@@ -25,7 +25,6 @@ all: pov-update-server-page.8
 .PHONY: test check
 test check: check-version
 	nosetests
-	nosetests3
 
 .PHONY: coverage
 coverage:
@@ -100,6 +99,7 @@ vagrant-test-install: binary-package
 
 .PHONY: pbuilder-test-build
 pbuilder-test-build: source-package
+	# NB: you need to periodically run pbuilder-dist precise update
 	pbuilder-dist precise build pkgbuild/$(source)_$(version).dsc
 	@echo
 	@echo "Look for the package in ~/pbuilder/precise_result/"
