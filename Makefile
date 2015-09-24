@@ -24,7 +24,8 @@ all: pov-update-server-page.8
 
 .PHONY: test check
 test check: check-version
-	detox
+	nosetests
+	nosetests3
 
 .PHONY: coverage
 coverage:
