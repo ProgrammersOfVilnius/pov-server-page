@@ -233,7 +233,7 @@ class Motd(object):
 # CSI: starts with ESC [, followed optionally by a ?, followed by up to 16
 # decimal parameters separated by semicolons, followed by a single character
 # (usually a lowercase or uppercase letter, but could be @ or `).
-ANSI_RX = re.compile(ur'(\033\[\??(?:\d+(?:;\d+)*)?.)')
+ANSI_RX = re.compile(r'(\033\[\??(?:\d+(?:;\d+)*)?.)')
 
 
 def strip_ansi(text):
