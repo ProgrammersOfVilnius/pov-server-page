@@ -506,3 +506,11 @@ class TestBuilder(unittest.TestCase):
         self.assertFalse(builder.vars['CHANGELOG'])
         self.assertEqual(self.stdout.getvalue(),
                          "Skipping changelog view since /root/Changelog is not readable by user www-data\n")
+
+    def test_file_readable_to(self):
+        file_readable_to = Builder().file_readable_to
+        self.assertTrue(file_readable_to(__file__, 'root', 'root'))
+
+    def test_file_readable_to_bad_user(self):
+        file_readable_to = Builder().file_readable_to
+        self.assertTrue(file_readable_to(__file__, 'no-such-user', 'root'))

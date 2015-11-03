@@ -478,7 +478,7 @@ class Builder(object):
         except KeyError:
             uid = -1
         try:
-            gid = grp.getgrnam(user).gr_gid
+            gid = grp.getgrnam(group).gr_gid
         except KeyError:
             gid = -1
         if not self.can_read(filename, uid, gid):
