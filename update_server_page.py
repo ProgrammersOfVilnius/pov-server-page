@@ -531,7 +531,7 @@ class Builder(object):
             elif '=' in line:
                 source, destination = line.split('=', 1)
             else:
-                continue
+                continue  # nocover: peephole optimizer tricks coverage
             result.append((source.strip(), destination.strip()))
         return result
 

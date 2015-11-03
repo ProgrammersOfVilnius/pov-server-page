@@ -474,6 +474,32 @@ class TestBuilderConstruction(unittest.TestCase):
         Builder.from_config(cp) # should not raise
 
 
+class TestBuilderParseHelpers(unittest.TestCase):
+
+    def test_parse_pairs(self):
+        parse_pairs = Builder().parse_pairs
+        self.assertEqual(parse_pairs(""), [])
+        self.assertEqual(parse_pairs("a=b"), [("a", "b")])
+        self.assertEqual(parse_pairs(" a = b "), [("a", "b")])
+        self.assertEqual(parse_pairs("a=b\nc = d"), [("a", "b"), ("c", "d")])
+
+    def test_parse_pairs_ignore_everything_else(self):
+        parse_pairs = Builder().parse_pairs
+        self.assertEqual(parse_pairs("a=b\n# c\nd = e"),
+                         [("a", "b"), ("d", "e")])
+
+    def test_parse_pairs_embedded_equals(self):
+        parse_pairs = Builder().parse_pairs
+        self.assertEqual(parse_pairs("a = b = c"), [("a", "b = c")])
+        self.assertEqual(parse_pairs("a=b = c"), [("a=b", "c")])
+        self.assertEqual(parse_pairs("a = b=c"), [("a", "b=c")])
+        self.assertEqual(parse_pairs("a=b=c"), [("a", "b=c")])
+
+    def test_parse_map(self):
+        parse_map = Builder().parse_map
+        self.assertEqual(parse_map("a = b\nc = d"), {'a': 'b', 'c': 'd'})
+
+
 class TestBuilderWithStdout(unittest.TestCase):
 
     def setUp(self):
@@ -488,7 +514,7 @@ class TestBuilderWithStdout(unittest.TestCase):
             'HOSTNAME': 'frog.example.com',
             'SERVER_ALIASES': 'frog frog.lan',
             'DISK_USAGE': '/frog /pond',
-            'EXTRA_LINKS': 'also foo=/foo\nalso bar=/bar',
+            'EXTRA_LINKS': '/foo=also foo\n/bar=also bar',
         })
         builder.file_readable_to = lambda fn, u, g: True
         builder._compute_derived()
@@ -496,7 +522,7 @@ class TestBuilderWithStdout(unittest.TestCase):
         self.assertEqual(builder.vars['TIMESTAMP'], '2015-11-01 14:35:03')
         self.assertEqual(builder.vars['SERVER_ALIAS_LIST'], ['frog', 'frog.lan'])
         self.assertEqual(builder.vars['EXTRA_LINKS_MAP'],
-                         [('also foo', '/foo'), ('also bar', '/bar')])
+                         [('/foo', 'also foo'), ('/bar', 'also bar')])
         self.assertEqual(builder.vars['CHANGELOG2HTML_SCRIPT'], CHANGELOG2HTML_SCRIPT)
         self.assertTrue(builder.vars['CHANGELOG'])
 
