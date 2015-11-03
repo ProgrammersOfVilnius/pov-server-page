@@ -9,7 +9,9 @@ import errno
 import mock
 from nose.tools import assert_equal
 
-from update_server_page import Builder, newer, mkdir_with_parents, symlink
+from update_server_page import (
+    Builder, Error, newer, mkdir_with_parents, symlink, replace_file,
+)
 
 
 class FilesystemTests(unittest.TestCase):
@@ -20,6 +22,9 @@ class FilesystemTests(unittest.TestCase):
 
     def raise_oserror(self, *args):
         raise OSError(errno.EACCES, 'cannot access parent directory')
+
+    def raise_ioerror(self, *args):
+        raise IOError(errno.EACCES, 'cannot access parent directory')
 
 
 class TestNewer(FilesystemTests):
@@ -106,6 +111,53 @@ class TestSymlink(FilesystemTests):
         with mock.patch('os.symlink', self.raise_oserror):
             with self.assertRaises(OSError):
                 symlink(a, b)
+
+
+class TestReplaceFile(FilesystemTests):
+
+    def test_replace_file_creates_new_file(self):
+        fn = os.path.join(self.tmpdir, 'file.txt')
+        new_contents = 'New contents (with @MARKER@)'
+        rv = replace_file(fn, '@MARKER@', new_contents)
+        with open(fn, 'r') as f:
+            self.assertEqual(f.read(), new_contents)
+        self.assertTrue(rv)
+
+    def test_replace_file_replaces_file(self):
+        fn = os.path.join(self.tmpdir, 'file.txt')
+        with open(fn, 'w') as f:
+            f.write('Old contents (with @MARKER@)')
+        new_contents = 'New contents (with @MARKER@)'
+        rv = replace_file(fn, '@MARKER@', new_contents)
+        with open(fn, 'r') as f:
+            self.assertEqual(f.read(), new_contents)
+        self.assertTrue(rv)
+
+    def test_replace_file_keeps_same_file(self):
+        fn = os.path.join(self.tmpdir, 'file.txt')
+        old_contents = 'Old contents (with @MARKER@)'
+        with open(fn, 'w') as f:
+            f.write(old_contents)
+        rv = replace_file(fn, '@MARKER@', old_contents)
+        with open(fn, 'r') as f:
+            self.assertEqual(f.read(), old_contents)
+        self.assertFalse(rv)
+
+    def test_replace_file_leaves_file_alone(self):
+        fn = os.path.join(self.tmpdir, 'file.txt')
+        old_contents = 'Old contents (without a marker)'
+        with open(fn, 'w') as f:
+            f.write(old_contents)
+        with self.assertRaises(Error):
+            replace_file(fn, '@MARKER@', 'New contents (with @MARKER@)')
+        with open(fn, 'r') as f:
+            self.assertEqual(f.read(), old_contents)
+
+    def test_replace_file_error(self):
+        fn = os.path.join(self.tmpdir, 'file.txt')
+        with mock.patch('update_server_page.open', self.raise_ioerror):
+            with self.assertRaises(IOError):
+                replace_file(fn, '@MARKER@', 'New contents (with @MARKER@)')
 
 
 def test_Builder_from_config_all_defaults():
