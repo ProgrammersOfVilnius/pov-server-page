@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
+import errno
 import os
 import random
 import shutil
 import tempfile
-import unittest
 import time
-import errno
+import unittest
 
 try:
     from cStringIO import StringIO
@@ -16,7 +16,7 @@ import mock
 
 from update_server_page import (
     Builder, Error, newer, mkdir_with_parents, symlink, replace_file,
-    pipeline, HTML_MARKER,
+    pipeline, HTML_MARKER, CHANGELOG2HTML_SCRIPT,
 )
 
 
@@ -464,6 +464,45 @@ class TestDiskUsageBuilder(BuilderTests):
         mock_unlink.assert_called_once_with('du-2015-11-02.gz')
 
 
-def test_Builder_from_config_all_defaults():
-    cp = Builder.ConfigParser()
-    Builder.from_config(cp) # should not raise
+class TestBuilder(unittest.TestCase):
+
+    def setUp(self):
+        super(TestBuilder, self).setUp()
+        patcher = mock.patch('sys.stdout', StringIO())
+        self.stdout = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_Builder(self):
+        Builder() # should not raise
+
+    def test_Builder_from_config_all_defaults(self):
+        cp = Builder.ConfigParser()
+        Builder.from_config(cp) # should not raise
+
+    @mock.patch('datetime.datetime')
+    def test_compute_derived(self, mock_datetime):
+        mock_datetime.now().__str__.return_value = '2015-11-01 14:35:03'
+        builder = Builder({
+            'HOSTNAME': 'frog.example.com',
+            'SERVER_ALIASES': 'frog frog.lan',
+            'DISK_USAGE': '/frog /pond',
+            'EXTRA_LINKS': 'also foo=/foo\nalso bar=/bar',
+        })
+        builder.file_readable_to = lambda fn, u, g: True
+        builder._compute_derived()
+        self.assertEqual(builder.vars['SHORTHOSTNAME'], 'frog')
+        self.assertEqual(builder.vars['TIMESTAMP'], '2015-11-01 14:35:03')
+        self.assertEqual(builder.vars['SERVER_ALIAS_LIST'], ['frog', 'frog.lan'])
+        self.assertEqual(builder.vars['EXTRA_LINKS_MAP'],
+                         [('also foo', '/foo'), ('also bar', '/bar')])
+        self.assertEqual(builder.vars['CHANGELOG2HTML_SCRIPT'], CHANGELOG2HTML_SCRIPT)
+        self.assertTrue(builder.vars['CHANGELOG'])
+
+    def test_compute_derived_warns_about_unreadable_changelog(self):
+        builder = Builder()
+        builder.verbose = True
+        builder.file_readable_to = lambda fn, u, g: False
+        builder._compute_derived()
+        self.assertFalse(builder.vars['CHANGELOG'])
+        self.assertEqual(self.stdout.getvalue(),
+                         "Skipping changelog view since /root/Changelog is not readable by user www-data\n")
