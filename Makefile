@@ -28,8 +28,7 @@ test check: check-version
 
 .PHONY: coverage
 coverage:
-	coverage run -m nose
-	coverage report
+	tox -e coverage
 
 .PHONY: checkversion
 check-version:
