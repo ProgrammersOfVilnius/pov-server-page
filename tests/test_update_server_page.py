@@ -244,6 +244,7 @@ class TestDiskUsageBuilderHelpers(unittest.TestCase):
         self.builder = Builder.DiskUsage()
         self.builder.collectd_hostname = 'frog.example.com'
         self.builder.hostname = 'frog'
+        self.builder.file_readable_to = lambda f, u, g: True
 
     def test_location_name(self):
         location_name = self.builder.location_name
@@ -661,6 +662,7 @@ class TestBuilderWithFilesystem(BuilderTests):
         self.builder.vars['SKIP'] = '{tmpdir}/var/www/frog.example.com/du\n{tmpdir}/var/www/frog.example.com/ports/index.html'.format(tmpdir=self.tmpdir)
         self.builder.vars['REDIRECT'] = '{tmpdir}/var/www/frog.example.com/index.html = {tmpdir}/var/www/frog.example.com/frontpage.html'.format(tmpdir=self.tmpdir)
         self.builder.vars['DISK_USAGE'] = 'all'
+        self.builder.file_readable_to = lambda f, u, g: True
         self.builder.build(verbose=True, quick=True)
         self.assertEqual(
             self.stdout.getvalue().replace(self.tmpdir, '/var/www/frog.example.com'),
