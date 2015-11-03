@@ -1,24 +1,70 @@
 <%!
+import codecs
 import glob
+import hashlib
 import subprocess
+from collections import namedtuple
+
+
+HostKeyInfo = namedtuple('HostKeyInfo', 'key_type md5 sha256')
+
+
+PRETTY_KEY_TYPE = {
+    'ssh-dss': 'DSA',
+    'ssh-rsa': 'RSA',
+    'ecdsa-sha2-nistp256': 'ECDSA',
+}
+
 
 def get_host_pub_key_files():
-    return glob.glob('/etc/ssh/ssh_host_*_key.pub')
+    return sorted(glob.glob('/etc/ssh/ssh_host_*_key.pub'))
 
-def get_fingerprint_line(keyfile):
-    return subprocess.Popen(['ssh-keygen', '-l', '-f', keyfile],
-                            stdout=subprocess.PIPE).communicate()[0].strip()
+
+def read_key(keyfile):
+    with open(keyfile, 'rb') as f:
+        key_type, key = f.readline().split()[:2]
+        return key_type, codecs.decode(key, 'base64')
+
+
+def get_fingerprints(keyfile):
+    key_type, key = read_key(keyfile)
+    key_type = PRETTY_KEY_TYPE.get(key_type, key_type)
+    md5_hash = ':'.join('%02x' % ord(b) for b in hashlib.md5(key).digest())
+    sha256_hash = codecs.encode(hashlib.sha256(key).digest(), 'base64').decode('ascii').rstrip('=\n')
+    return HostKeyInfo(key_type, 'MD5:%s' % md5_hash, 'SHA256:%s' % sha256_hash)
+
+
+def get_host_pub_key_fingerprints():
+    for keyfile in get_host_pub_key_files():
+        yield get_fingerprints(keyfile)
+
 %>
 <html>
   <head>
     <title>SSH host key fingerprints</title>
+    <style>
+      .ssh-host-keys th, .ssh-host-keys td {
+          font-family: monospace;
+          font-weight: normal;
+          text-align: left;
+          vertical-align: top;
+          padding-right: 1em;
+          padding-bottom: 1em;
+      }
+    </style>
   </head>
   <body>
     <h1>${HOSTNAME} SSH host key fingerprints</h1>
-    <pre>
-% for keyfile in get_host_pub_key_files():
-${get_fingerprint_line(keyfile)}
+    <table class="ssh-host-keys">
+% for key in get_host_pub_key_fingerprints():
+      <tr>
+        <th>${key.key_type}</th>
+        <td>
+          ${key.md5} <br>
+          ${key.sha256}
+        </td>
+      </tr>
 % endfor
-    </pre>
+    </table>
   </body>
 </html>
