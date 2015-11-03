@@ -1,8 +1,59 @@
+import os
 import random
+import shutil
+import tempfile
+import unittest
+import time
+import errno
 
+import mock
 from nose.tools import assert_equal
 
-from update_server_page import Builder
+from update_server_page import Builder, newer
+
+
+class TestFilesystem(unittest.TestCase):
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp(prefix='pov-update-server-page-test-')
+        self.addCleanup(shutil.rmtree, self.tmpdir)
+        self.file1 = os.path.join(self.tmpdir, 'file1')
+        self.file2 = os.path.join(self.tmpdir, 'file2')
+        self.stamp = time.time() - 1
+        self.touch(self.file1, self.stamp)
+        self.real_stat = os.stat
+
+    def touch(self, filename, stamp=None):
+        with open(filename, 'ab'):
+            pass
+        if stamp:
+            os.utime(filename, (stamp, stamp))
+
+    def test_newer_file1_is_newer_than_file2(self):
+        self.touch(self.file2, self.stamp - 1)
+        self.assertTrue(newer(self.file1, self.file2))
+
+    def test_newer_file1_is_older_than_file2(self):
+        self.touch(self.file2, self.stamp + 1)
+        self.assertFalse(newer(self.file1, self.file2))
+
+    def test_newer_file1_is_same_age_as_file2(self):
+        self.touch(self.file2, self.stamp)
+        self.assertFalse(newer(self.file1, self.file2))
+
+    def test_newer_file2_does_not_exist(self):
+        self.assertTrue(newer(self.file1, self.file2))
+
+    def _fake_stat(self, filename):
+        if filename == self.file2:
+            raise OSError(errno.EACCES, 'cannot access parent directory')
+        else:
+            return self.real_stat(filename)
+
+    def test_newer_file2_raises_some_error(self):
+        with mock.patch('os.stat', self._fake_stat):
+            with self.assertRaises(OSError):
+                self.assertTrue(newer(self.file1, self.file2))
 
 
 def test_Builder_from_config_all_defaults():

@@ -2,7 +2,7 @@ Source: pov-server-page
 Section: admin
 Priority: extra
 Maintainer: Marius Gedminas <marius@gedmin.as>
-Build-Depends: debhelper (>= 8.0.0), python-docutils, python-nose, python-mako
+Build-Depends: debhelper (>= 8.0.0), python-docutils, python-nose, python-mako, python-mock
 Standards-Version: 3.9.6
 Homepage: https://github.com/ProgrammersOfVilnius/pov-server-page
 
