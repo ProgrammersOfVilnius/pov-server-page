@@ -11,6 +11,7 @@ from nose.tools import assert_equal
 
 from update_server_page import (
     Builder, Error, newer, mkdir_with_parents, symlink, replace_file,
+    pipeline,
 )
 
 
@@ -158,6 +159,18 @@ class TestReplaceFile(FilesystemTests):
         with mock.patch('update_server_page.open', self.raise_ioerror):
             with self.assertRaises(IOError):
                 replace_file(fn, '@MARKER@', 'New contents (with @MARKER@)')
+
+
+class TestPipeline(FilesystemTests):
+
+    def test_pipeline(self):
+        fn = os.path.join(self.tmpdir, 'outfile')
+        with open(fn, 'w') as f:
+            pipeline(['printf', '%s\n', 'aaa', 'aab', 'bbc'],
+                     ['grep', '^a'],
+                     ['sort', '-r'], stdout=f)
+        with open(fn, 'r') as f:
+            self.assertEqual(f.readlines(), ['aab\n', 'aaa\n'])
 
 
 def test_Builder_from_config_all_defaults():
