@@ -239,7 +239,8 @@ class Builder(object):
 
         def build(self, filename, builder):
             command = self.command.format(**builder.vars)
-            new_contents = os.popen(command).read()
+            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+            new_contents = p.communicate()[0]
             builder.replace_file(filename, self.marker, new_contents)
 
     class DiskUsage(object):

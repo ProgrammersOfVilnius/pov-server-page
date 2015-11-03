@@ -185,7 +185,7 @@ class BuilderTests(FilesystemTests):
         patcher = mock.patch('sys.stdout', StringIO())
         self.stdout = patcher.start()
         self.addCleanup(patcher.stop)
-        self.builder = Builder()
+        self.builder = Builder({'foo': 'two'})
         self.builder.verbose = True
         template_dir = os.path.join(os.path.dirname(__file__), 'templates')
         self.builder.lookup.directories.append(os.path.normpath(template_dir))
@@ -221,6 +221,15 @@ class BuilderTests(FilesystemTests):
         with open(pathname, 'rb') as f:
             self.assertEqual(f.read(),
                              HTML_MARKER + b'\n<p>pi ~= 3.14\n')
+        self.assertEqual(self.stdout.getvalue(),
+                         "Created %s/subdir/index.html\n" % self.tmpdir)
+
+    def test_ScriptOutput(self):
+        pathname = os.path.join(self.tmpdir, 'subdir', 'index.html')
+        Builder.ScriptOutput('printf "%s\n" one {foo}').build(pathname, self.builder)
+        with open(pathname, 'rb') as f:
+            self.assertEqual(f.read(),
+                             HTML_MARKER + b'\none\ntwo\n')
         self.assertEqual(self.stdout.getvalue(),
                          "Created %s/subdir/index.html\n" % self.tmpdir)
 
