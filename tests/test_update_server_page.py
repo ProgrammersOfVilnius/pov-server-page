@@ -16,7 +16,7 @@ from nose.tools import assert_equal
 
 from update_server_page import (
     Builder, Error, newer, mkdir_with_parents, symlink, replace_file,
-    pipeline,
+    pipeline, HTML_MARKER,
 )
 
 
@@ -123,47 +123,47 @@ class TestReplaceFile(FilesystemTests):
 
     def test_replace_file_creates_new_file(self):
         fn = os.path.join(self.tmpdir, 'file.txt')
-        new_contents = 'New contents (with @MARKER@)'
-        rv = replace_file(fn, '@MARKER@', new_contents)
-        with open(fn, 'r') as f:
+        new_contents = b'New contents (with @MARKER@)'
+        rv = replace_file(fn, b'@MARKER@', new_contents)
+        with open(fn, 'rb') as f:
             self.assertEqual(f.read(), new_contents)
         self.assertTrue(rv)
 
     def test_replace_file_replaces_file(self):
         fn = os.path.join(self.tmpdir, 'file.txt')
-        with open(fn, 'w') as f:
-            f.write('Old contents (with @MARKER@)')
-        new_contents = 'New contents (with @MARKER@)'
-        rv = replace_file(fn, '@MARKER@', new_contents)
-        with open(fn, 'r') as f:
+        with open(fn, 'wb') as f:
+            f.write(b'Old contents (with @MARKER@)')
+        new_contents = b'New contents (with @MARKER@)'
+        rv = replace_file(fn, b'@MARKER@', new_contents)
+        with open(fn, 'rb') as f:
             self.assertEqual(f.read(), new_contents)
         self.assertTrue(rv)
 
     def test_replace_file_keeps_same_file(self):
         fn = os.path.join(self.tmpdir, 'file.txt')
-        old_contents = 'Old contents (with @MARKER@)'
-        with open(fn, 'w') as f:
+        old_contents = b'Old contents (with @MARKER@)'
+        with open(fn, 'wb') as f:
             f.write(old_contents)
-        rv = replace_file(fn, '@MARKER@', old_contents)
-        with open(fn, 'r') as f:
+        rv = replace_file(fn, b'@MARKER@', old_contents)
+        with open(fn, 'rb') as f:
             self.assertEqual(f.read(), old_contents)
         self.assertFalse(rv)
 
     def test_replace_file_leaves_file_alone(self):
         fn = os.path.join(self.tmpdir, 'file.txt')
-        old_contents = 'Old contents (without a marker)'
-        with open(fn, 'w') as f:
+        old_contents = b'Old contents (without a marker)'
+        with open(fn, 'wb') as f:
             f.write(old_contents)
         with self.assertRaises(Error):
-            replace_file(fn, '@MARKER@', 'New contents (with @MARKER@)')
-        with open(fn, 'r') as f:
+            replace_file(fn, b'@MARKER@', b'New contents (with @MARKER@)')
+        with open(fn, 'rb') as f:
             self.assertEqual(f.read(), old_contents)
 
     def test_replace_file_error(self):
         fn = os.path.join(self.tmpdir, 'file.txt')
         with mock.patch('update_server_page.open', self.raise_ioerror):
             with self.assertRaises(IOError):
-                replace_file(fn, '@MARKER@', 'New contents (with @MARKER@)')
+                replace_file(fn, b'@MARKER@', b'New contents (with @MARKER@)')
 
 
 class TestPipeline(FilesystemTests):
@@ -187,6 +187,8 @@ class BuilderTests(FilesystemTests):
         self.addCleanup(patcher.stop)
         self.builder = Builder()
         self.builder.verbose = True
+        template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+        self.builder.lookup.directories.append(os.path.normpath(template_dir))
 
     def test_Directory(self):
         dirname = os.path.join(self.tmpdir, 'subdir')
@@ -202,6 +204,25 @@ class BuilderTests(FilesystemTests):
                          "Created %s/subdir/symlink\n" % self.tmpdir)
         self.assertTrue(os.path.islink(pathname))
         self.assertEqual(os.readlink(pathname), '/dev/null')
+
+    def test_Template(self):
+        pathname = os.path.join(self.tmpdir, 'subdir', 'index.html')
+        Builder.Template('test.html.in').build(pathname, self.builder)
+        with open(pathname, 'rb') as f:
+            self.assertEqual(f.read(),
+                             HTML_MARKER + b'\n<p>This is a test template.\n')
+        self.assertEqual(self.stdout.getvalue(),
+                         "Created %s/subdir/index.html\n" % self.tmpdir)
+
+    def test_Template_with_extra_vars(self):
+        pathname = os.path.join(self.tmpdir, 'subdir', 'index.html')
+        Builder.Template('test-vars.html.in').build(pathname, self.builder,
+                                                    extra_vars=dict(pi='3.14'))
+        with open(pathname, 'rb') as f:
+            self.assertEqual(f.read(),
+                             HTML_MARKER + b'\n<p>pi ~= 3.14\n')
+        self.assertEqual(self.stdout.getvalue(),
+                         "Created %s/subdir/index.html\n" % self.tmpdir)
 
 
 def test_Builder_from_config_all_defaults():
