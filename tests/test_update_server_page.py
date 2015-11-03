@@ -244,7 +244,6 @@ class TestDiskUsageBuilderHelpers(unittest.TestCase):
         self.builder = Builder.DiskUsage()
         self.builder.collectd_hostname = 'frog.example.com'
         self.builder.hostname = 'frog'
-        self.builder.file_readable_to = lambda f, u, g: True
 
     def test_location_name(self):
         location_name = self.builder.location_name
@@ -408,6 +407,7 @@ class TestDiskUsageBuilder(BuilderTests):
 
     def setUp(self):
         super(TestDiskUsageBuilder, self).setUp()
+        self.builder.file_readable_to = lambda f, u, g: True
         self.builder._compute_derived()
 
     def test_build_none(self):
