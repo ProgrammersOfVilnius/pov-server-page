@@ -629,3 +629,29 @@ class TestBuilderFileReadability(unittest.TestCase):
         mock_stat.side_effect = OSError("nope")
         can_execute = Builder().can_execute
         self.assertFalse(can_execute('/root', 1000, 100))
+
+
+class TestBuilderWithFilesystem(BuilderTests):
+
+    def test_replace_file_with_explicit_marker(self):
+        fn = os.path.join(self.tmpdir, 'subdir', 'file.txt')
+        self.builder.replace_file(fn, b'@MARKER@', b'content with @MARKER@')
+        with open(fn, 'rb') as f:
+            self.assertEqual(f.read(), b'content with @MARKER@')
+
+    def test_replace_file_with_implicit_marker(self):
+        fn = os.path.join(self.tmpdir, 'subdir', 'file.txt')
+        self.builder.replace_file(fn, b'@MARKER@', b'content')
+        with open(fn, 'rb') as f:
+            self.assertEqual(f.read(), b'@MARKER@\ncontent')
+
+    def test_replace_file_verbose(self):
+        fn = os.path.join(self.tmpdir, 'subdir', 'file.txt')
+        self.builder.replace_file(fn, b'@MARKER@', b'content')
+        self.assertEqual(self.stdout.getvalue(),
+                         "Created %s/subdir/file.txt\n" % self.tmpdir)
+
+    @mock.patch('update_server_page.replace_file', lambda d, m, n: True)
+    def test_replace_file_apache_reload(self):
+        self.builder.replace_file('/etc/apache2/test.conf', b'@MARKER@', b'content')
+        self.assertTrue(self.builder.needs_apache_reload)
