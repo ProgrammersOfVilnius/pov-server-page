@@ -6,6 +6,11 @@ import unittest
 import time
 import errno
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 import mock
 from nose.tools import assert_equal
 
@@ -171,6 +176,24 @@ class TestPipeline(FilesystemTests):
                      ['sort', '-r'], stdout=f)
         with open(fn, 'r') as f:
             self.assertEqual(f.readlines(), ['aab\n', 'aaa\n'])
+
+
+class BuilderTests(FilesystemTests):
+
+    def setUp(self):
+        FilesystemTests.setUp(self)
+        patcher = mock.patch('sys.stdout', StringIO())
+        self.stdout = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.builder = Builder()
+        self.builder.verbose = True
+
+    def test_Directory(self):
+        dirname = os.path.join(self.tmpdir, 'subdir')
+        Builder.Directory().build(dirname, self.builder)
+        self.assertEqual(self.stdout.getvalue(),
+                         "Created %s/subdir/\n" % self.tmpdir)
+        self.assertTrue(os.path.isdir(dirname))
 
 
 def test_Builder_from_config_all_defaults():

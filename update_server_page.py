@@ -423,8 +423,10 @@ class Builder(object):
         ('{AUTH_USER_FILE}', 'htpasswd -c {AUTH_USER_FILE} <username>')
     ]
 
-    def __init__(self, vars, template_dir=TEMPLATE_DIR, destdir='',
+    def __init__(self, vars=None, template_dir=TEMPLATE_DIR, destdir='',
                  verbose=False, quick=False):
+        if vars is None:
+            vars = {}
         self.verbose = verbose
         self.quick = quick
         self.vars = vars
