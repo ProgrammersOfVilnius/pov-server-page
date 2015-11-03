@@ -464,13 +464,7 @@ class TestDiskUsageBuilder(BuilderTests):
         mock_unlink.assert_called_once_with('du-2015-11-02.gz')
 
 
-class TestBuilder(unittest.TestCase):
-
-    def setUp(self):
-        super(TestBuilder, self).setUp()
-        patcher = mock.patch('sys.stdout', StringIO())
-        self.stdout = patcher.start()
-        self.addCleanup(patcher.stop)
+class TestBuilderConstruction(unittest.TestCase):
 
     def test_Builder(self):
         Builder() # should not raise
@@ -478,6 +472,14 @@ class TestBuilder(unittest.TestCase):
     def test_Builder_from_config_all_defaults(self):
         cp = Builder.ConfigParser()
         Builder.from_config(cp) # should not raise
+
+
+class TestBuilderWithStdout(unittest.TestCase):
+
+    def setUp(self):
+        patcher = mock.patch('sys.stdout', StringIO())
+        self.stdout = patcher.start()
+        self.addCleanup(patcher.stop)
 
     @mock.patch('datetime.datetime')
     def test_compute_derived(self, mock_datetime):
@@ -507,6 +509,9 @@ class TestBuilder(unittest.TestCase):
         self.assertEqual(self.stdout.getvalue(),
                          "Skipping changelog view since /root/Changelog is not readable by user www-data\n")
 
+
+class TestBuilderFileReadability(unittest.TestCase):
+
     def test_file_readable_to(self):
         file_readable_to = Builder().file_readable_to
         self.assertTrue(file_readable_to(__file__, 'root', 'root'))
@@ -514,3 +519,87 @@ class TestBuilder(unittest.TestCase):
     def test_file_readable_to_bad_user(self):
         file_readable_to = Builder().file_readable_to
         self.assertTrue(file_readable_to(__file__, 'no-such-user', 'root'))
+
+    def test_file_readable_to_bad_group(self):
+        file_readable_to = Builder().file_readable_to
+        self.assertTrue(file_readable_to(__file__, 'root', 'no-such-group'))
+
+    def test_file_readable_when_not_readable(self):
+        builder = Builder()
+        builder.can_read = lambda fn, u, g: False
+        file_readable_to = builder.file_readable_to
+        self.assertFalse(file_readable_to(__file__, 'www-data', 'www-data'))
+
+    def test_file_readable_when_parent_not_executable(self):
+        builder = Builder()
+        builder.can_execute = lambda fn, u, g: False
+        file_readable_to = builder.file_readable_to
+        self.assertFalse(file_readable_to(__file__, 'www-data', 'www-data'))
+
+    @mock.patch('os.stat')
+    def test_can_read_user_allows(self, mock_stat):
+        mock_stat.return_value.st_uid = 1000
+        mock_stat.return_value.st_gid = 1000
+        mock_stat.return_value.st_mode = 0o100644
+        can_read = Builder().can_read
+        self.assertTrue(can_read('/root/Changelog', 1000, 100))
+
+    @mock.patch('os.stat')
+    def test_can_read_group_allows(self, mock_stat):
+        mock_stat.return_value.st_uid = 0
+        mock_stat.return_value.st_gid = 100
+        mock_stat.return_value.st_mode = 0o100644
+        can_read = Builder().can_read
+        self.assertTrue(can_read('/root/Changelog', 1000, 100))
+
+    @mock.patch('os.stat')
+    def test_can_read_other_allows(self, mock_stat):
+        mock_stat.return_value.st_uid = 0
+        mock_stat.return_value.st_gid = 0
+        mock_stat.return_value.st_mode = 0o100644
+        can_read = Builder().can_read
+        self.assertTrue(can_read('/root/Changelog', 1000, 100))
+
+    @mock.patch('os.stat')
+    def test_can_read_haha_cant(self, mock_stat):
+        mock_stat.return_value.st_uid = 0
+        mock_stat.return_value.st_gid = 100
+        mock_stat.return_value.st_mode = 0o100600
+        can_read = Builder().can_read
+        self.assertFalse(can_read('/root/Changelog', 1000, 100))
+
+    @mock.patch('os.stat')
+    def test_can_read_haha_cant_even(self, mock_stat):
+        mock_stat.side_effect = OSError("nope")
+        can_read = Builder().can_read
+        self.assertFalse(can_read('/root/Changelog', 1000, 100))
+
+    @mock.patch('os.stat')
+    def test_can_execute_group_allows(self, mock_stat):
+        mock_stat.return_value.st_uid = 0
+        mock_stat.return_value.st_gid = 100
+        mock_stat.return_value.st_mode = 0o040755
+        can_execute = Builder().can_execute
+        self.assertTrue(can_execute('/root', 1000, 100))
+
+    @mock.patch('os.stat')
+    def test_can_execute_other_allows(self, mock_stat):
+        mock_stat.return_value.st_uid = 0
+        mock_stat.return_value.st_gid = 0
+        mock_stat.return_value.st_mode = 0o040755
+        can_execute = Builder().can_execute
+        self.assertTrue(can_execute('/root', 1000, 100))
+
+    @mock.patch('os.stat')
+    def test_can_execute_haha_cant(self, mock_stat):
+        mock_stat.return_value.st_uid = 0
+        mock_stat.return_value.st_gid = 100
+        mock_stat.return_value.st_mode = 0o040700
+        can_execute = Builder().can_execute
+        self.assertFalse(can_execute('/root', 1000, 100))
+
+    @mock.patch('os.stat')
+    def test_can_execute_haha_cant_even(self, mock_stat):
+        mock_stat.side_effect = OSError("nope")
+        can_execute = Builder().can_execute
+        self.assertFalse(can_execute('/root', 1000, 100))
