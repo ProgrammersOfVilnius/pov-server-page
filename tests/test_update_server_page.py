@@ -9,7 +9,7 @@ import errno
 import mock
 from nose.tools import assert_equal
 
-from update_server_page import Builder, newer, mkdir_with_parents
+from update_server_page import Builder, newer, mkdir_with_parents, symlink
 
 
 class FilesystemTests(unittest.TestCase):
@@ -17,6 +17,9 @@ class FilesystemTests(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp(prefix='pov-update-server-page-test-')
         self.addCleanup(shutil.rmtree, self.tmpdir)
+
+    def raise_oserror(self, *args):
+        raise OSError(errno.EACCES, 'cannot access parent directory')
 
 
 class TestNewer(FilesystemTests):
@@ -52,7 +55,7 @@ class TestNewer(FilesystemTests):
 
     def _fake_stat(self, filename):
         if filename == self.file2:
-            raise OSError(errno.EACCES, 'cannot access parent directory')
+            self.raise_oserror(filename)
         else:
             return self.real_stat(filename)
 
@@ -74,13 +77,35 @@ class TestMkdir(FilesystemTests):
         rv = mkdir_with_parents(self.tmpdir)
         self.assertFalse(rv)
 
-    def _fake_makedirs(self, dirname):
-        raise OSError(errno.EACCES, 'cannot access parent directory')
-
     def test_mkdir_with_parents_when_cannot(self):
-        with mock.patch('os.makedirs', self._fake_makedirs):
+        with mock.patch('os.makedirs', self.raise_oserror):
             with self.assertRaises(OSError):
                 mkdir_with_parents(self.tmpdir)
+
+
+class TestSymlink(FilesystemTests):
+
+    def test_symlink(self):
+        a = os.path.join(self.tmpdir, 'a')
+        b = os.path.join(self.tmpdir, 'b')
+        rv = symlink(a, b)
+        self.assertTrue(rv)
+        self.assertTrue(os.path.islink(b))
+        self.assertEqual(os.readlink(b), a)
+
+    def test_symlink_already_exists(self):
+        a = os.path.join(self.tmpdir, 'a')
+        b = os.path.join(self.tmpdir, 'b')
+        symlink(a, b)
+        rv = symlink(a, b)
+        self.assertFalse(rv)
+
+    def test_symlink_error(self):
+        a = os.path.join(self.tmpdir, 'a')
+        b = os.path.join(self.tmpdir, 'b')
+        with mock.patch('os.symlink', self.raise_oserror):
+            with self.assertRaises(OSError):
+                symlink(a, b)
 
 
 def test_Builder_from_config_all_defaults():
