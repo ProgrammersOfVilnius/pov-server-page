@@ -26,12 +26,24 @@ def read_key(keyfile):
         return key_type, codecs.decode(key, 'base64')
 
 
+if str is bytes:
+    # Python 2
+    def hexchar(c):
+        return '%02x' % ord(c)
+else:
+    # Python 3
+    def hexchar(c):
+        return '%02x' % c
+
+
 def get_fingerprints(keyfile):
     key_type, key = read_key(keyfile)
     key_type = PRETTY_KEY_TYPE.get(key_type, key_type)
-    md5_hash = ':'.join('%02x' % ord(b) for b in hashlib.md5(key).digest())
-    sha256_hash = codecs.encode(hashlib.sha256(key).digest(), 'base64').decode('ascii').rstrip('=\n')
-    return HostKeyInfo(key_type, 'MD5:%s' % md5_hash, 'SHA256:%s' % sha256_hash)
+    md5_hash = hashlib.md5(key).digest()
+    md5_hex = ':'.join(map(hexchar, md5_hash))
+    sha256_hash = hashlib.sha256(key).digest()
+    sha256_hex = codecs.encode(sha256_hash, 'base64').decode('ascii').rstrip('=\n')
+    return HostKeyInfo(key_type, 'MD5:%s' % md5_hex, 'SHA256:%s' % sha256_hex)
 
 
 def get_host_pub_key_fingerprints():

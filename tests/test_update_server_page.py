@@ -185,7 +185,8 @@ class BuilderTests(FilesystemTests):
         patcher = mock.patch('sys.stdout', StringIO())
         self.stdout = patcher.start()
         self.addCleanup(patcher.stop)
-        self.builder = Builder({'foo': 'two', 'HOSTNAME': 'frog.example.com'})
+        self.builder = Builder({'foo': 'two', 'HOSTNAME': 'frog.example.com'},
+                               destdir=self.tmpdir)
         self.builder.verbose = True
         template_dir = os.path.join(os.path.dirname(__file__), 'templates')
         self.builder.lookup.directories.append(os.path.normpath(template_dir))
@@ -655,3 +656,6 @@ class TestBuilderWithFilesystem(BuilderTests):
     def test_replace_file_apache_reload(self):
         self.builder.replace_file('/etc/apache2/test.conf', b'@MARKER@', b'content')
         self.assertTrue(self.builder.needs_apache_reload)
+
+    def test_build(self):
+        self.builder.build()
