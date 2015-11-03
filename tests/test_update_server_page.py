@@ -658,4 +658,20 @@ class TestBuilderWithFilesystem(BuilderTests):
         self.assertTrue(self.builder.needs_apache_reload)
 
     def test_build(self):
-        self.builder.build()
+        self.builder.vars['SKIP'] = os.path.join(self.tmpdir, 'var/www/frog.example.com/du')
+        self.builder.vars['REDIRECT'] = '{tmpdir}/var/www/frog.example.com/index.html = {tmpdir}/var/www/frog.example.com/frontpage.html'.format(tmpdir=self.tmpdir)
+        self.builder.vars['DISK_USAGE'] = 'all'
+        self.builder.build(verbose=True, quick=True)
+        self.assertEqual(
+            self.stdout.getvalue().replace(self.tmpdir, '/var/www/frog.example.com'),
+            "Created /var/www/frog.example.com/var/www/frog.example.com/frontpage.html\n"
+            "Created /var/www/frog.example.com/var/www/frog.example.com/ports/index.html\n"
+            "Created /var/www/frog.example.com/var/www/frog.example.com/ssh/index.html\n"
+            "Skipping /var/www/frog.example.com/var/www/frog.example.com/du\n"
+            "Created /var/www/frog.example.com/var/log/apache2/frog.example.com/\n"
+            "Created /var/www/frog.example.com/etc/apache2/sites-available/frog.example.com.conf\n"
+        )
+
+    def test_check(self):
+        self.builder.needs_apache_reload = True
+        self.builder.check()
