@@ -195,6 +195,14 @@ class BuilderTests(FilesystemTests):
                          "Created %s/subdir/\n" % self.tmpdir)
         self.assertTrue(os.path.isdir(dirname))
 
+    def test_Symlink(self):
+        pathname = os.path.join(self.tmpdir, 'subdir', 'symlink')
+        Builder.Symlink('/dev/null').build(pathname, self.builder)
+        self.assertEqual(self.stdout.getvalue(),
+                         "Created %s/subdir/symlink\n" % self.tmpdir)
+        self.assertTrue(os.path.islink(pathname))
+        self.assertEqual(os.readlink(pathname), '/dev/null')
+
 
 def test_Builder_from_config_all_defaults():
     cp = Builder.ConfigParser()
