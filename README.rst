@@ -4,11 +4,11 @@ PoV server page
 This script sets up web page for your server, listing the following
 information:
 
-  - contents of /root/Changelog
-  - graphs for collectd
-  - open TCP ports
-  - SSH host key fingerprints
-  - disk usage treemaps (if configured)
+- contents of /root/Changelog
+- graphs for collectd
+- open TCP ports
+- SSH host key fingerprints
+- disk usage treemaps (if configured)
 
 
 Requirements
@@ -43,3 +43,5 @@ Usage with Python 3
 ::
 
     apt-get install pov-update-server-page libapache2-mod-wsgi-py3 python3-mako
+    # the rest is like the above
+
