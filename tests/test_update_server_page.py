@@ -9,14 +9,20 @@ import errno
 import mock
 from nose.tools import assert_equal
 
-from update_server_page import Builder, newer
+from update_server_page import Builder, newer, mkdir_with_parents
 
 
-class TestFilesystem(unittest.TestCase):
+class FilesystemTests(unittest.TestCase):
 
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp(prefix='pov-update-server-page-test-')
         self.addCleanup(shutil.rmtree, self.tmpdir)
+
+
+class TestNewer(FilesystemTests):
+
+    def setUp(self):
+        FilesystemTests.setUp(self)
         self.file1 = os.path.join(self.tmpdir, 'file1')
         self.file2 = os.path.join(self.tmpdir, 'file2')
         self.stamp = time.time() - 1
@@ -54,6 +60,27 @@ class TestFilesystem(unittest.TestCase):
         with mock.patch('os.stat', self._fake_stat):
             with self.assertRaises(OSError):
                 self.assertTrue(newer(self.file1, self.file2))
+
+
+class TestMkdir(FilesystemTests):
+
+    def test_mkdir_with_parents_when_doesnt_exist(self):
+        path = os.path.join(self.tmpdir, 'a', 'b', 'c')
+        rv = mkdir_with_parents(path)
+        self.assertTrue(os.path.isdir(path))
+        self.assertTrue(rv)
+
+    def test_mkdir_with_parents_when_already_exists(self):
+        rv = mkdir_with_parents(self.tmpdir)
+        self.assertFalse(rv)
+
+    def _fake_makedirs(self, dirname):
+        raise OSError(errno.EACCES, 'cannot access parent directory')
+
+    def test_mkdir_with_parents_when_cannot(self):
+        with mock.patch('os.makedirs', self._fake_makedirs):
+            with self.assertRaises(OSError):
+                mkdir_with_parents(self.tmpdir)
 
 
 def test_Builder_from_config_all_defaults():
