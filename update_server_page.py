@@ -244,7 +244,8 @@ class Builder(object):
             builder.replace_file(filename, self.marker, new_contents)
 
     class DiskUsage(object):
-        def location_name(self, location):
+        @staticmethod
+        def location_name(location):
             # mimic collectd's mangling
             # '/apps' -> 'apps'
             # '/' -> 'root'
