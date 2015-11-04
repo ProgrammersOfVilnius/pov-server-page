@@ -3,15 +3,11 @@ import unittest
 import sys
 from io import BytesIO, TextIOWrapper
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
 import mock
 
 from update_tcp_ports_html import (
-    main, get_owner, username, get_argv, format_arg, get_program
+    main, get_owner, username, get_argv, format_arg, get_program,
+    get_html_cmdline,
 )
 
 
@@ -109,7 +105,10 @@ class FakePopen(object):
 def fake_open(filename, mode='r'):
     if filename.startswith('/proc/') and filename.endswith('/cmdline'):
         pid = int(filename[len('/proc/'):-len('/cmdline')])
-        f = BytesIO(CMDLINES[pid])
+        try:
+            f = BytesIO(CMDLINES[pid])
+        except KeyError:
+            raise IOError('no such file ekcetera')
         if bytes is not str and mode != 'rb':
             f = TextIOWrapper(f, encoding='UTF-8')
         return f
@@ -176,3 +175,15 @@ class TestWithFakeEnvironment(unittest.TestCase):
 
     def test_get_program(self):
         self.assertEqual(get_program(9000), 'webserver.py')
+
+    def test_get_program_unknown_pid(self):
+        self.assertEqual(get_program(None), '')
+
+    def test_get_html_cmdline(self):
+        self.assertEqual(get_html_cmdline(9000), '/usr/bin/python2.7 <b>webserver.py</b> --port=8080')
+
+    def test_get_html_cmdline_program_disappeared(self):
+        self.assertEqual(get_html_cmdline(8999), '')
+
+    def test_get_html_cmdline_pid_unknown(self):
+        self.assertEqual(get_html_cmdline(None), '')

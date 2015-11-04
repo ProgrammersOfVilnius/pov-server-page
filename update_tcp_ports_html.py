@@ -146,7 +146,7 @@ def get_argv(pid):
     try:
         with open('/proc/%d/cmdline' % pid) as f:
             return f.read().split('\0')[:-1]
-    except (OSError, TypeError):
+    except (TypeError, IOError):
         return []
 
 
