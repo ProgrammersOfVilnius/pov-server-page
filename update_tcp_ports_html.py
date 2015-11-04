@@ -158,14 +158,6 @@ def format_arg(arg):
         return "'%s'" % arg.encode('string-escape')
 
 
-def format_argv(argv):
-    return ' '.join(map(format_arg, argv))
-
-
-def get_cmdline(pid):
-    return format_argv(get_argv(pid))
-
-
 def is_interpreter(program_name):
     return re.match(r'^python(\d([.]\d+)?)?$', program_name)
 
