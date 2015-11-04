@@ -1,11 +1,18 @@
 import os
 import unittest
 import sys
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 import mock
 
-from update_tcp_ports_html import main, get_owner, username
+from update_tcp_ports_html import (
+    main, get_owner, username, get_argv, format_arg, get_program
+)
 
 
 CMDLINES = {
@@ -21,6 +28,7 @@ CMDLINES = {
     1728: b"/usr/sbin/cupsd\0-l\0",
     2150: b"(squid-1)\0-YC\0-f\0/etc/squid3/squid.conf\0",
     2408: b"/usr/lib/postfix/master\0",
+    9000: b"/usr/bin/python2.7\0webserver.py\0--port=8080\0",
 }
 
 NETSTAT_SAMPLE = b"""\
@@ -101,7 +109,10 @@ class FakePopen(object):
 def fake_open(filename, mode='r'):
     if filename.startswith('/proc/') and filename.endswith('/cmdline'):
         pid = int(filename[len('/proc/'):-len('/cmdline')])
-        return BytesIO(CMDLINES[pid])
+        f = BytesIO(CMDLINES[pid])
+        if bytes is not str and mode != 'rb':
+            f = TextIOWrapper(f, encoding='UTF-8')
+        return f
     else:
         return open(filename, mode)
 
@@ -121,7 +132,21 @@ class TestProcHelpers(unittest.TestCase):
         self.assertEqual(username(-1), '-1')
 
 
-class TestMain(unittest.TestCase):
+class TestFormattingHelpers(unittest.TestCase):
+
+    def test_format_arg(self):
+        self.assertEqual(format_arg('--abc123'), '--abc123')
+        self.assertEqual(format_arg('foo bar'), "'foo bar'")
+        self.assertEqual(format_arg("it's alive"), "'it\\'s alive'")
+        self.assertEqual(format_arg("two\nlines"), "'two\\nlines'")
+        self.assertEqual(format_arg("\t"), "'\\t'")
+        self.assertEqual(format_arg("\r"), "'\\r'")
+        self.assertEqual(format_arg("\033"), "'\\x1b'")
+        self.assertEqual(format_arg("\a"), "'\\x07'")
+        self.assertEqual(format_arg("\b"), "'\\x08'")
+
+
+class TestWithFakeEnvironment(unittest.TestCase):
 
     def setUp(self):
         patcher = mock.patch('subprocess.Popen', FakePopen)
@@ -142,5 +167,12 @@ class TestMain(unittest.TestCase):
         finally:
             sys.argv = orig_sys_argv
 
-    def test(self):
+    def test_main(self):
         self.run_main()
+
+    def test_getargv(self):
+        self.assertEqual(get_argv(9000),
+                         ["/usr/bin/python2.7", "webserver.py", "--port=8080"])
+
+    def test_get_program(self):
+        self.assertEqual(get_program(9000), 'webserver.py')

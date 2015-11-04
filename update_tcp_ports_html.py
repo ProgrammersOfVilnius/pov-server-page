@@ -145,7 +145,7 @@ def username(uid):
 def get_argv(pid):
     try:
         with open('/proc/%d/cmdline' % pid) as f:
-            return f.read().split('\0')
+            return f.read().split('\0')[:-1]
     except (OSError, TypeError):
         return []
 
@@ -155,7 +155,12 @@ def format_arg(arg):
     if all(c in safe_chars for c in arg):
         return arg
     else:
-        return "'%s'" % arg.encode('string-escape')
+        return "'%s'" % ''.join("\\'" if c == "'" else
+                                "\\n" if c == "\n" else
+                                "\\r" if c == "\r" else
+                                "\\t" if c == "\t" else
+                                "\\x%02x" % ord(c) if ord(c) < 32 else
+                                c for c in arg)
 
 
 def is_interpreter(program_name):
