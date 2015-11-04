@@ -239,9 +239,23 @@ class Builder(object):
 
         def build(self, filename, builder):
             command = self.command.format(**builder.vars)
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-            new_contents = p.communicate()[0]
-            builder.replace_file(filename, self.marker, new_contents)
+            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            new_contents, errors = p.communicate()
+            rc = p.wait()
+            if rc != 0 or errors:
+                sys.stderr.write("Error running {} (rc={})".format(command, rc))
+                if errors:
+                    sys.stderr.write(':\n')
+                    if bytes is not str:  # Python 3
+                        errors = errors.decode('UTF-8', 'replace')
+                    errors = '\n'.join('  ' + line for line in errors.split('\n')).rstrip(' ')
+                    sys.stderr.write(errors)
+                else:
+                    sys.stderr.write('\n')
+                sys.stderr.flush()
+            else:
+                builder.replace_file(filename, self.marker, new_contents)
 
     class DiskUsage(object):
         @staticmethod

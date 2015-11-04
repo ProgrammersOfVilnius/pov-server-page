@@ -27,6 +27,11 @@ class FilesystemTests(unittest.TestCase):
         self.tmpdir = tempfile.mkdtemp(prefix='pov-update-server-page-test-')
         self.addCleanup(shutil.rmtree, self.tmpdir)
 
+    def patch(self, *args, **kw):
+        patcher = mock.patch(*args, **kw)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
+
     def raise_oserror(self, *args):
         raise OSError(errno.EACCES, 'cannot access parent directory')
 
@@ -183,9 +188,8 @@ class BuilderTests(FilesystemTests):
 
     def setUp(self):
         FilesystemTests.setUp(self)
-        patcher = mock.patch('sys.stdout', StringIO())
-        self.stdout = patcher.start()
-        self.addCleanup(patcher.stop)
+        self.stdout = self.patch('sys.stdout', StringIO())
+        self.stderr = self.patch('sys.stderr', StringIO())
         self.builder = Builder({'foo': 'two', 'HOSTNAME': 'frog.example.com'},
                                destdir=self.tmpdir)
         self.builder.verbose = True
@@ -237,6 +241,25 @@ class TestBuilders(BuilderTests):
                              HTML_MARKER + b'\none\ntwo\n')
         self.assertEqual(self.stdout.getvalue(),
                          "Created %s/subdir/index.html\n" % self.tmpdir)
+
+    def test_ScriptOutput_error_handling_without_stderr(self):
+        pathname = os.path.join(self.tmpdir, 'subdir', 'index.html')
+        Builder.ScriptOutput('false').build(pathname, self.builder)
+        self.assertFalse(os.path.exists(pathname))
+        self.assertEqual(self.stdout.getvalue(), "")
+        self.assertEqual(self.stderr.getvalue(),
+                         "Error running false (rc=1)\n")
+
+    def test_ScriptOutput_error_handling_with_stderr(self):
+        pathname = os.path.join(self.tmpdir, 'subdir', 'index.html')
+        Builder.ScriptOutput("""python -c 'import sys; sys.exit("failed\\nwith error")'""").build(pathname, self.builder)
+        self.assertFalse(os.path.exists(pathname))
+        self.assertEqual(self.stdout.getvalue(), "")
+        self.assertEqual(
+            self.stderr.getvalue(),
+            '''Error running python -c 'import sys; sys.exit("failed\\nwith error")' (rc=1):\n'''
+            '''  failed\n'''
+            '''  with error\n''')
 
 
 class TestDiskUsageBuilderHelpers(unittest.TestCase):
@@ -685,12 +708,8 @@ class TestMain(FilesystemTests):
     def setUp(self):
         super(TestMain, self).setUp()
         self.stdout = self.patch('sys.stdout', StringIO())
+        self.stderr = self.patch('sys.stderr', StringIO())
         self.config_file = os.path.join(self.tmpdir, 'config')
-
-    def patch(self, *args, **kw):
-        patcher = mock.patch(*args, **kw)
-        self.addCleanup(patcher.stop)
-        return patcher.start()
 
     def run_main(self, *args):
         orig_sys_argv = sys.argv
