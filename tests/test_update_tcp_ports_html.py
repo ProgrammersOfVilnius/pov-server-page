@@ -156,15 +156,14 @@ class TestFormattingHelpers(unittest.TestCase):
 class TestWithFakeEnvironment(unittest.TestCase):
 
     def setUp(self):
-        patcher = mock.patch('subprocess.Popen', FakePopen)
-        patcher.start()
+        self.patch('subprocess.Popen', FakePopen)
+        self.patch('update_tcp_ports_html.open', fake_open)
+        self.stderr = self.patch('sys.stderr', StringIO())
+
+    def patch(self, what, with_what):
+        patcher = mock.patch(what, with_what)
         self.addCleanup(patcher.stop)
-        patcher = mock.patch('update_tcp_ports_html.open', fake_open)
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        patcher = mock.patch('sys.stderr', StringIO())
-        self.stderr = patcher.start()
-        self.addCleanup(patcher.stop)
+        return patcher.start()
 
     def run_main(self, *args):
         orig_sys_argv = sys.argv

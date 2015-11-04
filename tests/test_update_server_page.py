@@ -684,10 +684,13 @@ class TestMain(FilesystemTests):
 
     def setUp(self):
         super(TestMain, self).setUp()
-        patcher = mock.patch('sys.stdout', StringIO())
-        self.stdout = patcher.start()
-        self.addCleanup(patcher.stop)
+        self.stdout = self.patch('sys.stdout', StringIO())
         self.config_file = os.path.join(self.tmpdir, 'config')
+
+    def patch(self, *args, **kw):
+        patcher = mock.patch(*args, **kw)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
 
     def run_main(self, *args):
         orig_sys_argv = sys.argv
