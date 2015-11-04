@@ -3,6 +3,11 @@ import unittest
 import sys
 from io import BytesIO, TextIOWrapper
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 import mock
 
 from update_tcp_ports_html import (
@@ -153,6 +158,9 @@ class TestWithFakeEnvironment(unittest.TestCase):
         self.addCleanup(patcher.stop)
         patcher = mock.patch('update_tcp_ports_html.open', fake_open)
         patcher.start()
+        self.addCleanup(patcher.stop)
+        patcher = mock.patch('sys.stderr', StringIO())
+        self.stderr = patcher.start()
         self.addCleanup(patcher.stop)
 
     def run_main(self, *args):
