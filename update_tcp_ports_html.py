@@ -255,12 +255,6 @@ def render_html(netstat_mapping, hostname=HOSTNAME):
     )
 
 
-def render_cgi(netstat_mapping):
-    print("Content-Type: text/html; charset=UTF-8")
-    print("")
-    print(render_html(netstat_mapping))
-
-
 def render_file(netstat_mapping, output, hostname=HOSTNAME):
     with open(output, 'w') as f:
         f.write(render_html(netstat_mapping, hostname=hostname))
