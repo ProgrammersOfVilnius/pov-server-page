@@ -28,7 +28,10 @@ test check: check-version
 
 .PHONY: coverage
 coverage:
-	tox -e coverage
+	coverage erase
+	detox -e coverage,coverage3
+	coverage combine
+	coverage report -m
 
 .PHONY: checkversion
 check-version:
