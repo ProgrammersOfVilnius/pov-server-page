@@ -169,6 +169,10 @@ class TestWithFakeEnvironment(unittest.TestCase):
     def test_main(self):
         self.run_main()
 
+    def test_main_unexpected_arguments(self):
+        with self.assertRaises(SystemExit):
+            self.run_main('foo')
+
     def test_getargv(self):
         self.assertEqual(get_argv(9000),
                          ["/usr/bin/python2.7", "webserver.py", "--port=8080"])
