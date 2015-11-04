@@ -1,10 +1,11 @@
+import os
 import unittest
 import sys
 from io import BytesIO
 
 import mock
 
-from update_tcp_ports_html import main
+from update_tcp_ports_html import main, get_owner, username
 
 
 CMDLINES = {
@@ -103,6 +104,21 @@ def fake_open(filename, mode='r'):
         return BytesIO(CMDLINES[pid])
     else:
         return open(filename, mode)
+
+
+class TestProcHelpers(unittest.TestCase):
+
+    def test_get_owner(self):
+        self.assertEqual(get_owner(os.getpid()), os.getuid())
+
+    def test_get_owner_process_is_gone(self):
+        self.assertEqual(get_owner(-1), None)
+
+    def test_username(self):
+        self.assertEqual(username(os.getuid()), os.getenv('USER'))
+
+    def test_username_no_such_user(self):
+        self.assertEqual(username(-1), '-1')
 
 
 class TestMain(unittest.TestCase):

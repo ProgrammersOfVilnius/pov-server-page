@@ -138,8 +138,8 @@ def get_owner(pid):
 def username(uid):
     try:
         return pwd.getpwuid(uid).pw_name
-    except TypeError:
-        return '?'
+    except KeyError:
+        return str(uid)
 
 
 def get_argv(pid):
