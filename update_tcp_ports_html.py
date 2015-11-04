@@ -17,7 +17,7 @@ from collections import namedtuple, defaultdict
 from contextlib import contextmanager
 
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -107,22 +107,6 @@ def netstat():
                     pid = None
                     program = pid_program
                 yield NetStatTuple(proto, ip, int(port), pid, program)
-
-
-def pmap_dump():
-    with pipe('pmap_dump') as f:
-        for line in f:
-            parts = line.split(None, 4)
-            if len(parts) < 5:
-                # sometimes pmap_dump outputs lines with no program name
-                # in my experiments these were duplicating the proto+port from
-                # a line above, with different 1st two fields (which mean
-                # no-idea-what, the format is undocumented)
-                continue
-            proto = parts[2]
-            port = parts[3]
-            program = parts[4]
-            yield NetStatTuple(proto, None, int(port), None, program)
 
 
 def rpcinfo_dump():
@@ -298,10 +282,7 @@ def main():
     output = opts.output.replace('${hostname}', opts.hostname)
     mapping = get_port_mapping(netstat())
     if 111 in mapping: # portmap is used
-        try:
-            portmap_data = list(rpcinfo_dump())
-        except OSError:
-            portmap_data = list(pmap_dump())
+        portmap_data = list(rpcinfo_dump())
         merge_portmap_data(mapping, portmap_data, open_ports_only=False)
     render_file(mapping, output=output, hostname=opts.hostname)
 
