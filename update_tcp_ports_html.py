@@ -140,6 +140,8 @@ def username(uid):
         return pwd.getpwuid(uid).pw_name
     except KeyError:
         return str(uid)
+    except TypeError:
+        return '?'
 
 
 def get_argv(pid):

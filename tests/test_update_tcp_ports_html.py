@@ -135,6 +135,9 @@ class TestProcHelpers(unittest.TestCase):
     def test_username_no_such_user(self):
         self.assertEqual(username(-1), '-1')
 
+    def test_username_unknown_user(self):
+        self.assertEqual(username(None), '?')
+
 
 class TestFormattingHelpers(unittest.TestCase):
 
