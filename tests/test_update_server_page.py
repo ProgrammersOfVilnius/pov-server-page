@@ -3,6 +3,7 @@ import errno
 import os
 import random
 import shutil
+import sys
 import tempfile
 import time
 import unittest
@@ -16,7 +17,7 @@ import mock
 
 from update_server_page import (
     Builder, Error, newer, mkdir_with_parents, symlink, replace_file,
-    pipeline, HTML_MARKER, CHANGELOG2HTML_SCRIPT,
+    pipeline, HTML_MARKER, CHANGELOG2HTML_SCRIPT, main, get_fqdn,
 )
 
 
@@ -677,3 +678,47 @@ class TestBuilderWithFilesystem(BuilderTests):
     def test_check(self):
         self.builder.needs_apache_reload = True
         self.builder.check()
+
+
+class TestMain(FilesystemTests):
+
+    def setUp(self):
+        super(TestMain, self).setUp()
+        patcher = mock.patch('sys.stdout', StringIO())
+        self.stdout = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.config_file = os.path.join(self.tmpdir, 'config')
+
+    def run_main(self, *args):
+        orig_sys_argv = sys.argv
+        try:
+            sys.argv = [
+                'pov-update-server-page',
+                '-c', self.config_file,
+                '--destdir', self.tmpdir,
+            ] + list(args)
+            main()
+        except SystemExit as e:
+            return e
+        finally:
+            sys.argv = orig_sys_argv
+
+    def test_main_no_config_file(self):
+        e = self.run_main()
+        self.assertEqual(str(e), "Could not read %s/config" % self.tmpdir)
+
+    def test_main_blank_config_file(self):
+        self.run_main('-c', '/dev/null', '-v')
+        self.assertEqual(self.stdout.getvalue(),
+                         "Disabled in the config file, quitting.\n")
+
+    def test_main_smoke_test(self):
+        self.run_main('-c', '/dev/null', '-v', 'enabled=true')
+
+    def test_main_error_handling(self):
+        dirname = os.path.join(self.tmpdir, 'var/www', get_fqdn())
+        os.makedirs(dirname)
+        with open(os.path.join(dirname, 'index.html'), 'w') as f:
+            f.write('Preexisting file with no marker')
+        e = self.run_main('-c', '/dev/null', '-v', 'enabled=true')
+        self.assertEqual(str(e), "Refusing to overwrite %s/var/www/%s/index.html" % (self.tmpdir, get_fqdn()))
