@@ -333,8 +333,12 @@ def get_changelog_filename(environ):
     return environ.get('CHANGELOG_FILE') or os.getenv('CHANGELOG_FILE') or CHANGELOG_FILE
 
 
-def get_motd(environ):
-    filename = environ.get('MOTD_FILE') or os.getenv('MOTD_FILE') or MOTD_FILE
+def get_motd_filename(environ):
+    return environ.get('MOTD_FILE') or os.getenv('MOTD_FILE') or MOTD_FILE
+
+
+def get_motd(filename):
+    # This is the place to add a cache, if one seems needed
     return Motd(filename)
 
 
@@ -549,7 +553,7 @@ def main_page(environ):
     prefix = get_prefix(environ)
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
-    motd = get_motd(environ)
+    motd = get_motd(get_motd_filename(environ))
     return main_template.render_unicode(
         hostname=hostname, motd=motd, changelog=changelog, prefix=prefix)
 

@@ -358,6 +358,21 @@ class TestChangelogFilename(TestCase):
         self.assertEqual(c2h.get_changelog_filename({}), '/root/Changelog')
 
 
+class TestGetMotdFilename(TestCase):
+
+    def test_wsgi(self):
+        environ = {'MOTD_FILE': '/tmp/motd'}
+        self.assertEqual(c2h.get_motd_filename(environ), '/tmp/motd')
+
+    def test_cgi(self):
+        os.environ['MOTD_FILE'] = '/srv/motd'
+        self.assertEqual(c2h.get_motd_filename({}), '/srv/motd')
+
+    def test_fallback(self):
+        os.environ.pop('MOTD_FILE', None)
+        self.assertEqual(c2h.get_motd_filename({}), '/etc/motd')
+
+
 class TestMainPage(TestCase):
 
     maxDiff = None
