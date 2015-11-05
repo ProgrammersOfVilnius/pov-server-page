@@ -286,10 +286,7 @@ def ansi2html(text):
         if not bit.startswith(u'\033'):
             parts.append(bit)
         elif bit.endswith(u'm'):
-            try:
-                numbers = [int(n) for n in bit.strip(u'\033[?m').split(';') if n]
-            except ValueError:
-                continue
+            numbers = [int(n) for n in bit.strip(u'\033[?m').split(';') if n]
             # this handles just a subset of the allowed color sequences; e.g.
             # it would ignore ESC [ 35;48 m which tries to set fg and bg colors
             # in one go

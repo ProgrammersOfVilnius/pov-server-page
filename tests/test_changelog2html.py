@@ -12,8 +12,6 @@ except ImportError:
 
 import changelog2html as c2h
 
-from nose.tools import assert_equal
-
 
 TESTENV = {
     'HOSTNAME': 'example.com',
@@ -289,6 +287,59 @@ class TestMotd(unittest.TestCase):
             '<pre class="motd">Hello &lt;<span style="color: #cc0000">world</span>&gt;!</pre>')
 
 
+class TestAnsiColors(unittest.TestCase):
+
+    def test_ansi2html(self):
+        self.assertEqual(
+            c2h.ansi2html('Hello, \033[1;37minvisible\033[m world! <>&'),
+            'Hello, <span style="color: #ededeb">invisible</span> world! &lt;&gt;&amp;')
+
+    def test_ansi2html_hi_intensity(self):
+        self.assertEqual(c2h.ansi2html('\033[91m*'),
+                         '<span style="color: #ef2828">*</span>')
+
+    def test_ansi2html_bold(self):
+        self.assertEqual(c2h.ansi2html('\033[1;31m*'),
+                         '<span style="color: #ef2828">*</span>')
+
+    def test_ansi2html_explicit_non_bold(self):
+        self.assertEqual(c2h.ansi2html('\033[0;31m*'),
+                         '<span style="color: #cc0000">*</span>')
+
+    def test_ansi2html_regular(self):
+        self.assertEqual(c2h.ansi2html('\033[31m*'),
+                         '<span style="color: #cc0000">*</span>')
+
+    def test_ansi2html_xterm_256_color(self):
+        self.assertEqual(c2h.ansi2html('\033[38;5;255m*'),
+                         '<span style="color: #eeeeee">*</span>')
+
+    def test_ansi2html_short_reset(self):
+        self.assertEqual(c2h.ansi2html('\033[31m*\033[m.'),
+                         '<span style="color: #cc0000">*</span>.')
+
+    @unittest.skip("Not implemented yet")
+    def test_ansi2html_alt_syntax(self):
+        # Xterm maintains a color palette whose entries are identified
+        # by an index beginning with zero.  If 88- or 256-color support
+        # is compiled, the following apply:
+        # o All parameters are decimal integers.
+        # o RGB values range from zero (0) to 255.
+        # o ISO-8613-3 can be interpreted in more than one way; xterm
+        #   allows the semicolons in this control to be replaced by
+        #   colons (but after the first colon, colons must be used).
+        #
+        # These ISO-8613-3 controls are supported:
+        #   Pm = 3 8 ; 2 ; Pr; Pg; Pb -> Set foreground color to the
+        # closest match in xterm's palette for the given RGB Pr/Pg/Pb.
+        #   Pm = 3 8 ; 5 ; Ps -> Set foreground color to the second Ps.
+        #   Pm = 4 8 ; 2 ; Pr; Pg; Pb -> Set background color to the
+        # closest match in xterm's palette for the given RGB Pr/Pg/Pb.
+        #   Pm = 4 8 ; 5 ; Ps -> Set background color to the second Ps.
+        #       -- http://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+        self.assertEqual(c2h.ansi2html('\033[38;2;255:255:255m*'), '*')
+
+
 def doctest_main_page():
     """Test for main_page
 
@@ -323,8 +374,3 @@ def doctest_main_page():
         </html>
 
     """
-
-
-def test_ansi2html():
-    assert_equal(c2h.ansi2html('Hello, \033[1;37minvisible\033[m world! <>&'),
-                 'Hello, <span style="color: #ededeb">invisible</span> world! &lt;&gt;&amp;')
