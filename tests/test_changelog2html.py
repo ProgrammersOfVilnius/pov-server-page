@@ -3,9 +3,11 @@ import functools
 import os
 import shutil
 import socket
+import sys
 import tempfile
 import textwrap
 import time
+import traceback
 import unittest
 
 try:
@@ -423,6 +425,24 @@ class TestGetPrefix(TestCase):
     def test(self):
         environ = {'SCRIPT_NAME': '/changelog/'}
         self.assertEqual(c2h.get_prefix(environ), '/changelog')
+
+
+class TestMakoErrorHandler(unittest.TestCase):
+
+    def test(self):
+        template = c2h.Template(textwrap.dedent('''
+           <h1>Hello</h1>
+
+           ${x / y}
+        '''))
+        try:
+            template.render_unicode(x=0, y=0)
+        except ZeroDivisionError:
+            tb = ''.join(traceback.format_tb(sys.exc_info()[-1])).splitlines()
+            self.assertEqual(tb[-1].strip(), '# ${x / y}')
+            self.assertIn(' line 4 in render_body', tb[-2])
+        else:
+            self.fail("did not let the error escape")
 
 
 class TestMainPage(TestCase):
