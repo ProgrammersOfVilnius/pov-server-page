@@ -187,7 +187,7 @@ class Changelog(object):
                 self.todo.append(todo)
             elif todo is not None:
                 if line.startswith(todo.prefix + '  '):
-                    todo.title += line[len(todo.prefix) + 1:]
+                    todo.title += ' ' + line[len(todo.prefix) + 1:].strip()
                     todo.add_line(line)
                 else:
                     todo = None

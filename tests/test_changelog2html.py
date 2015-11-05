@@ -170,6 +170,14 @@ class TestToDoItem(unittest.TestCase):
 class TestChangelog(unittest.TestCase):
 
     default_example = """
+        Hey hello this is a preamble
+        You see it is text before the first entry
+
+        It may also have to-do items, e.g.:
+
+        - [ ] write some tests
+              for parsing to-do items
+
         2014-01-01 17:00 +0200: mg
           # why not have more than one year in the changelog?
 
@@ -203,6 +211,35 @@ class TestChangelog(unittest.TestCase):
     def test_search_order_is_newest_first(self):
         changelog = self.makeChangelog()
         self.assertEqual([e.id for e in changelog.search('test')], [3, 2])
+
+    def test_parse(self):
+        changelog = self.makeChangelog()
+        self.assertEqual(changelog.preamble.text[0],
+                         'Hey hello this is a preamble\n')
+        self.assertEqual(len(changelog.entries), 3)
+        self.assertEqual(changelog.todo[0].title,
+                         'write some tests for parsing to-do items')
+
+    def test_entries_for_date(self):
+        changelog = self.makeChangelog()
+        self.assertEqual(
+            len(changelog.entries_for_date(datetime.date(2015, 11, 4))), 1)
+        self.assertEqual(
+            len(changelog.entries_for_date(datetime.date(2015, 11, 3))), 0)
+
+    def test_prev_date(self):
+        changelog = self.makeChangelog()
+        self.assertEqual(changelog.prev_date(datetime.date(2015, 11, 4)),
+                         datetime.date(2014, 1, 1))
+        self.assertEqual(changelog.prev_date(datetime.date(2014, 1, 1)),
+                         None)
+
+    def test_next_date(self):
+        changelog = self.makeChangelog()
+        self.assertEqual(changelog.next_date(datetime.date(2015, 11, 4)),
+                         datetime.date(2015, 11, 5))
+        self.assertEqual(changelog.next_date(datetime.date(2015, 11, 5)),
+                         None)
 
 
 def doctest_main_page():
