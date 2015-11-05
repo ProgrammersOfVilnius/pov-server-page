@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 import textwrap
+import time
 import unittest
 
 try:
@@ -15,7 +16,15 @@ import mock
 import changelog2html as c2h
 
 
-class TestTextObject(unittest.TestCase):
+class TestCase(unittest.TestCase):
+
+    def mkdtemp(self):
+        tmpdir = tempfile.mkdtemp(prefix='changelog2html-test-')
+        self.addCleanup(shutil.rmtree, tmpdir)
+        return tmpdir
+
+
+class TestTextObject(TestCase):
 
     def test_pre_empty(self):
         t = c2h.TextObject()
@@ -46,7 +55,7 @@ class TestTextObject(unittest.TestCase):
             '<pre>&lt;same as pre(), actually&gt;</pre>')
 
 
-class TestPreamble(unittest.TestCase):
+class TestPreamble(TestCase):
 
     def test_title(self):
         preamble = c2h.Preamble()
@@ -57,7 +66,7 @@ class TestPreamble(unittest.TestCase):
         self.assertEqual(preamble.url('/changelog'), '/changelog/')
 
 
-class TestEntry(unittest.TestCase):
+class TestEntry(TestCase):
 
     default_example = """
         2015-11-05 15:57 +0200: mg
@@ -117,7 +126,7 @@ class TestEntry(unittest.TestCase):
             '  # like you do</pre>')
 
 
-class TestToDoItem(unittest.TestCase):
+class TestToDoItem(TestCase):
 
     def test_as_html(self):
         item = c2h.ToDoItem(c2h.Preamble(), title='Laundry & stuff')
@@ -126,7 +135,7 @@ class TestToDoItem(unittest.TestCase):
             '<li>Laundry &amp; stuff (Preamble)</li>')
 
 
-class TestChangelog(unittest.TestCase):
+class TestChangelog(TestCase):
 
     default_example = """
         Hey hello this is a preamble
@@ -200,11 +209,6 @@ class TestChangelog(unittest.TestCase):
         self.assertEqual(changelog.next_date(datetime.date(2015, 11, 5)),
                          None)
 
-    def mkdtemp(self):
-        tmpdir = tempfile.mkdtemp(prefix='changelog2html-test-')
-        self.addCleanup(shutil.rmtree, tmpdir)
-        return tmpdir
-
     def test_read(self):
         filename = os.path.join(self.mkdtemp(), 'changelog')
         with open(filename, 'w') as f:
@@ -224,7 +228,7 @@ class TestChangelog(unittest.TestCase):
                          u'\N{SNOWMAN}\n')
 
 
-class TestMotd(unittest.TestCase):
+class TestMotd(TestCase):
 
     def test_read_file(self):
         motd = c2h.Motd(__file__)
@@ -245,7 +249,7 @@ class TestMotd(unittest.TestCase):
             '<pre class="motd">Hello &lt;<span style="color: #cc0000">world</span>&gt;!</pre>')
 
 
-class TestAnsiColors(unittest.TestCase):
+class TestAnsiColors(TestCase):
 
     def test_ansi2html(self):
         self.assertEqual(
@@ -298,7 +302,32 @@ class TestAnsiColors(unittest.TestCase):
         self.assertEqual(c2h.ansi2html('\033[38;2;255:255:255m*'), '*')
 
 
-class TestMainPage(unittest.TestCase):
+class TestGetChangelog(TestCase):
+
+    def test(self):
+        changelog = c2h.get_changelog(__file__)
+        self.assertIsInstance(changelog, c2h.Changelog)
+
+    def test_cached_load(self):
+        changelog = c2h.get_changelog(__file__)
+        changelog_again = c2h.get_changelog(__file__)
+        self.assertTrue(changelog is changelog_again)
+
+    def test_cache_invalidation(self):
+        mtime = time.time() - 1
+        filename = os.path.join(self.mkdtemp(), 'changelog')
+        with open(filename, 'w') as f:
+            f.write('first version')
+        os.utime(filename, (mtime, mtime))
+        changelog = c2h.get_changelog(filename)
+        with open(filename, 'w') as f:
+            f.write('new version')
+        changelog_again = c2h.get_changelog(filename)
+        self.assertEqual(changelog.preamble.text[0], 'first version')
+        self.assertEqual(changelog_again.preamble.text[0], 'new version')
+
+
+class TestMainPage(TestCase):
 
     maxDiff = None
 
