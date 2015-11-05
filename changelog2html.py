@@ -216,8 +216,8 @@ class Changelog(object):
 
 class Motd(object):
 
-    def __init__(self, filename=None):
-        self.raw = ''
+    def __init__(self, filename=None, raw=''):
+        self.raw = raw
         if filename:
             self.read(filename)
 

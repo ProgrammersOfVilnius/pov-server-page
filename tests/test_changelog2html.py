@@ -268,6 +268,27 @@ class TestChangelog(unittest.TestCase):
                          u'\N{SNOWMAN}\n')
 
 
+class TestMotd(unittest.TestCase):
+
+    def test_read_file(self):
+        motd = c2h.Motd(__file__)
+        self.assertTrue(motd.raw)
+
+    def test_read_no_file(self):
+        motd = c2h.Motd('/no/such/file')
+        self.assertEqual(motd.raw, '')
+
+    def test_as_html_empty(self):
+        motd = c2h.Motd()
+        self.assertEqual(motd.as_html(), '')
+
+    def test_as_html_nonempty(self):
+        motd = c2h.Motd(raw='Hello <\033[31mworld\033[0m>!')
+        self.assertEqual(
+            motd.as_html(),
+            '<pre class="motd">Hello &lt;<span style="color: #cc0000">world</span>&gt;!</pre>')
+
+
 def doctest_main_page():
     """Test for main_page
 
