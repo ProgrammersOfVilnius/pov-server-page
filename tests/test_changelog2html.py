@@ -445,6 +445,14 @@ class TestMakoErrorHandler(unittest.TestCase):
             self.fail("did not let the error escape")
 
 
+class TestTemplateDefaultFilters(unittest.TestCase):
+
+    def test(self):
+        template = c2h.Template('<p>${var}</p>')
+        self.assertEqual(template.render_unicode(var='&'),
+                         '<p>&amp;</p>')
+
+
 class TestMainPage(TestCase):
 
     maxDiff = None
