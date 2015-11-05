@@ -343,6 +343,21 @@ class TestHostname(TestCase):
         self.assertEqual(c2h.get_hostname({}), socket.gethostname())
 
 
+class TestChangelogFilename(TestCase):
+
+    def test_wsgi(self):
+        environ = {'CHANGELOG_FILE': '/tmp/changelog'}
+        self.assertEqual(c2h.get_changelog_filename(environ), '/tmp/changelog')
+
+    def test_cgi(self):
+        os.environ['CHANGELOG_FILE'] = '/srv/changelog'
+        self.assertEqual(c2h.get_changelog_filename({}), '/srv/changelog')
+
+    def test_fallback(self):
+        os.environ.pop('CHANGELOG_FILE', None)
+        self.assertEqual(c2h.get_changelog_filename({}), '/root/Changelog')
+
+
 class TestMainPage(TestCase):
 
     maxDiff = None
