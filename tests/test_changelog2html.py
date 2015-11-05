@@ -158,6 +158,15 @@ class TestEntry(unittest.TestCase):
             '  # like you do</pre>')
 
 
+class TestToDoItem(unittest.TestCase):
+
+    def test_as_html(self):
+        item = c2h.ToDoItem(c2h.Preamble(), title='Laundry & stuff')
+        self.assertEqual(
+            item.as_html(),
+            '<li>Laundry &amp; stuff (Preamble)</li>')
+
+
 def doctest_main_page():
     """Test for main_page
 

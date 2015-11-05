@@ -118,6 +118,8 @@ class Entry(TextObject):
 
 class ToDoItem(TextObject):
 
+    _todo_rx = re.compile('^(?P<prefix>.*)- \[ ] (?P<title>.*)')
+
     def __init__(self, entry=None, prefix=None, title=None):
         TextObject.__init__(self)
         self.entry = entry
@@ -134,12 +136,6 @@ class ToDoItem(TextObject):
 
 
 class Changelog(object):
-
-    _entry_header = re.compile(
-        r'^(?P<year>\d\d\d\d)-(?P<month>\d\d)-(?P<day>\d\d)'
-        r' (?P<hour>\d\d):(?P<minute>\d\d)(?: (?P<timezone>[-+]\d\d\d\d))?'
-        r'(?:: (?P<user>.*))?$')
-    _todo_item = re.compile('^(?P<prefix>.*)- \[ ] (?P<title>.*)')
 
     def __init__(self, filename=None):
         self.preamble = Preamble()
@@ -183,7 +179,7 @@ class Changelog(object):
                               user=m.group('user'))
                 self.entries.append(entry)
             entry.add_line(line)
-            m = self._todo_item.match(line)
+            m = ToDoItem._todo_rx.match(line)
             if m is not None:
                 todo = ToDoItem(entry=entry,
                                 prefix=m.group('prefix'),
