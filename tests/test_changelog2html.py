@@ -60,17 +60,17 @@ class TestTextObject(unittest.TestCase):
         self.assertEqual(t.pre(), '')
 
     def test_pre_nonempty(self):
-        t = c2h.TextObject()
-        t.text.append('# dum de dum\n')
-        t.text.append('echo hello > world.txt\n')
+        t = c2h.TextObject([
+            '# dum de dum\n'
+            'echo hello > world.txt\n'
+        ])
         self.assertEqual(
             t.pre(),
             '<pre># dum de dum\n'
             'echo hello &gt; world.txt</pre>')
 
     def test_pre_sliced(self):
-        t = c2h.TextObject()
-        t.text.extend('%d\n' % n for n in range(1, 10))
+        t = c2h.TextObject(['%d\n' % n for n in range(1, 10)])
         self.assertEqual(
             t.pre(slice(3)),
             '<pre>1\n'
@@ -78,8 +78,7 @@ class TestTextObject(unittest.TestCase):
             '3</pre>')
 
     def test_as_html(self):
-        t = c2h.TextObject()
-        t.text.append('<same as pre(), actually>\n')
+        t = c2h.TextObject(['<same as pre(), actually>\n'])
         self.assertEqual(
             t.as_html(),
             '<pre>&lt;same as pre(), actually&gt;</pre>')

@@ -34,8 +34,8 @@ MOTD_FILE = '/etc/motd'
 
 class TextObject(object):
 
-    def __init__(self):
-        self.text = []
+    def __init__(self, text=None):
+        self.text = [] if text is None else text
 
     def add_line(self, line):
         self.text.append(line)
