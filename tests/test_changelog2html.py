@@ -1,4 +1,7 @@
 import datetime
+import os
+import shutil
+import tempfile
 import textwrap
 import unittest
 
@@ -240,6 +243,29 @@ class TestChangelog(unittest.TestCase):
                          datetime.date(2015, 11, 5))
         self.assertEqual(changelog.next_date(datetime.date(2015, 11, 5)),
                          None)
+
+    def mkdtemp(self):
+        tmpdir = tempfile.mkdtemp(prefix='changelog2html-test-')
+        self.addCleanup(shutil.rmtree, tmpdir)
+        return tmpdir
+
+    def test_read(self):
+        filename = os.path.join(self.mkdtemp(), 'changelog')
+        with open(filename, 'w') as f:
+            f.write(textwrap.dedent(self.default_example.lstrip('\n')))
+        changelog = c2h.Changelog(filename)
+        self.assertEqual(changelog.preamble.text[0],
+                         'Hey hello this is a preamble\n')
+        self.assertEqual(len(changelog.entries), 3)
+        self.assertNotEqual(changelog.mtime, None)
+
+    def test_read_nonascii(self):
+        filename = os.path.join(self.mkdtemp(), 'changelog')
+        with open(filename, 'wb') as f:
+            f.write(u'\N{SNOWMAN}\n'.encode('UTF-8'))
+        changelog = c2h.Changelog(filename)
+        self.assertEqual(changelog.preamble.text[0],
+                         u'\N{SNOWMAN}\n')
 
 
 def doctest_main_page():
