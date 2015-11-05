@@ -194,6 +194,9 @@ class Changelog(object):
         for e in self.entries:
             self.date_index.setdefault(e.date(), []).append(e)
 
+    def entries_for_date(self, date):
+        return self.date_index.get(date, [])
+
     def prev_date(self, date):
         try:
             return max((d for d in self.date_index if d < date))
@@ -874,7 +877,7 @@ def day_page(environ, year, month, day):
         return not_found(environ)
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
-    entries = changelog.date_index.get(date, [])
+    entries = changelog.entries_for_date(date)
     prev_date = changelog.prev_date(date)
     next_date = changelog.next_date(date)
     calendar = month_calendar(changelog, int(year), int(month), prefix,
