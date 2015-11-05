@@ -10,51 +10,9 @@ try:
 except ImportError:
     from io import StringIO
 
+import mock
+
 import changelog2html as c2h
-
-
-TESTENV = {
-    'HOSTNAME': 'example.com',
-    'SCRIPT_NAME': '/',
-    'CHANGELOG_FILE': 'testlog',
-    'MOTD_FILE': '/dev/null'
-}
-
-
-TESTLOG = '''\
-Test changelog
-with some rambling preamble text
-
-- [ ] and maybe a todo item
-
-2014-10-08 09:26 +0300: mg
-  # did a thing
-  vi /etc/thing
-    blah blah
-
-'''
-
-
-def environ(**kw):
-    e = TESTENV.copy()
-    e.update(kw)
-    return e
-
-
-def get_changelog(filename):
-    assert filename == 'testlog'
-    changelog = c2h.Changelog()
-    changelog.parse(StringIO(TESTLOG))
-    return changelog
-
-
-def setup_module(module):
-    module.orig_get_changelog = c2h.get_changelog
-    c2h.get_changelog = get_changelog
-
-
-def teardown_module(module):
-    c2h.get_changelog = module.orig_get_changelog
 
 
 class TestTextObject(unittest.TestCase):
@@ -340,10 +298,56 @@ class TestAnsiColors(unittest.TestCase):
         self.assertEqual(c2h.ansi2html('\033[38;2;255:255:255m*'), '*')
 
 
-def doctest_main_page():
-    """Test for main_page
+class TestMainPage(unittest.TestCase):
 
-        >>> print(c2h.main_page(environ())) # doctest: +NORMALIZE_WHITESPACE
+    maxDiff = None
+
+    environment = {
+        'HOSTNAME': 'example.com',
+        'SCRIPT_NAME': '/',
+        'CHANGELOG_FILE': 'testlog',
+        'MOTD_FILE': '/dev/null'
+    }
+
+    changelog_text = """
+        Test changelog
+        with some rambling preamble text
+
+        - [ ] and maybe a todo item
+
+        2014-10-08 09:26 +0300: mg
+          # did a thing
+          vi /etc/thing
+            blah blah
+
+    """
+
+    def environ(self, **kw):
+        return dict(self.environment, **kw)
+
+    def get_changelog(self, filename):
+        assert filename == 'testlog'
+        changelog_text = textwrap.dedent(self.changelog_text.lstrip('\n'))
+        changelog = c2h.Changelog()
+        changelog.parse(StringIO(changelog_text))
+        return changelog
+
+    def setUp(self):
+        patcher = mock.patch('changelog2html.get_changelog', self.get_changelog)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def assertResponse(self, actual, expected):
+        expected = textwrap.dedent(expected.lstrip('\n'))
+        if self.normalize(actual) != self.normalize(expected):
+            self.assertEqual(actual, expected)
+
+    def normalize(self, text):
+        return ' '.join(text.strip().split())
+
+    def test(self):
+        response = c2h.main_page(self.environ())
+        self.assertResponse(response, """
         <html>
           <head>
             <title>/root/Changelog on example.com</title>
@@ -359,7 +363,7 @@ def doctest_main_page():
             </div>
             <pre>Test changelog
         with some rambling preamble text
-        <BLANKLINE>
+
         - [ ] and maybe a todo item</pre>
         <h2>To do list</h2>
         <ul class="todo">
@@ -372,5 +376,4 @@ def doctest_main_page():
             blah blah</pre>
           </body>
         </html>
-
-    """
+        """)
