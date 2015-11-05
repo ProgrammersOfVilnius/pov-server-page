@@ -1,3 +1,4 @@
+import unittest
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -52,17 +53,36 @@ def teardown_module(module):
     c2h.get_changelog = module.orig_get_changelog
 
 
-def doctest_TextObject():
-    r"""Test for TextObject
+class TestTextObject(unittest.TestCase):
 
-        >>> t = c2h.TextObject()
-        >>> t.text.append('# dum de dum\n')
-        >>> t.text.append('echo hello > world.txt\n')
-        >>> print(t.as_html())
-        <pre># dum de dum
-        echo hello &gt; world.txt</pre>
+    def test_pre_empty(self):
+        t = c2h.TextObject()
+        self.assertEqual(t.pre(), '')
 
-    """
+    def test_pre_nonempty(self):
+        t = c2h.TextObject()
+        t.text.append('# dum de dum\n')
+        t.text.append('echo hello > world.txt\n')
+        self.assertEqual(
+            t.pre(),
+            '<pre># dum de dum\n'
+            'echo hello &gt; world.txt</pre>')
+
+    def test_pre_sliced(self):
+        t = c2h.TextObject()
+        t.text.extend('%d\n' % n for n in range(1, 10))
+        self.assertEqual(
+            t.pre(slice(3)),
+            '<pre>1\n'
+            '2\n'
+            '3</pre>')
+
+    def test_as_html(self):
+        t = c2h.TextObject()
+        t.text.append('<same as pre(), actually>\n')
+        self.assertEqual(
+            t.as_html(),
+            '<pre>&lt;same as pre(), actually&gt;</pre>')
 
 
 def doctest_main_page():
