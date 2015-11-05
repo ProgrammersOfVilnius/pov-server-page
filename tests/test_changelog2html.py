@@ -1,4 +1,5 @@
 import datetime
+import functools
 import os
 import shutil
 import socket
@@ -371,6 +372,57 @@ class TestGetMotdFilename(TestCase):
     def test_fallback(self):
         os.environ.pop('MOTD_FILE', None)
         self.assertEqual(c2h.get_motd_filename({}), '/etc/motd')
+
+
+class TestResponse(TestCase):
+
+    def test(self):
+        response = c2h.Response('hello')
+        self.assertEqual(response.body, 'hello')
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(response.headers,
+                         {'Content-Type': 'text/html; charset=UTF-8'})
+
+
+class TestNotFound(TestCase):
+
+    def test(self):
+        response = c2h.not_found({})
+        self.assertEqual(response.body, '<h1>404 Not Found</h1>')
+        self.assertEqual(response.status, '404 Not Found')
+        self.assertEqual(response.headers,
+                         {'Content-Type': 'text/html; charset=UTF-8'})
+
+
+class TestDispatch(TestCase):
+
+    def test_no_args(self):
+        environ = {'PATH_INFO': '/'}
+        view = c2h.dispatch(environ)
+        self.assertIsInstance(view, functools.partial)
+        self.assertEqual(view.func, c2h.main_page)
+        self.assertEqual(view.args, (environ, ))
+
+    def test_with_args(self):
+        environ = {'PATH_INFO': '/2013/'}
+        view = c2h.dispatch(environ)
+        self.assertIsInstance(view, functools.partial)
+        self.assertEqual(view.func, c2h.year_page)
+        self.assertEqual(view.args, (environ, '2013'))
+
+    def test_not_found(self):
+        environ = {'PATH_INFO': '/nosuch'}
+        view = c2h.dispatch(environ)
+        self.assertIsInstance(view, functools.partial)
+        self.assertEqual(view.func, c2h.not_found)
+        self.assertEqual(view.args, (environ, ))
+
+
+class TestGetPrefix(TestCase):
+
+    def test(self):
+        environ = {'SCRIPT_NAME': '/changelog/'}
+        self.assertEqual(c2h.get_prefix(environ), '/changelog')
 
 
 class TestMainPage(TestCase):

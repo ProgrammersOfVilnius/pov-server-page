@@ -344,8 +344,9 @@ def get_motd(filename):
 
 #
 # And now let's invent our own web microframework
-# (because we're minimizing dependencies to those packages available in
-# Ubuntu 10.04 for reasons)
+# (because we were minimizing dependencies to those packages available in
+# Ubuntu 10.04 for reasons; now it's fine to target 12.04 so maybe I can
+# use python-flask or something)
 #
 
 class Response(object):
