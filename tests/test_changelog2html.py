@@ -1,4 +1,7 @@
+import datetime
+import textwrap
 import unittest
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -93,6 +96,66 @@ class TestPreamble(unittest.TestCase):
     def test_url(self):
         preamble = c2h.Preamble()
         self.assertEqual(preamble.url('/changelog'), '/changelog/')
+
+
+class TestEntry(unittest.TestCase):
+
+    default_example = """
+        2015-11-05 15:57 +0200: mg
+          # just writing tests
+          # like you do
+    """
+
+    def makeEntry(self, text=default_example, id=1):
+        text = textwrap.dedent(text.lstrip('\n')).splitlines(True)
+        m = c2h.Entry._header_rx.match(text[0])
+        assert m, "bad header: %s" % repr(text[0])
+        return c2h.Entry(id=id,
+                         year=int(m.group('year')),
+                         month=int(m.group('month')),
+                         day=int(m.group('day')),
+                         hour=int(m.group('hour')),
+                         minute=int(m.group('minute')),
+                         timezone=m.group('timezone'),
+                         user=m.group('user'),
+                         text=text)
+
+    def test_search(self):
+        entry = self.makeEntry()
+        self.assertTrue(entry.search('tests'))
+        self.assertFalse(entry.search('cake'))
+
+    def test_date(self):
+        entry = self.makeEntry()
+        self.assertTrue(entry.date(), datetime.date(2015, 11, 5))
+
+    def test_timestamp(self):
+        entry = self.makeEntry()
+        self.assertTrue(entry.timestamp(), '2015-11-05 15:57 +0200')
+
+    def test_title(self):
+        entry = self.makeEntry()
+        self.assertTrue(entry.title(), '2015-11-05 15:57 +0200 mg')
+
+    def test_url(self):
+        entry = self.makeEntry()
+        self.assertTrue(entry.url('/changelog'), '/2015/11/05/#e1')
+
+    def test_anchor(self):
+        entry = self.makeEntry()
+        self.assertTrue(entry.anchor, 'e1')
+
+    def test_target(self):
+        entry = self.makeEntry()
+        self.assertTrue(entry.target, '#e1')
+
+    def test_as_html(self):
+        entry = self.makeEntry()
+        self.assertEqual(
+            entry.as_html(),
+            '<h3>2015-11-05 15:57 +0200 mg</h3>\n'
+            '<pre>  # just writing tests\n'
+            '  # like you do</pre>')
 
 
 def doctest_main_page():

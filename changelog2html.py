@@ -62,8 +62,14 @@ class Preamble(TextObject):
 
 class Entry(TextObject):
 
-    def __init__(self, id, year, month, day, hour, minute, timezone, user):
-        TextObject.__init__(self)
+    _header_rx = re.compile(
+        r'^(?P<year>\d\d\d\d)-(?P<month>\d\d)-(?P<day>\d\d)'
+        r' (?P<hour>\d\d):(?P<minute>\d\d)(?: (?P<timezone>[-+]\d\d\d\d))?'
+        r'(?:: (?P<user>.*))?$')
+
+    def __init__(self, id, year, month, day, hour, minute, timezone, user,
+                 text=None):
+        TextObject.__init__(self, text=text)
         self.id = id
         self.year = year
         self.month = month
@@ -165,7 +171,7 @@ class Changelog(object):
         entry = self.preamble
         todo = None
         for line in fp:
-            m = self._entry_header.match(line)
+            m = Entry._header_rx.match(line)
             if m is not None:
                 entry = Entry(id=len(self.entries) + 1,
                               year=int(m.group('year')),
