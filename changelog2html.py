@@ -154,9 +154,8 @@ class Changelog(object):
 
     def search(self, query):
         query = query.lower()
-        for entry in reversed(self.entries):
-            if entry.search(query):
-                yield entry
+        return [entry for entry in reversed(self.entries)
+                if entry.search(query)]
 
     def read(self, filename):
         with io.open(filename, encoding='UTF-8', errors='replace') as fp:

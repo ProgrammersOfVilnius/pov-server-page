@@ -167,6 +167,44 @@ class TestToDoItem(unittest.TestCase):
             '<li>Laundry &amp; stuff (Preamble)</li>')
 
 
+class TestChangelog(unittest.TestCase):
+
+    default_example = """
+        2014-01-01 17:00 +0200: mg
+          # why not have more than one year in the changelog?
+
+        2015-11-04 12:00 +0200: mg
+          # decided to do a lot of test coverage for great justice
+
+        2015-11-05 15:57 +0200: mg
+          # just writing tests
+          # like you do
+    """
+
+    def makeChangelog(self, text=default_example):
+        changelog = c2h.Changelog()
+        changelog.parse(StringIO(textwrap.dedent(text.lstrip('\n'))))
+        return changelog
+
+    def test_filter(self):
+        changelog = self.makeChangelog()
+        self.assertEqual(len(changelog.filter()), 3)
+        self.assertEqual(len(changelog.filter(2014)), 1)
+        self.assertEqual(len(changelog.filter(2015)), 2)
+        self.assertEqual(len(changelog.filter(2015, 10)), 0)
+        self.assertEqual(len(changelog.filter(2015, 11)), 2)
+        self.assertEqual(len(changelog.filter(2015, 11, 4)), 1)
+
+    def test_search(self):
+        changelog = self.makeChangelog()
+        self.assertEqual(len(changelog.search('test')), 2)
+        self.assertEqual(len(changelog.search('Test')), 2)
+
+    def test_search_order_is_newest_first(self):
+        changelog = self.makeChangelog()
+        self.assertEqual([e.id for e in changelog.search('test')], [3, 2])
+
+
 def doctest_main_page():
     """Test for main_page
 
