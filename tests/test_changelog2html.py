@@ -1,6 +1,7 @@
 import datetime
 import os
 import shutil
+import socket
 import tempfile
 import textwrap
 import time
@@ -325,6 +326,21 @@ class TestGetChangelog(TestCase):
         changelog_again = c2h.get_changelog(filename)
         self.assertEqual(changelog.preamble.text[0], 'first version')
         self.assertEqual(changelog_again.preamble.text[0], 'new version')
+
+
+class TestHostname(TestCase):
+
+    def test_wsgi(self):
+        environ = {'HOSTNAME': 'frog.example.com'}
+        self.assertEqual(c2h.get_hostname(environ), 'frog.example.com')
+
+    def test_cgi(self):
+        os.environ['HOSTNAME'] = 'toad.example.com'
+        self.assertEqual(c2h.get_hostname({}), 'toad.example.com')
+
+    def test_fallback(self):
+        os.environ.pop('HOSTNAME', None)
+        self.assertEqual(c2h.get_hostname({}), socket.gethostname())
 
 
 class TestMainPage(TestCase):
