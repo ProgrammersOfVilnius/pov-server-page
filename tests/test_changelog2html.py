@@ -84,6 +84,17 @@ class TestTextObject(unittest.TestCase):
             '<pre>&lt;same as pre(), actually&gt;</pre>')
 
 
+class TestPreamble(unittest.TestCase):
+
+    def test_title(self):
+        preamble = c2h.Preamble()
+        self.assertEqual(preamble.title(), 'Preamble')
+
+    def test_url(self):
+        preamble = c2h.Preamble()
+        self.assertEqual(preamble.url('/changelog'), '/changelog/')
+
+
 def doctest_main_page():
     """Test for main_page
 
