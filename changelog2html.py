@@ -228,7 +228,6 @@ class Motd(object):
                 self.raw = fp.read()
         except IOError:
             pass
-        self.text = strip_ansi(self.raw)
 
     def as_html(self):
         if self.raw:
@@ -241,10 +240,6 @@ class Motd(object):
 # decimal parameters separated by semicolons, followed by a single character
 # (usually a lowercase or uppercase letter, but could be @ or `).
 ANSI_RX = re.compile(r'(\033\[\??(?:\d+(?:;\d+)*)?.)')
-
-
-def strip_ansi(text):
-    return ANSI_RX.sub('', text)
 
 
 COLORS = [
