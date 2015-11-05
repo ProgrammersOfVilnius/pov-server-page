@@ -37,6 +37,9 @@ class TextObject(object):
     def __init__(self):
         self.text = []
 
+    def add_line(self, line):
+        self.text.append(line)
+
     def pre(self, slice=slice(None)):
         if not self.text:
             return ''
@@ -173,18 +176,18 @@ class Changelog(object):
                               timezone=m.group('timezone'),
                               user=m.group('user'))
                 self.entries.append(entry)
-            entry.text.append(line)
+            entry.add_line(line)
             m = self._todo_item.match(line)
             if m is not None:
                 todo = ToDoItem(entry=entry,
                                 prefix=m.group('prefix'),
                                 title=m.group('title'))
-                todo.text.append(line)
+                todo.add_line(line)
                 self.todo.append(todo)
             elif todo is not None:
                 if line.startswith(todo.prefix + '  '):
                     todo.title += line[len(todo.prefix) + 1:]
-                    todo.text.append(line)
+                    todo.add_line(line)
                 else:
                     todo = None
         self.build_index()
