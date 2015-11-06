@@ -682,8 +682,6 @@ def year_calendar(changelog, year, prefix, url, prev_url=None, next_url=None):
 
 
 def month_link(changelog, year, month, url):
-    if not month:
-        return ''
     entries = changelog.filter(year=year, month=month)
     if not entries:
         return str(month)
