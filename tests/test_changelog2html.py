@@ -610,3 +610,27 @@ class TestSearchPage(PageTestCase):
         response = c2h.search_page(self.environ(QUERY_STRING='q=thing'))
         self.assertIn('<title>thing -', response)
         self.assertIn("1 results for 'thing'", response)
+
+
+class TestWsgiApp(PageTestCase):
+
+    def test_view_that_returns_response(self):
+        start_response = mock.Mock()
+        body = c2h.wsgi_app(self.environ(PATH_INFO='/notfound'), start_response)
+        self.assertEqual(body, [b'<h1>404 Not Found</h1>'])
+        self.assertEqual(start_response.call_count, 1)
+        self.assertEqual(start_response.call_args[0],
+                         ('404 Not Found', [
+                             ('Content-Type', 'text/html; charset=UTF-8'),
+                         ]))
+
+    def test_view_that_returns_string(self):
+        start_response = mock.Mock()
+        body = c2h.wsgi_app(self.environ(PATH_INFO='/'), start_response)
+        self.assertEqual(len(body), 1)
+        self.assertIn(b'<title>/root/Changelog on example.com', body[0])
+        self.assertEqual(start_response.call_count, 1)
+        self.assertEqual(start_response.call_args[0],
+                         ('200 OK', [
+                             ('Content-Type', 'text/html; charset=UTF-8'),
+                         ]))
