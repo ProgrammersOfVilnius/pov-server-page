@@ -22,6 +22,11 @@ import changelog2html as c2h
 
 class TestCase(unittest.TestCase):
 
+    def patch(self, *args, **kw):
+        patcher = mock.patch(*args, **kw)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
+
     def mkdtemp(self):
         tmpdir = tempfile.mkdtemp(prefix='changelog2html-test-')
         self.addCleanup(shutil.rmtree, tmpdir)
@@ -462,7 +467,7 @@ class TestStylesheet(TestCase):
         self.assertEqual(response.headers, {'Content-Type': 'text/css'})
 
 
-class TestMainPage(TestCase):
+class PageTestCase(TestCase):
 
     maxDiff = None
 
@@ -470,7 +475,7 @@ class TestMainPage(TestCase):
         'HOSTNAME': 'example.com',
         'SCRIPT_NAME': '/',
         'CHANGELOG_FILE': 'testlog',
-        'MOTD_FILE': '/dev/null'
+        'MOTD_FILE': 'testmotd'
     }
 
     changelog_text = """
@@ -486,8 +491,11 @@ class TestMainPage(TestCase):
 
     """
 
-    def environ(self, **kw):
-        return dict(self.environment, **kw)
+    motd_text = "Welcome to example.com!\n"
+
+    def setUp(self):
+        self.patch('changelog2html.get_changelog', self.get_changelog)
+        self.patch('changelog2html.get_motd', self.get_motd)
 
     def get_changelog(self, filename):
         assert filename == 'testlog'
@@ -496,10 +504,12 @@ class TestMainPage(TestCase):
         changelog.parse(StringIO(changelog_text))
         return changelog
 
-    def setUp(self):
-        patcher = mock.patch('changelog2html.get_changelog', self.get_changelog)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+    def get_motd(self, filename):
+        assert filename == 'testmotd'
+        return c2h.Motd(raw=self.motd_text)
+
+    def environ(self, **kw):
+        return dict(self.environment, **kw)
 
     def assertResponse(self, actual, expected):
         expected = textwrap.dedent(expected.lstrip('\n'))
@@ -509,6 +519,8 @@ class TestMainPage(TestCase):
     def normalize(self, text):
         return ' '.join(text.strip().split())
 
+
+class TestMainPage(PageTestCase):
     def test(self):
         response = c2h.main_page(self.environ())
         self.assertResponse(response, """
@@ -525,6 +537,8 @@ class TestMainPage(TestCase):
                 <input type="submit" value="Search" class="searchbutton" />
               </form>
             </div>
+            <pre class="motd">Welcome to example.com!
+        </pre>
             <pre>Test changelog
         with some rambling preamble text
 
@@ -541,3 +555,58 @@ class TestMainPage(TestCase):
           </body>
         </html>
         """)
+
+
+class TestAllPage(PageTestCase):
+
+    def test(self):
+        response = c2h.all_page(self.environ())
+        self.assertIn('All entries', response)
+
+
+class TestYearPage(PageTestCase):
+
+    def test(self):
+        response = c2h.year_page(self.environ(), '2014')
+        self.assertIn('<title>2014', response)
+
+    def test_empty_year(self):
+        response = c2h.year_page(self.environ(), '2010')
+        self.assertIn('<title>2010', response)
+        self.assertIn('No entries for this year', response)
+
+
+class TestMonthPage(PageTestCase):
+
+    def test(self):
+        response = c2h.month_page(self.environ(), '2014', '10')
+        self.assertIn('<title>2014-10', response)
+
+    def test_empty_month(self):
+        response = c2h.month_page(self.environ(), '2014', '11')
+        self.assertIn('<title>2014-11', response)
+        self.assertIn('No entries for this month', response)
+
+
+class TestDayPage(PageTestCase):
+
+    def test(self):
+        response = c2h.day_page(self.environ(), '2014', '10', '08')
+        self.assertIn('<title>2014-10-08', response)
+
+    def test_empty_day(self):
+        response = c2h.day_page(self.environ(), '2014', '10', '09')
+        self.assertIn('<title>2014-10-09', response)
+        self.assertIn('No entries for this date', response)
+
+    def test_bad_date(self):
+        response = c2h.day_page(self.environ(), '2014', '02', '29')
+        self.assertEqual(response.status, '404 Not Found')
+
+
+class TestSearchPage(PageTestCase):
+
+    def test(self):
+        response = c2h.search_page(self.environ(QUERY_STRING='q=thing'))
+        self.assertIn('<title>thing -', response)
+        self.assertIn("1 results for 'thing'", response)
