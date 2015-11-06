@@ -453,6 +453,15 @@ class TestTemplateDefaultFilters(unittest.TestCase):
                          '<p>&amp;</p>')
 
 
+class TestStylesheet(TestCase):
+
+    def test(self):
+        response = c2h.stylesheet({})
+        self.assertTrue(response.body.startswith('body {'))
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(response.headers, {'Content-Type': 'text/css'})
+
+
 class TestMainPage(TestCase):
 
     maxDiff = None

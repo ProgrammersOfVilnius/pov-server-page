@@ -488,7 +488,7 @@ STYLESHEET = textwrap.dedent('''
         width: 2.75ex;
         text-align: right;
     }
-''')
+'''.lstrip('\n'))
 
 
 @path('/style.css')
