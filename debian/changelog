@@ -1,3 +1,10 @@
+pov-server-page (0.26.3) precise; urgency=medium
+
+  * debian/rules:
+    - skip test suite because python-mock is too old in precise.
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 06 Nov 2015 18:38:18 +0200
+
 pov-server-page (0.26.2) precise; urgency=medium
 
   * pov-update-server-page:

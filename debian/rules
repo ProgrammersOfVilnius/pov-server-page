@@ -11,3 +11,6 @@
 
 %:
 	dh $@
+
+override_dh_auto_test:
+	# skip tests because python-mock in precise is too old
