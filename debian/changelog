@@ -1,4 +1,4 @@
-pov-server-page (0.26.2) UNRELEASED; urgency=medium
+pov-server-page (0.26.2) precise; urgency=medium
 
   * pov-update-server-page:
     - show SHA256 host key fingerprints too (GH: #13).
@@ -6,7 +6,7 @@ pov-server-page (0.26.2) UNRELEASED; urgency=medium
     - fix contextswitch, entropy, ntpd and users to work with collectd 5.x
       (GH: #8).
 
- -- Marius Gedminas <marius@gedmin.as>  Fri, 06 Nov 2015 18:15:06 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 06 Nov 2015 18:16:59 +0200
 
 pov-server-page (0.26.1) precise; urgency=medium
 
