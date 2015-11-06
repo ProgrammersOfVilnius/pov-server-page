@@ -35,6 +35,7 @@ use Data::Dumper ();
 
 # This is Debian's config location, which differs from upstream
 our $Config = "/etc/collectd/collection.conf";
+our $TypesDB = "/usr/share/collectd/types.db";
 our @DataDirs = ();
 our @DontShowTypes = ();
 our $LibDir;
@@ -53,6 +54,9 @@ our @RRDDefaultArgs = ('-w', '400');
 
 our $Args = {};
 
+our $Types = {};
+read_types_db();
+
 our $GraphDefs;
 our $MetaGraphDefs = {};
 load_graph_definitions ();
@@ -63,6 +67,27 @@ for (qw(action host plugin plugin_instance type type_instance timespan))
 }
 
 exit (main ());
+
+sub read_types_db
+{
+	my $fh;
+	open ($fh, "< $TypesDB") or confess ("open ($TypesDB): $!");
+	while (my $line = <$fh>)
+	{
+		chomp ($line);
+		$line =~ s/\s*(?:#.*)?$//;
+		next if (!$line);
+		my ($type, $specs) = split(m/\s+/, $line, 2);
+		my @specs = split(m/,?\s+/, $specs);
+		$Types->{$type} = [];
+		for (my $i = 0; $i < @specs; $i++)
+		{
+			my ($name, $ds_type, $min, $max) = split(m/:/, $specs[$i]);
+			push (@{$Types->{$type}}, $name);
+		}
+	}
+	close ($fh);
+} # read_types_db
 
 sub read_config
 {
@@ -819,6 +844,7 @@ sub action_show_graph
 
     $file =~ s/:/\\:/g;
     s/{file}/$file/ for (@rrd_args);
+    s/{ds(\d+)}/$Types->{$gtype}[$1]/ for (@rrd_args);
 
     RRDs::graph ('-', '-a', 'PNG', '-s', $start_time, @end_time, '-t', $title, @RRDDefaultArgs, @rrd_args);
     if (my $err = RRDs::error ())
@@ -1096,9 +1122,9 @@ sub load_graph_definitions
     'GPRINT:avg:LAST:%4.1lf Last\l'
     ],
     contextswitch => ['-v', 'Context switches',
-    'DEF:avg={file}:contextswitches:AVERAGE',
-    'DEF:min={file}:contextswitches:MIN',
-    'DEF:max={file}:contextswitches:MAX',
+    'DEF:avg={file}:{ds0}:AVERAGE',
+    'DEF:min={file}:{ds0}:MIN',
+    'DEF:max={file}:{ds0}:MAX',
     "AREA:max#$HalfBlue",
     "AREA:min#$Canvas",
     "LINE1:avg#$FullBlue:Context switches",
@@ -1432,9 +1458,9 @@ sub load_graph_definitions
     'GPRINT:avg:LAST:%4.0lf Last\l'
     ],
     entropy => ['-v', 'Bits',
-    'DEF:avg={file}:entropy:AVERAGE',
-    'DEF:min={file}:entropy:MIN',
-    'DEF:max={file}:entropy:MAX',
+    'DEF:avg={file}:{ds0}:AVERAGE',
+    'DEF:min={file}:{ds0}:MIN',
+    'DEF:max={file}:{ds0}:MAX',
     "AREA:max#$HalfBlue",
     "AREA:min#$Canvas",
     "LINE1:avg#$FullBlue:Bits",
@@ -1468,9 +1494,9 @@ sub load_graph_definitions
     'GPRINT:avg:LAST:%4.1lf Last\l'
     ],
     frequency_offset => [ # NTPd
-    'DEF:ppm_avg={file}:ppm:AVERAGE',
-    'DEF:ppm_min={file}:ppm:MIN',
-    'DEF:ppm_max={file}:ppm:MAX',
+    'DEF:ppm_avg={file}:{ds0}:AVERAGE',
+    'DEF:ppm_min={file}:{ds0}:MIN',
+    'DEF:ppm_max={file}:{ds0}:MAX',
     "AREA:ppm_max#$HalfBlue",
     "AREA:ppm_min#$Canvas",
     "LINE1:ppm_avg#$FullBlue:{inst}",
@@ -2751,9 +2777,9 @@ sub load_graph_definitions
     'GPRINT:avg:LAST:%5.1lf%s Last\l'
     ],
     time_offset => [ # NTPd
-    'DEF:s_avg={file}:seconds:AVERAGE',
-    'DEF:s_min={file}:seconds:MIN',
-    'DEF:s_max={file}:seconds:MAX',
+    'DEF:s_avg={file}:{ds0}:AVERAGE',
+    'DEF:s_min={file}:{ds0}:MIN',
+    'DEF:s_max={file}:{ds0}:MAX',
     "AREA:s_max#$HalfBlue",
     "AREA:s_min#$Canvas",
     "LINE1:s_avg#$FullBlue:{inst}",
@@ -2836,9 +2862,9 @@ sub load_graph_definitions
     'GPRINT:avg_days:LAST:%6.2lf Last\l'
     ],
     users => ['-v', 'Users',
-    'DEF:users_avg={file}:users:AVERAGE',
-    'DEF:users_min={file}:users:MIN',
-    'DEF:users_max={file}:users:MAX',
+    'DEF:users_avg={file}:{ds0}:AVERAGE',
+    'DEF:users_min={file}:{ds0}:MIN',
+    'DEF:users_max={file}:{ds0}:MAX',
     "AREA:users_max#$HalfBlue",
     "AREA:users_min#$Canvas",
     "LINE1:users_avg#$FullBlue:Users",
