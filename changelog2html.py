@@ -956,7 +956,7 @@ except ImportError:
     pass
 
 
-def reloading_wsgi_app(environ, start_response):  # pragma: nocover
+def reloading_wsgi_app(environ, start_response):
     # Horrible hack that gives me a fast development loop: reload the code on
     # every request!
     import changelog2html

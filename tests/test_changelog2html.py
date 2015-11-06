@@ -634,3 +634,59 @@ class TestWsgiApp(PageTestCase):
                          ('200 OK', [
                              ('Content-Type', 'text/html; charset=UTF-8'),
                          ]))
+
+
+class TestReloadingWsgiApp(PageTestCase):
+
+    def test(self):
+        # reloading_wsgi_app reloads the module, which neatly destroys
+        # all of our carefully monkey-patched mocks
+        environ = self.environ(
+            PATH_INFO='/',
+            CHANGELOG_FILE='/dev/null',
+            MOTD_FILE='/dev/null',
+        )
+        start_response = mock.Mock()
+        c2h.reloading_wsgi_app(environ, start_response)
+        self.assertEqual(start_response.call_count, 1)
+
+
+class TestMain(TestCase):
+
+    def setUp(self):
+        super(TestMain, self).setUp()
+        self.mock_make_server = self.patch('wsgiref.simple_server.make_server')
+        self.stderr = self.patch('sys.stderr', StringIO())
+
+    def run_main(self, *args):
+        orig_argv = sys.argv
+        try:
+            sys.argv = ['changelog2html.py'] + list(args)
+            c2h.main()
+        finally:
+            sys.argv = orig_argv
+
+    def test(self):
+        self.run_main()
+        self.assertTrue(self.mock_make_server().serve_forever.called)
+
+    def test_hostname_override(self):
+        self.run_main('--name', 'frog.example.com')
+        self.assertTrue(self.mock_make_server().serve_forever.called)
+        self.assertEqual(os.environ['HOSTNAME'], 'frog.example.com')
+
+    def test_changelog_file_override(self):
+        self.run_main('/tmp/alt-changelog')
+        self.assertTrue(self.mock_make_server().serve_forever.called)
+        self.assertEqual(os.environ['CHANGELOG_FILE'], '/tmp/alt-changelog')
+
+    def test_error_handling(self):
+        with self.assertRaises(SystemExit):
+            self.run_main('too', 'many')
+        self.assertIn("changelog2html.py: error: too many arguments",
+                      self.stderr.getvalue())
+
+    def test_clean_interruption(self):
+        self.mock_make_server().serve_forever.side_effect = KeyboardInterrupt
+        self.run_main()
+        self.assertEqual(self.stderr.getvalue(), "")
