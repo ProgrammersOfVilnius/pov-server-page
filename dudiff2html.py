@@ -13,6 +13,7 @@ __author__ = 'Marius Gedminas <marius@gedmin.as>'
 __version__ = '0.1'
 
 
+DU_DIFF_SCRIPT = 'du-diff'  # assume it's on $PATH
 DATE_RANGE_RX = re.compile(r'^(\d\d\d\d-\d\d-\d\d)\.\.(\d\d\d\d-\d\d-\d\d)$')
 
 
@@ -47,25 +48,30 @@ def render_du_diff(environ, location, old, new):
     if not os.path.exists(new_file):
         return not_found()
     try:
-        diff = subprocess.check_output(['du-diff', old_file, new_file])
+        diff = subprocess.check_output([DU_DIFF_SCRIPT, old_file, new_file])
     except subprocess.CalledProcessError as e:
-        sys.stderr.write('Failed to call du-diff %s %s: %s\n' % (old_file, new_file, e))
+        sys.stderr.write('%s\n' % e)
         sys.stderr.flush()
         return not_found()
     else:
         return Response(diff, content_type='text/plain; charset=UTF-8')
 
 
-def wsgi_app(environ, start_response):
+def dispatch(environ):
     path_info = environ['PATH_INFO'] or '/'
     components = path_info.strip('/').split('/')
-    response = Response('<h1>404 Not Found</h1>', status='404 Not Found')
     if len(components) == 2:
         location, dates = components
         m = DATE_RANGE_RX.match(dates)
         if m:
             old, new = m.groups()
-            response = render_du_diff(environ, location, old, new)
+            return render_du_diff, (environ, location, old, new)
+    return not_found, ()
+
+
+def wsgi_app(environ, start_response):
+    view, args = dispatch(environ)
+    response = view(*args)
     start_response(response.status, sorted(response.headers.items()))
     body = response.body
     if not isinstance(body, bytes):
