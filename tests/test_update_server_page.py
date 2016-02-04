@@ -129,6 +129,14 @@ class TestSymlink(FilesystemTests):
                 symlink(a, b)
         self.assertIn("Couldn't create symlink", self.stderr.getvalue())
 
+    def test_symlink_no_overwriting(self):
+        a = os.path.join(self.tmpdir, 'a')
+        b = os.path.join(self.tmpdir, 'b')
+        symlink(a, b)
+        c = os.path.join(self.tmpdir, 'c')
+        with self.assertRaises(Error):
+            symlink(c, b)
+
 
 class TestReplaceFile(FilesystemTests):
 
@@ -219,6 +227,14 @@ class TestBuilders(BuilderTests):
                          "Created %s/subdir/symlink\n" % self.tmpdir)
         self.assertTrue(os.path.islink(pathname))
         self.assertEqual(os.readlink(pathname), '/dev/null')
+
+    def test_Symlink_skips(self):
+        pathname = os.path.join(self.tmpdir, 'subdir', 'symlink')
+        self.builder.skip.append(pathname)
+        Builder.Symlink('/dev/null').build(pathname, self.builder)
+        self.assertEqual(self.stdout.getvalue(),
+                         "Skipping %s/subdir/symlink\n" % self.tmpdir)
+        self.assertFalse(os.path.exists(pathname))
 
     def test_Template(self):
         pathname = os.path.join(self.tmpdir, 'subdir', 'index.html')
