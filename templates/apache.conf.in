@@ -52,6 +52,12 @@
   </Location>
 
 % endif
+  # Disk usage
+  WSGIScriptAlias /du/diff ${DUDIFF2HTML_SCRIPT}
+  <Location /du/diff>
+    SetEnv DIRECTORY "/var/www/${HOSTNAME}/du"
+  </Location>
+
   # Collectd stats
   RewriteRule ^/stats/?$ /stats/${SHORTHOSTNAME} [R,L]
   ScriptAlias /stats/${SHORTHOSTNAME} ${COLLECTION_CGI}

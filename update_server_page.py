@@ -51,6 +51,7 @@ if debian_package:
     COLLECTION_CGI = os.path.join(libdir, 'collection.cgi')
     UPDATE_TCP_PORTS_SCRIPT = os.path.join(libdir, 'update-ports')
     CHANGELOG2HTML_SCRIPT = os.path.join(libdir, 'changelog2html')
+    DUDIFF2HTML_SCRIPT = os.path.join(libdir, 'dudiff2html')
     DU2WEBTREEMAP = os.path.join(libdir, 'du2webtreemap')
     WEBTREEMAP = os.path.join(TEMPLATE_DIR, 'webtreemap')
 else:
@@ -62,6 +63,7 @@ else:
     COLLECTION_CGI = os.path.join(here, 'collection.cgi')
     UPDATE_TCP_PORTS_SCRIPT = os.path.join(here, 'update_tcp_ports_html.py')
     CHANGELOG2HTML_SCRIPT = os.path.join(here, 'changelog2html.py')
+    DUDIFF2HTML_SCRIPT = os.path.join(here, 'dudiff2html.py')
     DU2WEBTREEMAP = os.path.join(here, 'webtreemap-du', 'du2webtreemap.py')
     WEBTREEMAP = os.path.join(here, 'webtreemap')
 
@@ -385,16 +387,27 @@ class Builder(object):
                         timestamp = time.strftime('%Y-%m-%d %H:%M:%S %z')
                         f.write('\nvar last_updated = "%s";\n' % timestamp)
                         f.write('var duration = "%.0f";\n' % duration)
+                snapshots = [
+                    os.path.basename(fn)[len('du-'):-len('.gz')]
+                    for fn in sorted(self.find_old_files(datadir), reverse=True)
+                ]
                 Builder.Template('du-page.html.in').build(
                     index_html, builder,
-                    extra_vars=dict(location=location,
-                                    location_name=self.location_name,
-                                    has_disk_graph=self.has_disk_graph,
-                                    disk_graph_url=self.disk_graph_url))
+                    extra_vars=dict(
+                        location=location,
+                        location_name=location_name,
+                        has_disk_graph=self.has_disk_graph,
+                        disk_graph_url=self.disk_graph_url,
+                        snapshots=snapshots,
+                    ),
+                )
+
+        def find_old_files(self, datadir):
+            return glob.glob(os.path.join(datadir, 'du-????-??-??.gz'))
 
         def delete_old_files(self, datadir, keep_daily, keep_monthly,
                              keep_yearly):
-            files = glob.glob(os.path.join(datadir, 'du-????-??-??.gz'))
+            files = self.find_old_files(datadir)
             keep = self.files_to_keep(files, keep_daily, keep_monthly, keep_yearly)
             delete = set(files) - keep
             for fn in sorted(delete):
@@ -491,6 +504,7 @@ class Builder(object):
         self.vars['CHANGELOG'] = self.file_readable_to('/root/Changelog',
                                                        'www-data',
                                                        'www-data')
+        self.vars['DUDIFF2HTML_SCRIPT'] = DUDIFF2HTML_SCRIPT
         if self.verbose and not self.vars['CHANGELOG']:
             print("Skipping changelog view since /root/Changelog is not readable by user www-data")
 

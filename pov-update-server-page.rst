@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2015-11-06
-:Version: 0.26.3
+:Date: 2016-02-04
+:Version: 0.27.0
 :Manual section: 8
 
 
@@ -261,6 +261,7 @@ to store both snapshots in the same ``/var/www/``\ *HOSTNAME*\ ``/root``
 directory.
 
 You cannot skip individual files or subdirectories under
-``/var/www/``\ *HOSTNAME*\ ``/du/``.
+``/var/www/``\ *HOSTNAME*\ ``/du/``, with the sole exception of the
+'webtreemap' symlink.
 
 Report bugs at https://github.com/ProgrammersOfVilnius/pov-server-page/issues/

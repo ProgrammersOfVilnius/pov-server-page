@@ -16,10 +16,44 @@
       .graphs img { vertical-align: top; }
       .graphs img { display: inline-block; }
 
+      .snapshots {
+        float: right;
+      }
+      .snapshots > ul {
+        height: 480px;
+        overflow: auto;
+        min-width: 120px;
+        padding: 0;
+      }
+      .snapshots li {
+        display: block;
+        margin: 0;
+        padding: 0;
+      }
+      .snapshots li a {
+        display: block;
+        padding: 4px;
+        margin: 0;
+        text-decoration: none;
+        color: black;
+      }
+      .snapshots li a:hover,
+      .snapshots li a:active {
+        text-decoration: none;
+        color: blue;
+      }
     </style>
   </head>
   <body>
     <h1>Disk Usage of ${HOSTNAME}:${location}</h1>
+    <div class="snapshots">
+      Snapshots
+      <ul>
+% for date in snapshots:
+        <li><a href="../diff/${location_name}/${date}..${snapshots[0]}">${date}</a></li>
+% endfor
+      </ul>
+    </div>
     <p>Click on a box to zoom in.  Click on the outermost box to zoom out.</p>
     <div id="map"></div>
     <p id="footer"></p>

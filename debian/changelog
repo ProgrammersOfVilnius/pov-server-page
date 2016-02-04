@@ -1,3 +1,13 @@
+pov-server-page (0.27.0) UNRELEASED; urgency=medium
+
+  * dudiff2html 0.1:
+    - new WSGI script that runs du-diff.
+  * pov-update-server-page:
+    - disk usage pages: show a list of snapshots that produce du-diff output
+      with the latest one when clicked.
+
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 04 Feb 2016 09:45:56 +0200
+
 pov-server-page (0.26.3) precise; urgency=medium
 
   * debian/rules:
