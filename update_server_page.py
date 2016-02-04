@@ -114,9 +114,13 @@ def symlink(target, filename):
     try:
         os.symlink(target, filename)
     except OSError as e:
-        if e.errno == errno.EEXIST and os.path.islink(filename) and os.readlink(filename) == target:
-            return False
+        if e.errno == errno.EEXIST:
+            if os.path.islink(filename) and os.readlink(filename) == target:
+                return False
+            else:
+                raise Error('Refusing to overwrite %s' % filename)
         else:
+            sys.stderr.write("Couldn't create symlink %s -> %s\n" % (filename, target))
             raise
     return True
 
