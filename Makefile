@@ -58,6 +58,7 @@ install:
 	install update_server_page.py $(DESTDIR)/usr/sbin/pov-update-server-page
 	install update_tcp_ports_html.py $(DESTDIR)/usr/lib/pov-server-page/update-ports
 	install changelog2html.py $(DESTDIR)/usr/lib/pov-server-page/changelog2html
+	install dudiff2html.py $(DESTDIR)/usr/lib/pov-server-page/dudiff2html
 	install collection.cgi $(DESTDIR)/usr/lib/pov-server-page/collection.cgi
 	install webtreemap-du/du2webtreemap.py $(DESTDIR)/usr/lib/pov-server-page/du2webtreemap
 	install -m 644 webtreemap/webtreemap.css $(DESTDIR)/usr/share/pov-server-page/webtreemap/
