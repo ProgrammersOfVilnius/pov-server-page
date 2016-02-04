@@ -217,6 +217,10 @@ class Builder(object):
             self.target = target
 
         def build(self, filename, builder):
+            if filename in builder.skip:
+                if builder.verbose:
+                    print("Skipping %s" % filename)
+                return
             mkdir_with_parents(os.path.dirname(filename))
             if symlink(self.target, filename) and builder.verbose:
                 print("Created %s" % filename)
@@ -562,11 +566,11 @@ class Builder(object):
         if quick is not None:
             self.quick = quick
         self._compute_derived()
-        skip = self.vars['SKIP'].split()
+        self.skip = self.vars['SKIP'].split()
         redirect = self.parse_map(self.vars['REDIRECT'])
         for destination, subbuilder in self.build_list:
             filename = self.destdir + destination.format(**self.vars)
-            if filename not in skip:
+            if filename not in self.skip:
                 if filename in redirect:
                     filename = redirect[filename]
                 subbuilder.build(filename, self)
