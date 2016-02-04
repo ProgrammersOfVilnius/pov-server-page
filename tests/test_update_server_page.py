@@ -102,6 +102,10 @@ class TestMkdir(FilesystemTests):
 
 class TestSymlink(FilesystemTests):
 
+    def setUp(self):
+        FilesystemTests.setUp(self)
+        self.stderr = self.patch('sys.stderr', StringIO())
+
     def test_symlink(self):
         a = os.path.join(self.tmpdir, 'a')
         b = os.path.join(self.tmpdir, 'b')
@@ -123,6 +127,7 @@ class TestSymlink(FilesystemTests):
         with mock.patch('os.symlink', self.raise_oserror):
             with self.assertRaises(OSError):
                 symlink(a, b)
+        self.assertIn("Couldn't create symlink", self.stderr.getvalue())
 
 
 class TestReplaceFile(FilesystemTests):
@@ -193,6 +198,7 @@ class BuilderTests(FilesystemTests):
         self.builder = Builder({'foo': 'two', 'HOSTNAME': 'frog.example.com'},
                                destdir=self.tmpdir)
         self.builder.verbose = True
+        self.builder.skip = []
         template_dir = os.path.join(os.path.dirname(__file__), 'templates')
         self.builder.lookup.directories.append(os.path.normpath(template_dir))
 
