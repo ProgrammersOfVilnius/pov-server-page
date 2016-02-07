@@ -69,11 +69,20 @@ STYLESHEET = textwrap.dedent('''
         margin: 1em;
     }
 
+    .du-diff {
+        border-collapse: collapse;
+    }
+    .du-diff .sorting {
+        color: #888;
+        cursor: progress;
+    }
     .du-diff th {
         text-align: left;
+        cursor: pointer;
     }
     .du-diff td:first-child {
         text-align: right;
+        padding: 4px;
     }
 '''.lstrip('\n'))
 
@@ -87,25 +96,54 @@ dudiff_template = Template(textwrap.dedent('''
       <head>
         <title>du-diff for ${location}: ${old}..${new}</title>
         <link rel="stylesheet" href="${prefix}/style.css" />
+        <script type="text/javascript">
+          function by_delta(row) {
+            return parseInt(row.cells[0].innerText.replace(/,/g, ''));
+          }
+          function by_path(row) {
+            return row.cells[1].innerText;
+          }
+          function sort(key) {
+            var table = document.getElementById("du-diff");
+            var tbody = table.tBodies[0];
+            var rows = tbody.rows;
+            var nrows = tbody.rows.length;
+            var arr = new Array();
+            var i;
+            tbody.className = 'sorting';
+            for (i = 0; i < nrows; i++) {
+              var row = rows[i];
+              arr[i] = [key(row), row.outerHTML];
+            };
+            arr.sort(function(a, b) {
+              return (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+            });
+            for (i = 0; i < nrows; i++) {
+              arr[i] = arr[i][1];
+            }
+            tbody.innerHTML = arr.join('');
+            tbody.className = '';
+          }
+        </script>
       </head>
       <body>
         <h1>du-diff for ${location}: ${old}..${new}</h1>
 
-        <table class="du-diff">
+        <table id="du-diff" class="du-diff">
           <thead>
             <tr>
-              <th>Delta</th>
-              <th>Location</th>
+              <th onclick="sort(by_delta);">Delta</th>
+              <th onclick="sort(by_path);">Location</th>
             </tr>
           </thead>
-          <tfoot>
+          <tbody>
     % for row in dudiff:
             <tr>
-              <td data-delta="${row.delta}">${fmt(row.delta)}</td>
+              <td>${fmt(row.delta)}</td>
               <td>${row.path}</td>
             </tr>
     % endfor
-          </tfoot>
+          </tbody>
         <table>
       </body>
     </html>
