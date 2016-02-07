@@ -1,8 +1,8 @@
 import os
 import shutil
-import sys
 import tempfile
 import unittest
+import textwrap
 
 try:
     from cStringIO import StringIO
@@ -42,6 +42,30 @@ class TestGetDirectory(TestCase):
         self.assertEqual(d2h.get_directory({}), '.')
 
 
+class TestFormat(TestCase):
+
+    def test(self):
+        self.assertEqual(d2h.fmt(0), '0')
+        self.assertEqual(d2h.fmt(42), '42')
+        self.assertEqual(d2h.fmt(12345), '12,345')
+        self.assertEqual(d2h.fmt(123456789), '123,456,789')
+        self.assertEqual(d2h.fmt(-123456789), '-123,456,789')
+
+
+class TestParseDuDiff(TestCase):
+
+    def test(self):
+        self.assertEqual(
+            list(d2h.parse_dudiff(textwrap.dedent('''\
+                -12345\t/foo
+                23456\t/bar
+            '''))),
+            [
+                d2h.DeltaRow(-12345, '/foo'),
+                d2h.DeltaRow(23456, '/bar'),
+            ])
+
+
 class TestNotFound(TestCase):
 
     def test(self):
@@ -50,6 +74,16 @@ class TestNotFound(TestCase):
         self.assertEqual(response.status, '404 Not Found')
         self.assertEqual(response.headers,
                          {'Content-Type': 'text/html; charset=UTF-8'})
+
+
+class TestStylesheet(TestCase):
+
+    def test(self):
+        response = d2h.stylesheet()
+        self.assertTrue(response.body.startswith('body {'))
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(response.headers,
+                         {'Content-Type': 'text/css'})
 
 
 class TestRenderDuDiff(TestCase):
@@ -61,6 +95,7 @@ class TestRenderDuDiff(TestCase):
         d2h.DU_DIFF_SCRIPT = 'diff'
         self.addCleanup(setattr, d2h, 'DU_DIFF_SCRIPT', 'du-diff')
         self.stderr = self.patch('sys.stderr', StringIO())
+        self.environ = {'SCRIPT_NAME': '/du/diff'}
 
     def create_dir(self):
         if self.dir is None:
@@ -75,40 +110,43 @@ class TestRenderDuDiff(TestCase):
         with open(os.path.join(self.dir, 'du-%s.gz' % date), 'w') as f:
             f.write('42 /dir\n')
 
+    def render(self, *args):
+        return d2h.render_du_diff(self.environ, *args)
+
     def test_bad_location_dots(self):
-        response = d2h.render_du_diff({}, '..', '2016-02-03', '2016-02-04')
+        response = self.render('..', '2016-02-03', '2016-02-04')
         self.assertEqual(response.status, '404 Not Found')
 
     def test_bad_location_slashes(self):
-        response = d2h.render_du_diff({}, 'sub/dir', '2016-02-03', '2016-02-04')
+        response = self.render('sub/dir', '2016-02-03', '2016-02-04')
         self.assertEqual(response.status, '404 Not Found')
 
     def test_bad_location_no_such_dir(self):
-        response = d2h.render_du_diff({}, 'nosuchdir', '2016-02-03', '2016-02-04')
+        response = self.render('nosuchdir', '2016-02-03', '2016-02-04')
         self.assertEqual(response.status, '404 Not Found')
 
     def test_bad_location_no_old_file(self):
         self.create_dir()
-        response = d2h.render_du_diff({}, 'dir', '2016-02-03', '2016-02-04')
+        response = self.render('dir', '2016-02-03', '2016-02-04')
         self.assertEqual(response.status, '404 Not Found')
 
     def test_bad_location_no_new_file(self):
         self.create_fake_file('2016-02-03')
-        response = d2h.render_du_diff({}, 'dir', '2016-02-03', '2016-02-04')
+        response = self.render('dir', '2016-02-03', '2016-02-04')
         self.assertEqual(response.status, '404 Not Found')
 
     def test_good(self):
         self.create_fake_file('2016-02-03')
         self.create_fake_file('2016-02-04')
-        response = d2h.render_du_diff({}, 'dir', '2016-02-03', '2016-02-04')
+        response = self.render('dir', '2016-02-03', '2016-02-04')
         self.assertEqual(response.status, '200 OK')
-        self.assertEqual(response.headers['Content-Type'], 'text/plain; charset=UTF-8')
+        self.assertEqual(response.headers['Content-Type'], 'text/html; charset=UTF-8')
 
     def test_fail(self):
         d2h.DU_DIFF_SCRIPT = 'false'
         self.create_fake_file('2016-02-03')
         self.create_fake_file('2016-02-04')
-        response = d2h.render_du_diff({}, 'dir', '2016-02-03', '2016-02-04')
+        response = self.render('dir', '2016-02-03', '2016-02-04')
         self.assertEqual(response.status, '404 Not Found')
         self.assertIn('returned non-zero exit status', self.stderr.getvalue())
 
@@ -118,6 +156,11 @@ class TestDispatch(TestCase):
     def test_not_found(self):
         view, args = d2h.dispatch({'PATH_INFO': '/404'})
         self.assertEqual(view, d2h.not_found)
+        self.assertEqual(args, ())
+
+    def test_stylesheet(self):
+        view, args = d2h.dispatch({'PATH_INFO': '/style.css'})
+        self.assertEqual(view, d2h.stylesheet)
         self.assertEqual(args, ())
 
     def test_du_diff(self):

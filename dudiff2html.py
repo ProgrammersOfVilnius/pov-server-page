@@ -7,10 +7,14 @@ import os
 import re
 import subprocess
 import sys
+import textwrap
+from collections import namedtuple
+
+import mako.template
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.1'
+__version__ = '0.2'
 
 
 DU_DIFF_SCRIPT = 'du-diff'  # assume it's on $PATH
@@ -19,6 +23,24 @@ DATE_RANGE_RX = re.compile(r'^(\d\d\d\d-\d\d-\d\d)\.\.(\d\d\d\d-\d\d-\d\d)$')
 
 def get_directory(environ):
     return environ.get('DIRECTORY') or os.getenv('DIRECTORY') or '.'
+
+
+def get_prefix(environ):
+    script_name = environ['SCRIPT_NAME']
+    return script_name.rstrip('/')
+
+
+DeltaRow = namedtuple('DeltaRow', 'delta, path')
+
+
+def fmt(delta):
+    return '{0:,}'.format(delta)
+
+
+def parse_dudiff(output):
+    for line in output.splitlines():
+        delta, location = line.split(None, 1)
+        yield DeltaRow(int(delta), location)
 
 
 class Response(object):
@@ -33,6 +55,61 @@ class Response(object):
 
 def not_found():
     return Response('<h1>404 Not Found</h1>', status='404 Not Found')
+
+
+def Template(*args, **kw):
+    return mako.template.Template(
+        strict_undefined=True,
+        default_filters=['unicode', 'h'],
+        *args, **kw)
+
+
+STYLESHEET = textwrap.dedent('''
+    body {
+        margin: 1em;
+    }
+
+    .du-diff th {
+        text-align: left;
+    }
+    .du-diff td:first-child {
+        text-align: right;
+    }
+'''.lstrip('\n'))
+
+
+def stylesheet():
+    return Response(STYLESHEET, content_type='text/css')
+
+
+dudiff_template = Template(textwrap.dedent('''
+    <html>
+      <head>
+        <title>du-diff for ${location}: ${old}..${new}</title>
+        <link rel="stylesheet" href="${prefix}/style.css" />
+      </head>
+      <body>
+        <h1>du-diff for ${location}: ${old}..${new}</h1>
+
+        <table class="du-diff">
+          <thead>
+            <tr>
+              <th>Delta</th>
+              <th>Location</th>
+            </tr>
+          </thead>
+          <tfoot>
+    % for row in dudiff:
+            <tr>
+              <td data-delta="${row.delta}">${fmt(row.delta)}</td>
+              <td>${row.path}</td>
+            </tr>
+    % endfor
+          </tfoot>
+        <table>
+      </body>
+    </html>
+'''))
 
 
 def render_du_diff(environ, location, old, new):
@@ -54,11 +131,17 @@ def render_du_diff(environ, location, old, new):
         sys.stderr.flush()
         return not_found()
     else:
-        return Response(diff, content_type='text/plain; charset=UTF-8')
+        html = dudiff_template.render_unicode(
+            location=location, old=old, new=new,
+            dudiff=parse_dudiff(diff), fmt=fmt,
+            prefix=get_prefix(environ))
+        return Response(html)
 
 
 def dispatch(environ):
     path_info = environ['PATH_INFO'] or '/'
+    if path_info == '/style.css':
+        return stylesheet, ()
     components = path_info.strip('/').split('/')
     if len(components) == 2:
         location, dates = components
