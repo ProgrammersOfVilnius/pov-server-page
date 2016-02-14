@@ -1,9 +1,9 @@
-pov-server-page (0.28.0) UNRELEASED; urgency=medium
+pov-server-page (0.28.0) precise; urgency=medium
 
   * dudiff2html 0.2:
     - fancier diff page with client-side sorting.
 
- -- Marius Gedminas <marius@gedmin.as>  Sun, 07 Feb 2016 14:45:38 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Sun, 14 Feb 2016 09:34:14 +0200
 
 pov-server-page (0.27.1) precise; urgency=medium
 
