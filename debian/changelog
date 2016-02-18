@@ -1,3 +1,10 @@
+pov-server-page (0.28.1) UNRELEASED; urgency=medium
+
+  * collection.cgi:
+    - fix ping to work with collectd 5.x (GH: #17).
+
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 18 Feb 2016 16:09:37 +0200
+
 pov-server-page (0.28.0) precise; urgency=medium
 
   * dudiff2html 0.2:
