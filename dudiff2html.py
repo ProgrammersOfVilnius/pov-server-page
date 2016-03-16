@@ -34,7 +34,13 @@ DeltaRow = namedtuple('DeltaRow', 'delta, path')
 
 
 def fmt(delta):
-    return '{0:+,}'.format(delta)
+    # du reports sizes in kibibytes, let's convert to bytes then humanize
+    size = delta * 1024
+    for unit in 'kB', 'MB', 'GB', 'TB':
+        size /= 1000.0
+        if abs(size) < 1000:
+            break
+    return '{size:+,.1f} {unit}'.format(size=size, unit=unit)
 
 
 def parse_dudiff(output):
@@ -130,7 +136,7 @@ dudiff_template = Template(textwrap.dedent('''
 
         <script type="text/javascript">
           function by_delta(row) {
-            return parseInt(row.cells[0].innerText.replace(/,/g, ''));
+            return parseInt(row.cells[0].dataset.size);
           }
           function by_path(row) {
             return row.cells[1].innerText;
@@ -145,10 +151,11 @@ dudiff_template = Template(textwrap.dedent('''
             tbody.className = 'sorting';
             for (i = 0; i < nrows; i++) {
               var row = rows[i];
-              arr[i] = [key(row), row.outerHTML];
+              arr[i] = [key(row), row.outerHTML, i];
             };
             arr.sort(function(a, b) {
-              return (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+              return (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 :
+                      a[2] < b[2] ? -1 : a[2] > b[2] ? 1 : 0);
             });
             for (i = 0; i < nrows; i++) {
               arr[i] = arr[i][1];
@@ -195,7 +202,7 @@ dudiff_template = Template(textwrap.dedent('''
           <tbody>
     % for row in dudiff:
             <tr class="depth-${row.path.count('/')}">
-              <td>${fmt(row.delta)}</td>
+              <td data-size="${row.delta}">${fmt(row.delta)}</td>
               <td>${row.path}</td>
             </tr>
     % endfor

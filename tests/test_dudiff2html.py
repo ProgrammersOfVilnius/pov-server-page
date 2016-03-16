@@ -45,11 +45,13 @@ class TestGetDirectory(TestCase):
 class TestFormat(TestCase):
 
     def test(self):
-        self.assertEqual(d2h.fmt(0), '+0')
-        self.assertEqual(d2h.fmt(42), '+42')
-        self.assertEqual(d2h.fmt(12345), '+12,345')
-        self.assertEqual(d2h.fmt(123456789), '+123,456,789')
-        self.assertEqual(d2h.fmt(-123456789), '-123,456,789')
+        self.assertEqual(d2h.fmt(0), '+0.0 kB')
+        self.assertEqual(d2h.fmt(42), '+43.0 kB')  # 42 KiB = 43008 B = 43 KB
+        self.assertEqual(d2h.fmt(12345), '+12.6 MB')
+        self.assertEqual(d2h.fmt(123456789), '+126.4 GB')
+        self.assertEqual(d2h.fmt(-123456789), '-126.4 GB')
+        self.assertEqual(d2h.fmt(1234567890), '+1.3 TB')
+        self.assertEqual(d2h.fmt(1234567890000), '+1,264.2 TB')
 
 
 class TestParseDuDiff(TestCase):
