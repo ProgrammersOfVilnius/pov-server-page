@@ -4,3 +4,6 @@
 /usr/lib/pov-server-page
 /usr/share/pov-server-page
 /usr/share/pov-server-page/webtreemap
+/usr/share/pov-server-page/static/css
+/usr/share/pov-server-page/static/fonts
+/usr/share/pov-server-page/static/js

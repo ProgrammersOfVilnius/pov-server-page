@@ -63,7 +63,10 @@ install:
 	install webtreemap-du/du2webtreemap.py $(DESTDIR)/usr/lib/pov-server-page/du2webtreemap
 	install -m 644 webtreemap/webtreemap.css $(DESTDIR)/usr/share/pov-server-page/webtreemap/
 	install -m 644 webtreemap/webtreemap.js $(DESTDIR)/usr/share/pov-server-page/webtreemap/
-	for f in templates/*.in; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/; done
+	cd templates/ && for f in *.in; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/; done
+	cd static/css && for f in *.css *.map; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/static/css/; done
+	cd static/fonts && for f in *.eot *.svg *.ttf *.woff *.woff2; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/static/fonts/; done
+	cd static/js && for f in *.js; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/static/js/; done
 	install cron_daily.sh $(DESTDIR)/etc/cron.daily/pov-update-server-page
 
 
