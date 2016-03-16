@@ -44,6 +44,14 @@
   ${APACHE_EXTRA_CONF.strip().replace('\n', '\n  ')}
 
 % endif
+  # Static files
+  Alias /static /usr/share/pov-server-page/static
+  <Directory /usr/share/pov-server-page/static>
+    AllowOverride None
+    Allow from all
+    Satisfy any
+  </Directory>
+
 % if CHANGELOG:
   # Changelog
   WSGIScriptAlias /changelog ${CHANGELOG2HTML_SCRIPT}
