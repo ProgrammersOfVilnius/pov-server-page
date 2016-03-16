@@ -14,7 +14,7 @@ import mako.template
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.2'
+__version__ = '0.3'
 
 
 DU_DIFF_SCRIPT = 'du-diff'  # assume it's on $PATH
@@ -34,7 +34,7 @@ DeltaRow = namedtuple('DeltaRow', 'delta, path')
 
 
 def fmt(delta):
-    return '{0:,}'.format(delta)
+    return '{0:+,}'.format(delta)
 
 
 def parse_dudiff(output):
@@ -69,20 +69,22 @@ STYLESHEET = textwrap.dedent('''
         margin: 1em;
     }
 
-    .du-diff {
-        border-collapse: collapse;
+    .du-diff th:first-child {
+        width: 8em;
     }
+    .du-diff td:first-child {
+        text-align: right;
+    }
+
     .du-diff .sorting {
         color: #888;
         cursor: progress;
     }
     .du-diff th {
-        text-align: left;
         cursor: pointer;
     }
-    .du-diff td:first-child {
-        text-align: right;
-        padding: 4px;
+    .du-diff th:hover {
+        background: #f5f5f5;
     }
 '''.lstrip('\n'))
 
@@ -91,11 +93,41 @@ def stylesheet():
     return Response(STYLESHEET, content_type='text/css')
 
 
+def bootstrap_stylesheet():
+    here = os.path.dirname(__file__)
+    filename = os.path.join(here, 'static', 'css', 'bootstrap.min.css')
+    with open(filename, 'rb') as f:
+        return Response(f.read(), content_type='text/css')
+
+
 dudiff_template = Template(textwrap.dedent('''
-    <html>
+    <!DOCTYPE html>
+    <html lang="en">
       <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
         <title>du-diff for ${location}: ${old}..${new}</title>
-        <link rel="stylesheet" href="${prefix}/style.css" />
+
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+        <link rel="stylesheet" href="${prefix}/style.css">
+
+    <%
+        if dudiff:
+            max_depth = max(row.path.count('/') for row in dudiff)
+        else:
+            max_depth = 0
+    %>
+
+        <style type="text/css">
+    % for n in range(1, max_depth):
+        % for m in range(n + 1, max_depth + 1):
+          .limit-${n} .depth-${m} { display: none; }
+        % endfor
+    % endfor
+        </style>
+
         <script type="text/javascript">
           function by_delta(row) {
             return parseInt(row.cells[0].innerText.replace(/,/g, ''));
@@ -124,12 +156,36 @@ dudiff_template = Template(textwrap.dedent('''
             tbody.innerHTML = arr.join('');
             tbody.className = '';
           }
+          function limit(depth) {
+            var table = document.getElementById("du-diff");
+            var i;
+            table.className = "du-diff table table-hover limit-" + depth;
+            for (i = 1; i < ${max_depth + 1}; i++) {
+              var btn = document.getElementById('depth-btn-' + i);
+              if (i == depth) {
+                btn.className = "btn btn-primary";
+              } else {
+                btn.className = "btn btn-default";
+              }
+            }
+          }
         </script>
       </head>
       <body>
-        <h1>du-diff for ${location}: ${old}..${new}</h1>
+        <h1>du-diff for ${location} <small>${old} to ${new}</small></h1>
 
-        <table id="du-diff" class="du-diff">
+    % if max_depth > 1:
+    <div class="form-group pull-right">
+      <label>Limit to depth</label>
+      <div class="btn-group" role="toolbar" aria-label="Depth filter">
+    %     for n in range(1, max_depth + 1):
+        <button class="btn btn-default" id="depth-btn-${n}" role="group" aria-label="${n}" onclick="limit(${n})">${n}</a>
+    %     endfor
+      </div>
+    </div>
+    % endif
+
+        <table id="du-diff" class="du-diff table table-hover">
           <thead>
             <tr>
               <th onclick="sort(by_delta);">Delta</th>
@@ -138,7 +194,7 @@ dudiff_template = Template(textwrap.dedent('''
           </thead>
           <tbody>
     % for row in dudiff:
-            <tr>
+            <tr class="depth-${row.path.count('/')}">
               <td>${fmt(row.delta)}</td>
               <td>${row.path}</td>
             </tr>
@@ -171,7 +227,7 @@ def render_du_diff(environ, location, old, new):
     else:
         html = dudiff_template.render_unicode(
             location=location, old=old, new=new,
-            dudiff=parse_dudiff(diff), fmt=fmt,
+            dudiff=list(parse_dudiff(diff)), fmt=fmt,
             prefix=get_prefix(environ))
         return Response(html)
 
@@ -180,6 +236,9 @@ def dispatch(environ):
     path_info = environ['PATH_INFO'] or '/'
     if path_info == '/style.css':
         return stylesheet, ()
+    if path_info == '/static/css/bootstrap.min.css':
+        # only used for debugging
+        return bootstrap_stylesheet, ()
     components = path_info.strip('/').split('/')
     if len(components) == 2:
         location, dates = components

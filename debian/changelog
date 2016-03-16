@@ -1,9 +1,12 @@
-pov-server-page (0.28.1) UNRELEASED; urgency=medium
+pov-server-page (0.29.0) UNRELEASED; urgency=medium
 
   * collection.cgi:
     - fix ping to work with collectd 5.x (GH: #17).
+  * dudiff2html 0.3:
+    - ability to hide deeply nested subdirectories,
+    - now uses Bootstrap CSS.
 
- -- Marius Gedminas <marius@gedmin.as>  Thu, 18 Feb 2016 16:09:37 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 16 Mar 2016 10:19:04 +0200
 
 pov-server-page (0.28.0) precise; urgency=medium
 

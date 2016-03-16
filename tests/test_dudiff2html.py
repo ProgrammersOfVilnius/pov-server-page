@@ -45,10 +45,10 @@ class TestGetDirectory(TestCase):
 class TestFormat(TestCase):
 
     def test(self):
-        self.assertEqual(d2h.fmt(0), '0')
-        self.assertEqual(d2h.fmt(42), '42')
-        self.assertEqual(d2h.fmt(12345), '12,345')
-        self.assertEqual(d2h.fmt(123456789), '123,456,789')
+        self.assertEqual(d2h.fmt(0), '+0')
+        self.assertEqual(d2h.fmt(42), '+42')
+        self.assertEqual(d2h.fmt(12345), '+12,345')
+        self.assertEqual(d2h.fmt(123456789), '+123,456,789')
         self.assertEqual(d2h.fmt(-123456789), '-123,456,789')
 
 
