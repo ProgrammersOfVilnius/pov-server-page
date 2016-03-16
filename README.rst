@@ -1,7 +1,7 @@
 PoV server page
 ===============
 
-This script sets up web page for your server, listing the following
+This script sets up a web page for your server, listing the following
 information:
 
 - contents of /root/Changelog
@@ -19,6 +19,8 @@ Requirements
 - Perl
 - Python
 - collectd
+- an SSL certificate (you can get one from letsencrypt.org)
+- an Apache password file
 
 
 Usage
@@ -26,22 +28,26 @@ Usage
 
 ::
 
+    add-apt-repository ppa:pov
+    apt-get update
     apt-get install pov-update-server-page
     vim /etc/pov/server-page.conf
-      at the very least uncomment enable = 1
+      at the very least uncomment 'enable = 1'
       you'll also need to make sure some SSL certificate is available
+      I also recommend 'disk_usage = all'
     chmod +x /root  # make /root/Changelog readable by www-data
     pov-update-server-page -v
+      # this prints what it does and then tells you what you should do,
+      # which is basically
     a2enmod rewrite ssl wsgi cgid
     a2ensite $(hostname -f).conf
+    htpasswd -c ...
     service apache2 reload
 
 
 Usage with Python 3
 -------------------
 
-::
+Exactly like the above, only replace the `apt-get install` line with ::
 
     apt-get install pov-update-server-page libapache2-mod-wsgi-py3 python3-mako
-    # the rest is like the above
-
