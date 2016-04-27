@@ -557,6 +557,29 @@ class TestMainPage(PageTestCase):
         """)
 
 
+class TestRawPage(PageTestCase):
+
+    changelog_text = u"Test changelog\n\N{SNOWMAN}".encode('UTF-8')
+
+    def setUp(self):
+        filename = os.path.join(self.mkdtemp(), 'changelog')
+        with open(filename, 'wb') as f:
+            f.write(self.changelog_text)
+        self.environment = dict(self.environment, CHANGELOG_FILE=filename)
+
+    def test(self):
+        response = c2h.raw_page(self.environ())
+        self.assertEqual(response.body, self.changelog_text)
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(
+            response.headers,
+            {
+                'Content-Type': 'text/plain; charset=UTF-8',
+                'Content-Disposition':
+                    'attachment; filename="Changelog.example.com"',
+            })
+
+
 class TestAllPage(PageTestCase):
 
     def test(self):

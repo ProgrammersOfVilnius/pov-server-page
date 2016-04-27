@@ -20,7 +20,7 @@ import mako.exceptions
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.6.1'
+__version__ = '0.7.0'
 
 
 HOSTNAME = socket.gethostname()
@@ -557,6 +557,22 @@ def main_page(environ):
     motd = get_motd(get_motd_filename(environ))
     return main_template.render_unicode(
         hostname=hostname, motd=motd, changelog=changelog, prefix=prefix)
+
+
+@path('/raw')
+def raw_page(environ):
+    filename = get_changelog_filename(environ)
+    with open(filename, 'rb') as f:
+        raw = f.read()
+    hostname = get_hostname(environ)
+    outfilename = 'Changelog.{hostname}'.format(hostname=hostname)
+    headers = {
+        'Content-Disposition': 'attachment; filename="{outfilename}"'.format(
+            outfilename=outfilename,
+        ),
+    }
+    return Response(raw, content_type='text/plain; charset=UTF-8',
+                    headers=headers)
 
 
 all_template = Template(textwrap.dedent('''
