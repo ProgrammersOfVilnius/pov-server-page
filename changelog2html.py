@@ -44,7 +44,7 @@ class TextObject(object):
         if not self.text:
             return ''
         return u'<pre>%s</pre>' % (
-            u''.join(cgi.escape(line) for line in self.text[slice]).rstrip())
+            u''.join(linkify(line) for line in self.text[slice]).rstrip())
 
     def as_html(self):
         return self.pre()
@@ -311,6 +311,13 @@ def ansi2html(text):
                 del pending[:]
     parts += pending
     return u''.join(parts)
+
+
+LINK_RX = re.compile(r'https?://\S+[^.,)\s\]]')
+
+
+def linkify(text):
+    return LINK_RX.sub(r'<a href="\g<0>">\g<0></a>', cgi.escape(text, True))
 
 
 #

@@ -311,6 +311,41 @@ class TestAnsiColors(TestCase):
         self.assertEqual(c2h.ansi2html('\033[38;2;255:255:255m*'), '*')
 
 
+class TestLinkify(TestCase):
+
+    def test(self):
+        self.assertEqual(c2h.linkify('hello'), 'hello')
+
+    def test_html(self):
+        self.assertEqual(c2h.linkify('<he&lo>'), '&lt;he&amp;lo&gt;')
+
+    def test_link(self):
+        self.assertEqual(
+            c2h.linkify('see http://example.com for more'),
+            'see <a href="http://example.com">http://example.com</a> for more',
+        )
+
+    def test_link_in_parens(self):
+        self.assertEqual(
+            c2h.linkify('see [link](http://example.com)'),
+            'see [link](<a href="http://example.com">http://example.com</a>)',
+        )
+
+    def test_link_with_ampersands(self):
+        self.assertEqual(
+            c2h.linkify('see http://example.com/?q=a&b for more'),
+            'see <a href="http://example.com/?q=a&amp;b">'
+            'http://example.com/?q=a&amp;b</a> for more',
+        )
+
+    def test_link_with_quotes(self):
+        self.assertEqual(
+            c2h.linkify('see http://example.com/?q="a" for more'),
+            'see <a href="http://example.com/?q=&quot;a&quot;">'
+            'http://example.com/?q=&quot;a&quot;</a> for more',
+        )
+
+
 class TestGetChangelog(TestCase):
 
     def test(self):
