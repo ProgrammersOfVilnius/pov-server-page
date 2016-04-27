@@ -88,6 +88,16 @@ class TestStylesheet(TestCase):
                          {'Content-Type': 'text/css'})
 
 
+class TestBootstrapStylesheet(TestCase):
+
+    def test(self):
+        response = d2h.bootstrap_stylesheet()
+        self.assertTrue(response.body.startswith(b'/*!\n * Bootstrap'))
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(response.headers,
+                         {'Content-Type': 'text/css'})
+
+
 class TestRenderDuDiff(TestCase):
 
     def setUp(self):
@@ -163,6 +173,11 @@ class TestDispatch(TestCase):
     def test_stylesheet(self):
         view, args = d2h.dispatch({'PATH_INFO': '/style.css'})
         self.assertEqual(view, d2h.stylesheet)
+        self.assertEqual(args, ())
+
+    def test_bootstrap_stylesheet(self):
+        view, args = d2h.dispatch({'PATH_INFO': '/static/css/bootstrap.min.css'})
+        self.assertEqual(view, d2h.bootstrap_stylesheet)
         self.assertEqual(args, ())
 
     def test_du_diff(self):
