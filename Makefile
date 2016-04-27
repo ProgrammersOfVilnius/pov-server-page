@@ -33,6 +33,11 @@ coverage:
 	coverage combine
 	coverage report -m
 
+.PHONY: diff-cover
+diff-cover: coverage
+	coverage xml
+	diff-cover coverage.xml
+
 .PHONY: checkversion
 check-version:
 	@grep -q ":Version: $(version)" $(manpage) || { \

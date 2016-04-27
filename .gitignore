@@ -6,3 +6,4 @@ pkgbuild
 *.pyc
 .coverage
 .tox/
+coverage.xml
