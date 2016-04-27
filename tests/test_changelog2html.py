@@ -345,6 +345,12 @@ class TestLinkify(TestCase):
             'http://example.com/?q=&quot;a&quot;</a> for more',
         )
 
+    def test_launchpad_bug(self):
+        self.assertEqual(
+            c2h.linkify('# LP: #12345'),
+            '# <a href="https://pad.lv/12345">LP: #12345</a>',
+        )
+
 
 class TestGetChangelog(TestCase):
 

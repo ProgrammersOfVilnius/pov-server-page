@@ -313,11 +313,20 @@ def ansi2html(text):
     return u''.join(parts)
 
 
-LINK_RX = re.compile(r'https?://\S+[^.,)\s\]]')
+LINK_RX = re.compile(r'(?P<url>https?://\S+[^.,)\s\]])|LP: #(?P<lp>\d+)')
 
 
 def linkify(text):
-    return LINK_RX.sub(r'<a href="\g<0>">\g<0></a>', cgi.escape(text, True))
+    def _replace(match):
+        g = match.groupdict()
+        g['text'] = match.group(0)
+        if g['url']:
+            return '<a href="{url}">{url}</a>'.format(**g)
+        elif g['lp']:
+            return '<a href="https://pad.lv/{lp}">{text}</a>'.format(**g)
+        else: # nocover:
+            return g['text']
+    return LINK_RX.sub(_replace, cgi.escape(text, True))
 
 
 #
