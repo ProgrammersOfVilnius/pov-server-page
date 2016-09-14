@@ -4,7 +4,7 @@ cover_pylib = False
 
 [report]
 exclude_lines =
-    # nocover:
+    nocover:
     except ImportError:
     except NameError:
     if debian_package:

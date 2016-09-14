@@ -1,6 +1,7 @@
 import os
 import unittest
 import sys
+import textwrap
 from io import BytesIO, TextIOWrapper
 
 try:
@@ -12,7 +13,7 @@ import mock
 
 from update_ports_html import (
     main, get_owner, username, get_argv, format_arg, get_program,
-    get_html_cmdline,
+    get_html_cmdline, render_row, NetStatTuple,
 )
 
 
@@ -49,6 +50,7 @@ tcp        0      0 0.0.0.0:57031           0.0.0.0:*               LISTEN      
 tcp        0      0 127.0.0.1:6379          0.0.0.0:*               LISTEN      851/redis-server 12
 tcp        0      0 127.0.0.1:11211         0.0.0.0:*               LISTEN      821/memcached
 tcp        0      0 0.0.0.0:60076           0.0.0.0:*               LISTEN      849/rpc.mountd
+tcp        0      0 127.0.0.1:7777          10.20.30.40:40626       ESTABLISHED 22591/ssh
 tcp6       0      0 :::111                  :::*                    LISTEN      540/rpcbind
 tcp6       0      0 :::80                   :::*                    LISTEN      1643/apache2
 tcp6       0      0 :::22                   :::*                    LISTEN      824/sshd
@@ -60,6 +62,22 @@ tcp6       0      0 :::443                  :::*                    LISTEN      
 tcp6       0      0 :::37055                :::*                    LISTEN      -
 tcp6       0      0 :::2049                 :::*                    LISTEN      -
 tcp6       0      0 :::33738                :::*                    LISTEN      849/rpc.mountd
+udp        0      0 0.0.0.0:5353            0.0.0.0:*                           5281/chromium-brows
+udp        0      0 0.0.0.0:5353            0.0.0.0:*                           -
+udp        0      0 0.0.0.0:48214           0.0.0.0:*                           -
+udp        0      0 127.0.1.1:53            0.0.0.0:*                           -
+udp        0      0 192.168.122.1:53        0.0.0.0:*                           -
+udp        0      0 0.0.0.0:67              0.0.0.0:*                           -
+udp        0      0 0.0.0.0:68              0.0.0.0:*                           -
+udp        0      0 192.168.1.165:123       0.0.0.0:*                           -
+udp        0      0 127.0.0.1:123           0.0.0.0:*                           -
+udp        0      0 0.0.0.0:123             0.0.0.0:*                           -
+udp        0      0 0.0.0.0:631             0.0.0.0:*                           -
+udp6       0      0 :::5353                 :::*                                -
+udp6       0      0 :::38336                :::*                                -
+udp6       0      0 fe80::52ca:9cd0:ed7:123 :::*                                -
+udp6       0      0 ::1:123                 :::*                                -
+udp6       0      0 :::123                  :::*                                -
 """
 
 RPCINFO_SAMPLE = b"""\
@@ -99,12 +117,12 @@ class FakePopen(object):
     def __init__(self, command, stdout=None, stderr=None):
         if isinstance(command, tuple):
             command = list(command)
-        if command == ['netstat', '-tnlvp']:
+        if command == ['netstat', '-tunlvp']:
             self.stdout = BytesIO(NETSTAT_SAMPLE)
         elif command == ['rpcinfo', '-p']:
             self.stdout = BytesIO(RPCINFO_SAMPLE)
         else:
-            self.stdout = BytesIO()
+            raise AssertionError('unexpected command: %s' % command)
 
 
 def fake_open(filename, mode='r'):
@@ -201,3 +219,16 @@ class TestWithFakeEnvironment(unittest.TestCase):
 
     def test_get_html_cmdline_pid_unknown(self):
         self.assertEqual(get_html_cmdline(None), '-')
+
+    def test_render_row_pid_disappeared(self):
+        self.assertEqual(textwrap.dedent(render_row([
+            NetStatTuple('tcp6', '::', 80, None, 'apache2')
+        ])), textwrap.dedent('''\
+            <tr class="system">
+              <td class="public" title="::">tcp</td>
+              <td class="public" title="::">80</td>
+              <td class="text-nowrap">-</td>
+              <td class="text-nowrap public">apache2</td>
+              <td><b>apache2</b></td>
+            </tr>
+          '''))

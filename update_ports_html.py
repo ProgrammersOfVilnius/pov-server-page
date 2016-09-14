@@ -142,7 +142,7 @@ def rpcinfo_dump():
 
 def merge_portmap_data(mapping, pmap_list, open_ports_only=True):
     for data in pmap_list:
-        if (data.proto, data).port in mapping or not open_ports_only:
+        if (data.proto, data.port) in mapping or not open_ports_only:
             mapping[data.proto, data.port].append(data)
 
 
@@ -243,7 +243,7 @@ def render_row(netstat_list):
     pids = set(t.pid for t in netstat_list if t.pid is not None)
     ips = set(t.ip for t in netstat_list if t.ip is not None)
     user = sorted(set(map(username, map(get_owner, pids)))) or '-'
-    program = sorted(set(map(get_program, pids))) or '-'
+    program = sorted(set(map(get_program, pids)))
     if not program:
         program = sorted(set(escape(t.program) or '-' for t in netstat_list)) or '-'
     commands = sorted(set(map(get_html_cmdline, pids)))
