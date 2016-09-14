@@ -16,6 +16,7 @@ import textwrap
 from functools import partial
 
 import mako.template
+import mako.lookup
 import mako.exceptions
 
 
@@ -427,7 +428,7 @@ def mako_error_handler(context, error):
         co = f.f_code
         filename = co.co_filename
         lineno = tb.tb_lineno
-        if filename.startswith('memory:'):
+        if filename.startswith('memory:') or filename.endswith('.html'):
             lines = source.get(filename)
             if lines is None:
                 info = mako.template._get_module_info(filename)
@@ -443,10 +444,18 @@ def mako_error_handler(context, error):
     raise
 
 
+TEMPLATES = mako.lookup.TemplateLookup()
+
+
 def Template(*args, **kw):
-    return mako.template.Template(error_handler=mako_error_handler,
-                                  default_filters=['unicode', 'h'],
-                                  *args, **kw)
+    template = mako.template.Template(
+        error_handler=mako_error_handler,
+        strict_undefined=True,
+        default_filters=['unicode', 'h'],
+        lookup=TEMPLATES,
+        *args, **kw)
+    TEMPLATES.put_template(template.uri, template)
+    return template
 
 
 #
