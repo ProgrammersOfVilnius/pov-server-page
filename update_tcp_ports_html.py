@@ -17,7 +17,7 @@ from collections import namedtuple, defaultdict
 from contextlib import contextmanager
 
 
-__version__ = '0.6.0'
+__version__ = '0.7.0'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -26,12 +26,17 @@ OUTPUT = "/var/www/${hostname}/ports/index.html"
 
 
 TEMPLATE = string.Template("""\
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>TCP port assignments on ${hostname}</title>
+  <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../static/css/style.css">
   <style>
-    tr:first-child { background: #eee; }
-    th { text-align: left; }
     tr.system { background: #eff; }
     tr.user { background: #cfc; }
     tr.user2 { background: #ffc; }
@@ -40,25 +45,27 @@ TEMPLATE = string.Template("""\
     tr.user9 { background: #cfe; }
     tr.user10 { background: #ccc; }
     tr.user11 { background: #cff; }
-    td { padding: 0 6px; white-space: nowrap; text-overflow: ellipsis; }
-    td:nth-child(1) { text-align: right; }
     td.public { font-weight: bold; }
   </style>
 </head>
 <body>
 <h1>TCP port assignments on ${hostname}</h1>
 
-<table>
+<table class="ports table table-hover">
+<thead>
   <tr>
     <th>Port</th>
     <th>User</th>
     <th>Program</th>
     <th>Command line</th>
   </tr>
+</thead>
+<tbody>
   ${rows}
+</tbody>
 </table>
 
-<p>Last updated on ${date}</p>
+<footer>Last updated on ${date}.</footer>
 
 </body>
 </html>
