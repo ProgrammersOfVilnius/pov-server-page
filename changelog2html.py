@@ -22,7 +22,7 @@ import mako.exceptions
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.7.0'
+__version__ = '0.7.1'
 
 
 HOSTNAME = socket.gethostname()

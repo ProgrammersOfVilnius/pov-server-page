@@ -17,7 +17,7 @@ from collections import namedtuple, defaultdict
 from contextlib import contextmanager
 
 
-__version__ = '0.7.0'
+__version__ = '0.7.1'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
