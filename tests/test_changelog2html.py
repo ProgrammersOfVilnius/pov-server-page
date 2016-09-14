@@ -508,6 +508,29 @@ class TestStylesheet(TestCase):
         self.assertEqual(response.headers, {'Content-Type': 'text/css'})
 
 
+class TestStatic(TestCase):
+
+    env = {'_ALLOW_STATIC_FILES': True}
+
+    def test(self):
+        response = c2h.static(self.env, 'css/bootstrap.min.css')
+        self.assertTrue(response.body.startswith(b'/*!\n * Bootstrap'))
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(response.headers, {'Content-Type': 'text/css'})
+
+    def test_not_available_for_mod_wsgi(self):
+        response = c2h.static({}, 'css/bootstrap.min.css')
+        self.assertEqual(response.status, '404 Not Found')
+
+    def test_no_jailbreak_via_abs_path(self):
+        response = c2h.static(self.env, '/etc/passwd')
+        self.assertEqual(response.status, '404 Not Found')
+
+    def test_no_jailbreak_via_pardir(self):
+        response = c2h.static(self.env, '../Makefile')
+        self.assertEqual(response.status, '404 Not Found')
+
+
 class PageTestCase(TestCase):
 
     maxDiff = None

@@ -601,6 +601,8 @@ def stylesheet(environ):
 
 @path('/static/(.*)')
 def static(environ, pathname):
+    if '_ALLOW_STATIC_FILES' not in environ:
+        return not_found(environ)
     pathname = os.path.normpath(pathname)
     if '..' in pathname or pathname.startswith('/'):
         return not_found(environ)
@@ -1030,6 +1032,7 @@ def reloading_wsgi_app(environ, start_response):
     # every request!
     import changelog2html
     reload(changelog2html)
+    environ['_ALLOW_STATIC_FILES'] = True
     return changelog2html.wsgi_app(environ, start_response)
 
 
