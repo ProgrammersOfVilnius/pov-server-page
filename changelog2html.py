@@ -504,6 +504,10 @@ STYLESHEET = textwrap.dedent('''
         color: black;
     }
 
+    h3 {
+        padding: 10px;
+        margin: 10px -10px 0px -10px;
+    }
     h3:target {
         background: #ffe;
     }
@@ -519,16 +523,15 @@ STYLESHEET = textwrap.dedent('''
     }
 
     a.permalink {
-        padding: 0 4px;
-        color: white;
+        margin-left: 8px;
+        color: transparent;
         text-decoration: none;
     }
     h3:hover > a.permalink {
-        color: #ccc;
+        color: #337ab7;
     }
     a.permalink:hover, a.permalink:active {
-        color: white !important;
-        background: #ccc;
+        color: #23527c !important;
     }
 
     .calendar {
