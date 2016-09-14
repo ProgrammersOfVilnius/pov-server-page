@@ -1,4 +1,4 @@
-pov-server-page (0.30.0) UNRELEASED; urgency=medium
+pov-server-page (0.30.0) precise; urgency=medium
 
   * changelog2html 0.7.0:
     - /changelog/raw endpoint to see the raw changelog file,
@@ -14,7 +14,7 @@ pov-server-page (0.30.0) UNRELEASED; urgency=medium
     - ssh host keys page now recognizes ED25519 keys,
     - all pages (except for /stats) now use Bootstrap CSS.
 
- -- Marius Gedminas <marius@gedmin.as>  Wed, 14 Sep 2016 09:40:05 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 14 Sep 2016 14:42:23 +0300
 
 pov-server-page (0.29.0) precise; urgency=medium
 
