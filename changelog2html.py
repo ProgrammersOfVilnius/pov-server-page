@@ -495,7 +495,7 @@ page_template = Template(uri="page.html", text=textwrap.dedent('''
     <%def name="searchbox(query=None, autofocus=False)">
         <div class="searchbox hidden-print">
           <form action="${prefix}/search" method="get" class="form-inline">
-            <input type="text" name="q" class="form-control" accesskey="s"\\
+            <input type="text" name="q" aria-label="Search" class="form-control" accesskey="s"\\
     % if query:
      value="${query}"\\
     % endif
