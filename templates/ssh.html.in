@@ -13,6 +13,7 @@ PRETTY_KEY_TYPE = {
     'ssh-dss': 'DSA',
     'ssh-rsa': 'RSA',
     'ecdsa-sha2-nistp256': 'ECDSA',
+    'ssh-ed25519': 'ED25519',
 }
 
 
@@ -20,10 +21,11 @@ def get_host_pub_key_files():
     return sorted(glob.glob('/etc/ssh/ssh_host_*_key.pub'))
 
 
-def read_key(keyfile):
-    with open(keyfile, 'rb') as f:
-        key_type, key = f.readline().split()[:2]
-        return key_type, codecs.decode(key, 'base64')
+def parse_key(keydata):
+    key_type, key = keydata.split()[:2]
+    if not isinstance(key, bytes):
+        key = key.encode('UTF-8')
+    return key_type, codecs.decode(key, 'base64')
 
 
 if str is bytes:
@@ -36,8 +38,8 @@ else:
         return '%02x' % c
 
 
-def get_fingerprints(keyfile):
-    key_type, key = read_key(keyfile)
+def get_fingerprints(keydata):
+    key_type, key = parse_key(keydata)
     key_type = PRETTY_KEY_TYPE.get(key_type, key_type)
     md5_hash = hashlib.md5(key).digest()
     md5_hex = ':'.join(map(hexchar, md5_hash))
@@ -46,15 +48,33 @@ def get_fingerprints(keyfile):
     return HostKeyInfo(key_type, 'MD5:%s' % md5_hex, 'SHA256:%s' % sha256_hex)
 
 
-def get_host_pub_key_fingerprints():
+def get_host_pub_keys():
     for keyfile in get_host_pub_key_files():
-        yield get_fingerprints(keyfile)
+        with open(keyfile, 'r') as f:
+            yield f.read()
+
+
+def get_host_pub_key_fingerprints():
+    for key in get_host_pub_keys():
+        yield get_fingerprints(key)
 
 %>
 <html>
   <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>SSH host key fingerprints</title>
+
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
     <style>
+      body {
+          margin: 1em;
+      }
+      h1 + table {
+          margin-top: 2em;
+      }
       .ssh-host-keys th, .ssh-host-keys td {
           font-family: monospace;
           font-weight: normal;
@@ -66,7 +86,7 @@ def get_host_pub_key_fingerprints():
     </style>
   </head>
   <body>
-    <h1>${HOSTNAME} SSH host key fingerprints</h1>
+    <h1>SSH host key fingerprints for ${HOSTNAME}</h1>
     <table class="ssh-host-keys">
 % for key in get_host_pub_key_fingerprints():
       <tr>
@@ -78,5 +98,11 @@ def get_host_pub_key_fingerprints():
       </tr>
 % endfor
     </table>
+    <h2>Host public keys</h2>
+<pre>
+% for key in get_host_pub_keys():
+${key.strip()}
+% endfor
+</pre>
   </body>
 </html>

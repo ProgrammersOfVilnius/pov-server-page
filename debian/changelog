@@ -3,8 +3,12 @@ pov-server-page (0.30.0) UNRELEASED; urgency=medium
   * changelog2html 0.7.0:
     - /changelog/raw endpoint to download the raw changelog file,
     - now linkifies URLs in changelog text.
+  * pov-update-server-page:
+    - ssh host keys page shows the full public keys as well as fingerprints,
+    - recognizes ED25519 keys,
+    - now uses Bootstrap CSS.
 
- -- Marius Gedminas <marius@gedmin.as>  Wed, 27 Apr 2016 20:18:15 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 14 Sep 2016 09:40:05 +0300
 
 pov-server-page (0.29.0) precise; urgency=medium
 
