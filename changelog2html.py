@@ -483,8 +483,8 @@ page_template = Template(uri="page.html", text=textwrap.dedent('''
 
         <title>${self.title()}</title>
 
-        <link rel="stylesheet" href="${prefix}/static/css/bootstrap.min.css">
-        <link rel="stylesheet" href="${prefix}/static/css/style.css">
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/static/css/style.css">
         <link rel="stylesheet" href="${prefix}/style.css" />
       </head>
       <body>
