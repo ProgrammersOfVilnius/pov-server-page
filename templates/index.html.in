@@ -12,17 +12,20 @@
   </head>
   <body>
     <h1>${HOSTNAME}</h1>
+
+    <ul class="nav nav-pills nav-stacked">
 % if CHANGELOG:
-    <p><a href="changelog">Changelog</a></p>
+      <li><a href="changelog">Changelog</a></li>
 % endif
-    <p><a href="stats">Server stats</a></p>
-    <p><a href="ports">Open TCP ports</a></p>
-    <p><a href="ssh">SSH host key fingerprints</a></p>
+      <li><a href="stats">Server stats</a></li>
+      <li><a href="ports">Open TCP ports</a></li>
+      <li><a href="ssh">SSH host key fingerprints</a></li>
 % if DISK_USAGE_LIST:
-    <p><a href="du">Disk usage for ${'all partitions' if DISK_USAGE == 'all' else ', '.join(DISK_USAGE_LIST)}</a></p>
+      <li><a href="du">Disk usage for ${'all partitions' if DISK_USAGE == 'all' else ', '.join(DISK_USAGE_LIST)}</a></li>
 % endif
 % for link, title in EXTRA_LINKS_MAP:
-    <p><a href="${link}">${title}</a></p>
+      <li><a href="${link}">${title}</a></li>
 % endfor
+    </ul>
   </body>
 </html>

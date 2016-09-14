@@ -14,49 +14,43 @@
     <style>
 
       #map {
-        width: 800px;
+        width: auto;
         height: 480px;
         position: relative;
         cursor: pointer;
         -webkit-user-select: none;
       }
 
+      .graphs { overflow: auto; }
       .graphs img { vertical-align: top; }
       .graphs img { display: inline-block; }
 
       .snapshots {
-        float: right;
+        margin: 20px 0;
       }
-      .snapshots > ul {
-        height: 480px;
-        overflow: auto;
-        min-width: 120px;
-        padding: 0;
-      }
-      .snapshots li {
-        display: block;
-        margin: 0;
-        padding: 0;
-      }
-      .snapshots li a {
-        display: block;
-        padding: 4px;
-        margin: 0;
-        text-decoration: none;
-        color: black;
-      }
-      .snapshots li a:hover,
-      .snapshots li a:active {
-        text-decoration: none;
-        color: blue;
+
+      @media (min-width: 768px) {
+        #map {
+          width: 800px;
+        }
+        .snapshots {
+          float: right;
+          margin: 0;
+        }
+        .snapshots > ul {
+          height: 480px;
+          overflow: auto;
+          min-width: 120px;
+          padding: 0;
+        }
       }
     </style>
   </head>
   <body>
     <h1>Disk Usage of ${HOSTNAME}:${location}</h1>
     <div class="snapshots">
-      Snapshots
-      <ul>
+      <h4>Snapshots</h4>
+      <ul class="nav nav-pills nav-stacked">
 % for date in snapshots:
         <li><a href="../diff/${location_name}/${date}..${snapshots[0]}">${date}</a></li>
 % endfor
@@ -73,10 +67,10 @@
       footer.innerHTML = 'Last updated on ' + last_updated + '.  Disk usage computed in ' + duration + ' seconds.';
     </script>
 % if has_disk_graph(location):
-    <p class="graphs">
+    <div class="graphs">
       <img src="${disk_graph_url(location, 'trend')}">
       <img src="${disk_graph_url(location, 'week')}">
-    </p>
+    </div>
 % endif
   </body>
 </html>
