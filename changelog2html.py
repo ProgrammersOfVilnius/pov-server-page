@@ -491,6 +491,22 @@ page_template = Template(uri="page.html", text=textwrap.dedent('''
         ${self.body()}
       </body>
     </html>
+
+    <%def name="searchbox(query=None, autofocus=False)">
+        <div class="searchbox hidden-print">
+          <form action="${prefix}/search" method="get" class="form-inline">
+            <input type="text" name="q" class="form-control" accesskey="s"\\
+    % if query:
+     value="${query}"\\
+    % endif
+    % if autofocus:
+     autofocus\\
+    % endif
+    >
+            <button type="submit" class="btn btn-primary">Search</button>
+          </form>
+         </div>
+    </%def>
 '''))
 
 
@@ -512,10 +528,32 @@ STYLESHEET = textwrap.dedent('''
         background: #ffe;
     }
 
-    .searchbox {
-        position: absolute;
-        top: 1em;
-        right: 1em;
+    @media (min-width: 768px) {
+        .searchbox {
+            position: absolute;
+            top: 1em;
+            right: 1em;
+        }
+    }
+    @media (max-width: 767px) {
+        .searchbox {
+            display: table;
+            width: 100%;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-collapse: separate;
+        }
+        .searchbox form {
+            display: table-row;
+        }
+        .searchbox input, .searchbox button {
+            display: table-cell;
+            width: auto;
+            vertical-align: middle;
+        }
+        .searchbox input {
+            margin-right: 10px;
+        }
     }
 
     .simple-navbar strong {
@@ -580,12 +618,7 @@ main_template = Template(uri="main.html", text=textwrap.dedent('''
 
         <h1>${self.title()}</h1>
 
-        <div class="searchbox">
-          <form action="${prefix}/search" method="get">
-            <input type="text" name="q" class="searchtext" autofocus accesskey="s" />
-            <input type="submit" value="Search" class="searchbutton" />
-          </form>
-        </div>
+        ${self.searchbox(autofocus=True)}
 
         ${motd.as_html()|n}
 
@@ -656,12 +689,7 @@ all_template = Template(uri="all.html", text=textwrap.dedent('''
 
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
-        <div class="searchbox">
-          <form action="${prefix}/search" method="get">
-            <input type="text" name="q" class="searchtext" accesskey="s" />
-            <input type="submit" value="Search" class="searchbutton" />
-          </form>
-        </div>
+        ${self.searchbox()}
 
         ${changelog.preamble.as_html()|n}
 
@@ -691,12 +719,7 @@ year_template = Template(uri="year.html", text=textwrap.dedent('''
 
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
-        <div class="searchbox">
-          <form action="${prefix}/search" method="get">
-            <input type="text" name="q" class="searchtext" accesskey="s" />
-            <input type="submit" value="Search" class="searchbutton" />
-          </form>
-        </div>
+        ${self.searchbox()}
 
         ${calendar|n}
 
@@ -790,12 +813,7 @@ month_template = Template(uri="month.html", text=textwrap.dedent('''
 
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
-        <div class="searchbox">
-          <form action="${prefix}/search" method="get">
-            <input type="text" name="q" class="searchtext" accesskey="s" />
-            <input type="submit" value="Search" class="searchbutton" />
-          </form>
-        </div>
+        ${self.searchbox()}
 
         ${calendar|n}
 
@@ -902,12 +920,7 @@ day_template = Template(textwrap.dedent('''
 
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
-        <div class="searchbox">
-          <form action="${prefix}/search" method="get">
-            <input type="text" name="q" class="searchtext" accesskey="s" />
-            <input type="submit" value="Search" class="searchbutton" />
-          </form>
-        </div>
+        ${self.searchbox()}
 
         ${calendar|n}
 
@@ -968,12 +981,7 @@ search_template = Template(textwrap.dedent('''
 
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
-        <div class="searchbox">
-          <form action="${prefix}/search" method="get">
-            <input type="text" name="q" class="searchtext" value="${query}" accesskey="s" />
-            <input type="submit" value="Search" class="searchbutton" />
-          </form>
-        </div>
+        ${self.searchbox(query=query)}
 
         <p>${len(entries)} results for '${query}'</h2>
 
