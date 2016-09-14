@@ -44,11 +44,13 @@ class TextObject(object):
     def add_line(self, line):
         self.text.append(line)
 
-    def pre(self, slice=slice(None)):
+    def pre(self, slice=slice(None), highlight=None):
         if not self.text:
             return ''
-        return u'<pre>%s</pre>' % (
-            u''.join(linkify(line) for line in self.text[slice]).rstrip())
+        excerpt = u''.join(linkify(line) for line in self.text[slice]).rstrip()
+        if highlight:
+            excerpt = highlight_text(highlight, excerpt)
+        return u'<pre>%s</pre>' % excerpt
 
     def as_html(self):
         return self.pre()
@@ -331,6 +333,11 @@ def linkify(text):
         else: # nocover:
             return g['text']
     return LINK_RX.sub(_replace, cgi.escape(text, True))
+
+
+def highlight_text(what, text):
+    what = cgi.escape(what, True)
+    return text.replace(what, '<mark>{}</mark>'.format(what))
 
 
 #
@@ -969,7 +976,7 @@ search_template = Template(textwrap.dedent('''
 
     % for entry in entries:
         <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
-        ${entry.pre(slice(1, None))|n}
+        ${entry.pre(slice(1, None), highlight=query)|n}
     % endfor
 '''))
 
