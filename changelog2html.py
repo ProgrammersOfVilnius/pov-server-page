@@ -534,20 +534,18 @@ STYLESHEET = textwrap.dedent('''
             top: 1em;
             right: 1em;
         }
+        .searchbox input {
+            margin-right: 10px;
+        }
     }
     @media (max-width: 767px) {
         .searchbox {
-            display: table;
-            width: 100%;
+            text-align: right;
             margin-top: 20px;
             margin-bottom: 20px;
-            border-collapse: separate;
-        }
-        .searchbox form {
-            display: table-row;
         }
         .searchbox input, .searchbox button {
-            display: table-cell;
+            display: inline-block;
             width: auto;
             vertical-align: middle;
         }
