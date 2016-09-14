@@ -485,7 +485,7 @@ page_template = Template(uri="page.html", text=textwrap.dedent('''
 
         <link rel="stylesheet" href="/static/css/bootstrap.min.css">
         <link rel="stylesheet" href="/static/css/style.css">
-        <link rel="stylesheet" href="${prefix}/style.css" />
+        <link rel="stylesheet" href="${prefix}/style.css">
       </head>
       <body>
         ${self.body()}
@@ -505,7 +505,7 @@ page_template = Template(uri="page.html", text=textwrap.dedent('''
     >
             <button type="submit" class="btn btn-primary">Search</button>
           </form>
-         </div>
+        </div>
     </%def>
 '''))
 

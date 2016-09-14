@@ -565,34 +565,51 @@ class TestMainPage(PageTestCase):
     def test(self):
         response = c2h.main_page(self.environ())
         self.assertResponse(response, """
-        <html>
+        <!DOCTYPE html>
+        <html lang="en">
           <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+
             <title>/root/Changelog on example.com</title>
-            <link rel="stylesheet" href="/style.css" />
+
+            <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+            <link rel="stylesheet" href="/static/css/style.css">
+            <link rel="stylesheet" href="/style.css">
           </head>
           <body>
+
             <h1>/root/Changelog on example.com</h1>
-            <div class="searchbox">
-              <form action="/search" method="get">
-                <input type="text" name="q" class="searchtext" autofocus accesskey="s" />
-                <input type="submit" value="Search" class="searchbutton" />
+            <div class="searchbox hidden-print">
+              <form action="/search" method="get" class="form-inline">
+                <input type="text" name="q" aria-label="Search" class="form-control" accesskey="s" autofocus>
+                <button type="submit" class="btn btn-primary">Search</button>
               </form>
             </div>
+
             <pre class="motd">Welcome to example.com!
         </pre>
+
             <pre>Test changelog
         with some rambling preamble text
 
         - [ ] and maybe a todo item</pre>
-        <h2>To do list</h2>
-        <ul class="todo">
-          <li><a href="/">and maybe a todo item</a></li>
-        </ul>
-        <h2>Latest entries</h2>
-        <h3><a href="/2014/10/08/#e1">2014-10-08 09:26 +0300 mg</a></h3>
-        <pre>  # did a thing
+
+            <h2>To do list</h2>
+
+            <ul class="todo">
+              <li><a href="/">and maybe a todo item</a></li>
+            </ul>
+
+            <h2>Latest entries</h2>
+
+            <h3><a href="/2014/10/08/#e1">2014-10-08 09:26 +0300 mg</a></h3>
+
+            <pre>  # did a thing
           vi /etc/thing
             blah blah</pre>
+
           </body>
         </html>
         """)
@@ -609,7 +626,7 @@ class TestRawPage(PageTestCase):
         self.environment = dict(self.environment, CHANGELOG_FILE=filename)
 
     def test(self):
-        response = c2h.raw_page(self.environ())
+        response = c2h.raw_page(self.environ(), 'attachment')
         self.assertEqual(response.body, self.changelog_text)
         self.assertEqual(response.status, '200 OK')
         self.assertEqual(
