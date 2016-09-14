@@ -10,7 +10,7 @@ except ImportError:
 
 import mock
 
-from update_tcp_ports_html import (
+from update_ports_html import (
     main, get_owner, username, get_argv, format_arg, get_program,
     get_html_cmdline,
 )
@@ -157,7 +157,7 @@ class TestWithFakeEnvironment(unittest.TestCase):
 
     def setUp(self):
         self.patch('subprocess.Popen', FakePopen)
-        self.patch('update_tcp_ports_html.open', fake_open)
+        self.patch('update_ports_html.open', fake_open)
         self.stderr = self.patch('sys.stderr', StringIO())
 
     def patch(self, what, with_what):
@@ -169,7 +169,7 @@ class TestWithFakeEnvironment(unittest.TestCase):
         orig_sys_argv = sys.argv
         try:
             sys.argv = [
-                'update_tcp_ports_html.py',
+                'update_ports_html.py',
                 '-o', '/dev/null',
             ] + list(args)
             main()

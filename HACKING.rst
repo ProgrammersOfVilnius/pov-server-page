@@ -8,7 +8,7 @@ This is a collection of scripts:
   (forked from collectd upstream)
 - dudiff2html.py -- a WSGI script that renders disk usage difference
   pages
-- update_tcp_ports_html.py -- a standalone script that generates
+- update_ports_html.py -- a standalone script that generates
   the list of open network ports (not CGI/WSGI because it runs as root
   to get all the desired information)
 - cron_daily.sh -- a cron script that runs pov-update-server-page every day

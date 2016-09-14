@@ -49,7 +49,7 @@ if debian_package:
     TEMPLATE_DIR = '/usr/share/pov-server-page/'
     libdir = '/usr/lib/pov-server-page'
     COLLECTION_CGI = os.path.join(libdir, 'collection.cgi')
-    UPDATE_TCP_PORTS_SCRIPT = os.path.join(libdir, 'update-ports')
+    UPDATE_PORTS_SCRIPT = os.path.join(libdir, 'update-ports')
     CHANGELOG2HTML_SCRIPT = os.path.join(libdir, 'changelog2html')
     DUDIFF2HTML_SCRIPT = os.path.join(libdir, 'dudiff2html')
     DU2WEBTREEMAP = os.path.join(libdir, 'du2webtreemap')
@@ -61,7 +61,7 @@ else:
     DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
     TEMPLATE_DIR = os.path.join(here, 'templates')
     COLLECTION_CGI = os.path.join(here, 'collection.cgi')
-    UPDATE_TCP_PORTS_SCRIPT = os.path.join(here, 'update_tcp_ports_html.py')
+    UPDATE_PORTS_SCRIPT = os.path.join(here, 'update_ports_html.py')
     CHANGELOG2HTML_SCRIPT = os.path.join(here, 'changelog2html.py')
     DUDIFF2HTML_SCRIPT = os.path.join(here, 'dudiff2html.py')
     DU2WEBTREEMAP = os.path.join(here, 'webtreemap-du', 'du2webtreemap.py')
@@ -193,7 +193,7 @@ class Builder(object):
         SERVER_ALIASES='',
         CANONICAL_REDIRECT=True,
         COLLECTION_CGI=COLLECTION_CGI,
-        UPDATE_TCP_PORTS_SCRIPT=UPDATE_TCP_PORTS_SCRIPT,
+        UPDATE_PORTS_SCRIPT=UPDATE_PORTS_SCRIPT,
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,
         INCLUDE='',
         APACHE_EXTRA_CONF='',
@@ -441,7 +441,7 @@ class Builder(object):
         ('/var/www/{HOSTNAME}/index.html',
          Template('index.html.in', HTML_MARKER)),
         ('/var/www/{HOSTNAME}/ports/index.html',
-         ScriptOutput('{UPDATE_TCP_PORTS_SCRIPT} -H {HOSTNAME} -o /dev/stdout')),
+         ScriptOutput('{UPDATE_PORTS_SCRIPT} -H {HOSTNAME} -o /dev/stdout')),
         ('/var/www/{HOSTNAME}/ssh/index.html',
          Template('ssh.html.in', HTML_MARKER)),
         ('/var/www/{HOSTNAME}/du',

@@ -7,6 +7,9 @@ pov-server-page (0.30.0) UNRELEASED; urgency=medium
     - ssh host keys page shows the full public keys as well as fingerprints,
     - recognizes ED25519 keys,
     - now uses Bootstrap CSS.
+  * update-ports 0.7.0:
+    - lists UDP ports too (GH: #7),
+    - now uses Bootstrap CSS.
 
  -- Marius Gedminas <marius@gedmin.as>  Wed, 14 Sep 2016 09:40:05 +0300
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Update TCP port assignments page in /var/www/HOSTNAME/ports/index.html.
+Update TCP & UDP port assignments page in /var/www/HOSTNAME/ports/index.html.
 """
 
 import io
@@ -49,11 +49,12 @@ TEMPLATE = string.Template("""\
   </style>
 </head>
 <body>
-<h1>TCP port assignments on ${hostname}</h1>
+<h1>TCP & UDP port assignments on ${hostname}</h1>
 
 <table class="ports table table-hover">
 <thead>
   <tr>
+    <th>Protocol</th>
     <th>Port</th>
     <th>User</th>
     <th>Program</th>
@@ -73,6 +74,7 @@ TEMPLATE = string.Template("""\
 
 ROW_TEMPLATE = string.Template("""\
   <tr class="${tr_class}">
+    <td class="${port_class}" title="${ips}">${proto}</td>
     <td class="${port_class}" title="${ips}">${port}</td>
     <td>${user}</td>
     <td class="${port_class}">${program}</td>
@@ -81,7 +83,10 @@ ROW_TEMPLATE = string.Template("""\
 """)
 
 
-NetStatTuple = namedtuple('NetStatTuple', 'proto ip port pid program')
+class NetStatTuple(namedtuple('NetStatTuple', 'protocol ip port pid program')):
+    @property
+    def proto(self):
+        return self.protocol.rstrip('6')  # tcp6 -> tcp
 
 
 @contextmanager
@@ -95,7 +100,7 @@ def pipe(*command):
 
 
 def netstat():
-    with pipe('netstat', '-tnlvp') as f:
+    with pipe('netstat', '-tunlvp') as f:
         for line in f:
             if line == 'Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name\n':
                 break
@@ -103,17 +108,22 @@ def netstat():
             parts = line.split()
             proto = parts[0]
             local_addr = parts[3]
-            state = parts[5]
-            pid_program = parts[6]
-            if proto in ('tcp', 'tcp6') and state == 'LISTEN':
-                ip, port = local_addr.rsplit(':', 1)
-                if '/' in pid_program:
-                    pid, program = pid_program.split('/', 1)
-                    pid = int(pid)
-                else:
-                    pid = None
-                    program = pid_program
-                yield NetStatTuple(proto, ip, int(port), pid, program)
+            if proto in ('tcp', 'tcp6'):
+                state = parts[5]
+                pid_program = parts[6]
+            else:
+                state = None
+                pid_program = parts[5]
+            if proto in ('tcp', 'tcp6') and state != 'LISTEN':
+                continue
+            ip, port = local_addr.rsplit(':', 1)
+            if '/' in pid_program:
+                pid, program = pid_program.split('/', 1)
+                pid = int(pid)
+            else:
+                pid = None
+                program = pid_program
+            yield NetStatTuple(proto, ip, int(port), pid, program)
 
 
 def rpcinfo_dump():
@@ -131,8 +141,8 @@ def rpcinfo_dump():
 
 def merge_portmap_data(mapping, pmap_list, open_ports_only=True):
     for data in pmap_list:
-        if data.port in mapping or not open_ports_only:
-            mapping[data.port].append(data)
+        if (data.proto, data).port in mapping or not open_ports_only:
+            mapping[data.proto, data.port].append(data)
 
 
 def get_owner(pid):
@@ -217,7 +227,7 @@ def get_html_cmdline(pid):
 def get_port_mapping(netstat_data):
     mapping = defaultdict(list)
     for data in netstat_data:
-        mapping[data.port].append(data)
+        mapping[data.proto, data.port].append(data)
     return mapping
 
 
@@ -227,6 +237,7 @@ def is_loopback_ip(ip):
 
 def render_row(netstat_list):
     assert len(netstat_list) >= 1
+    proto = netstat_list[0].proto
     port = netstat_list[0].port
     pids = set(t.pid for t in netstat_list if t.pid is not None)
     ips = set(t.ip for t in netstat_list if t.ip is not None)
@@ -239,6 +250,7 @@ def render_row(netstat_list):
     if not commands:
         commands = ['<b>%s</b>' % p for p in program]
     return ROW_TEMPLATE.substitute(
+        proto=proto,
         port=port,
         tr_class='system' if port < 1024 else 'user user%d' % (port // 1000),
         port_class='local' if all(is_loopback_ip(ip) for ip in ips) else 'public',
@@ -251,7 +263,7 @@ def render_row(netstat_list):
 
 def render_rows(netstat_mapping):
     return ''.join(render_row(netstat_list)
-                   for port, netstat_list in sorted(netstat_mapping.items()))
+                   for (proto, port), netstat_list in sorted(netstat_mapping.items()))
 
 
 def render_html(netstat_mapping, hostname=HOSTNAME):
@@ -281,7 +293,7 @@ def main():
         parser.error('unexpected arguments')
     output = opts.output.replace('${hostname}', opts.hostname)
     mapping = get_port_mapping(netstat())
-    if 111 in mapping: # portmap is used
+    if ('tcp', 111) in mapping: # portmap is used
         portmap_data = list(rpcinfo_dump())
         merge_portmap_data(mapping, portmap_data, open_ports_only=False)
     render_file(mapping, output=output, hostname=opts.hostname)
