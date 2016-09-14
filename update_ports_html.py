@@ -46,6 +46,7 @@ TEMPLATE = string.Template("""\
     tr.user10 { background: #ccc; }
     tr.user11 { background: #cff; }
     td.public { font-weight: bold; }
+    td { white-space: nowrap; }
   </style>
 </head>
 <body>
