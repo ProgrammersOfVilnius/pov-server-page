@@ -14,6 +14,7 @@ import socket
 import sys
 import textwrap
 from functools import partial
+from mimetypes import guess_type
 
 import mako.template
 import mako.lookup
@@ -27,6 +28,8 @@ __version__ = '0.7.0'
 HOSTNAME = socket.gethostname()
 CHANGELOG_FILE = '/root/Changelog'
 MOTD_FILE = '/etc/motd'
+
+STATIC_ASSETS = os.path.join(os.path.dirname(__file__), 'static')
 
 
 #
@@ -519,6 +522,17 @@ STYLESHEET = textwrap.dedent('''
 @path('/style.css')
 def stylesheet(environ):
     return Response(STYLESHEET, content_type='text/css')
+
+
+@path('/static/(.*)')
+def static(environ, pathname):
+    pathname = os.path.normpath(pathname)
+    if '..' in pathname or pathname.startswith('/'):
+        return not_found(environ)
+    pathname = os.path.join(STATIC_ASSETS, pathname)
+    content_type = guess_type(pathname)[0] or 'application/octet-stream'
+    with open(pathname, 'rb') as f:
+        return Response(f.read(), content_type=content_type)
 
 
 main_template = Template(textwrap.dedent('''
