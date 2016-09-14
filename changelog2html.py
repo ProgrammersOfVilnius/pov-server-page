@@ -378,9 +378,9 @@ class Response(object):
 PATHS = []
 
 
-def path(pattern):
+def path(pattern, **kwargs):
     def wrapper(fn):
-        PATHS.append((pattern, re.compile('^(?:%s)/?$' % pattern), fn))
+        PATHS.append((pattern, re.compile('^(?:%s)/?$' % pattern), fn, kwargs))
         return fn
     return wrapper
 
@@ -391,10 +391,10 @@ def not_found(environ):
 
 def dispatch(environ):
     path_info = environ['PATH_INFO'] or '/'
-    for pattern, rx, view in PATHS:
+    for pattern, rx, view, kwargs in PATHS:
         m = rx.match(path_info)
         if m:
-            return partial(view, environ, *m.groups())
+            return partial(view, environ, *m.groups(), **kwargs)
     return partial(not_found, environ)
 
 
@@ -575,15 +575,17 @@ def main_page(environ):
         hostname=hostname, motd=motd, changelog=changelog, prefix=prefix)
 
 
-@path('/raw')
-def raw_page(environ):
+@path('/raw', content_disposition='inline')
+@path('/download', content_disposition='attachment')
+def raw_page(environ, content_disposition='inline'):
     filename = get_changelog_filename(environ)
     with open(filename, 'rb') as f:
         raw = f.read()
     hostname = get_hostname(environ)
     outfilename = 'Changelog.{hostname}'.format(hostname=hostname)
     headers = {
-        'Content-Disposition': 'attachment; filename="{outfilename}"'.format(
+        'Content-Disposition': '{disposition}; filename="{outfilename}"'.format(
+            disposition=content_disposition,
             outfilename=outfilename,
         ),
     }
