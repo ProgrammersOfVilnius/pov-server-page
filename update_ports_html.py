@@ -46,7 +46,7 @@ TEMPLATE = string.Template("""\
     tr.user10 { background: #ccc; }
     tr.user11 { background: #cff; }
     td.public { font-weight: bold; }
-    td { white-space: nowrap; }
+    td > p { margin: 10px 0 0 0; }
   </style>
 </head>
 <body>
@@ -77,8 +77,8 @@ ROW_TEMPLATE = string.Template("""\
   <tr class="${tr_class}">
     <td class="${port_class}" title="${ips}">${proto}</td>
     <td class="${port_class}" title="${ips}">${port}</td>
-    <td>${user}</td>
-    <td class="${port_class}">${program}</td>
+    <td class="text-nowrap">${user}</td>
+    <td class="text-nowrap ${port_class}">${program}</td>
     <td>${cmdline}</td>
   </tr>
 """)
@@ -187,14 +187,14 @@ def is_interpreter(program_name):
     return re.match(r'^python(\d([.]\d+)?)?$', program_name)
 
 
-def get_program(pid):
+def get_program(pid, unknown='-'):
     argv = get_argv(pid)
     if len(argv) >= 1 and ''.join(argv[1:]) == '' and ' ' in argv[0]:
         # programs that change their argv like postgrey or spamd
         argv = argv[0].split()
     args = [escape(format_arg(arg)) for arg in argv]
     if not args:
-        return ''
+        return unknown
     # extract progname
     n = 0
     prefix, slash, progname = args[n].rpartition('/')
@@ -205,14 +205,14 @@ def get_program(pid):
     return progname
 
 
-def get_html_cmdline(pid):
+def get_html_cmdline(pid, unknown='-'):
     argv = get_argv(pid)
     if len(argv) >= 1 and ''.join(argv[1:]) == '' and ' ' in argv[0]:
         # programs that change their argv like postgrey or spamd
         argv = argv[0].split()
     args = [escape(format_arg(arg)) for arg in argv]
     if not args:
-        return ''
+        return unknown
     # highlight progname
     n = 0
     prefix, slash, progname = args[n].rpartition('/')
@@ -243,10 +243,9 @@ def render_row(netstat_list):
     pids = set(t.pid for t in netstat_list if t.pid is not None)
     ips = set(t.ip for t in netstat_list if t.ip is not None)
     user = sorted(set(map(username, map(get_owner, pids)))) or '-'
-    program = sorted(set(map(get_program, pids)))
+    program = sorted(set(map(get_program, pids))) or '-'
     if not program:
-        program = sorted(set(escape(t.program) for t in netstat_list
-                             if t.program != '-')) or '-'
+        program = sorted(set(escape(t.program) or '-' for t in netstat_list)) or '-'
     commands = sorted(set(map(get_html_cmdline, pids)))
     if not commands:
         commands = ['<b>%s</b>' % p for p in program]
@@ -256,9 +255,9 @@ def render_row(netstat_list):
         tr_class='system' if port < 1024 else 'user user%d' % (port // 1000),
         port_class='local' if all(is_loopback_ip(ip) for ip in ips) else 'public',
         ips=', '.join(sorted(ips)),
-        user='<br>'.join(map(escape, user)),
-        program='<br>'.join(program),
-        cmdline='<br>'.join(commands),
+        user='<p>'.join([escape(u) or '-' for u in user]),
+        program='<p>'.join(program),
+        cmdline='<p>'.join(commands),
     )
 
 

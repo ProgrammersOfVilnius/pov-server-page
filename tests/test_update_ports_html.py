@@ -191,13 +191,13 @@ class TestWithFakeEnvironment(unittest.TestCase):
         self.assertEqual(get_program(9000), 'webserver.py')
 
     def test_get_program_unknown_pid(self):
-        self.assertEqual(get_program(None), '')
+        self.assertEqual(get_program(None), '-')
 
     def test_get_html_cmdline(self):
         self.assertEqual(get_html_cmdline(9000), '/usr/bin/python2.7 <b>webserver.py</b> --port=8080')
 
     def test_get_html_cmdline_program_disappeared(self):
-        self.assertEqual(get_html_cmdline(8999), '')
+        self.assertEqual(get_html_cmdline(8999), '-')
 
     def test_get_html_cmdline_pid_unknown(self):
-        self.assertEqual(get_html_cmdline(None), '')
+        self.assertEqual(get_html_cmdline(None), '-')
