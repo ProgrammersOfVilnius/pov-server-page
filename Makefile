@@ -17,10 +17,13 @@ VAGRANT_SSH_ALIAS = vagrantbox
 
 
 .PHONY: all
-all: pov-update-server-page.8
+all: pov-update-server-page.8 webtreemap webtreemap-du
 
 %.8: %.rst
 	rst2man $< > $@
+
+webtreemap webtreemap-du:
+	git submodule update --init
 
 .PHONY: test check
 test check: check-version
