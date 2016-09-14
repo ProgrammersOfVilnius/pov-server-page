@@ -431,7 +431,7 @@ def mako_error_handler(context, error):
         co = f.f_code
         filename = co.co_filename
         lineno = tb.tb_lineno
-        if filename.startswith('memory:') or filename.endswith('.html'):
+        if filename.startswith('memory:') or filename.endswith('_html'):
             lines = source.get(filename)
             if lines is None:
                 info = mako.template._get_module_info(filename)
@@ -466,6 +466,27 @@ def Template(*args, **kw):
 #
 
 
+page_template = Template(uri="page.html", text=textwrap.dedent('''
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>${self.title()}</title>
+
+        <link rel="stylesheet" href="${prefix}/static/css/bootstrap.min.css">
+        <link rel="stylesheet" href="${prefix}/static/css/style.css">
+        <link rel="stylesheet" href="${prefix}/style.css" />
+      </head>
+      <body>
+        ${self.body()}
+      </body>
+    </html>
+'''))
+
+
 STYLESHEET = textwrap.dedent('''
     body {
         margin: 1em;
@@ -486,7 +507,7 @@ STYLESHEET = textwrap.dedent('''
         right: 1em;
     }
 
-    .navbar strong {
+    .simple-navbar strong {
         padding: 0 4px;
     }
 
@@ -507,14 +528,22 @@ STYLESHEET = textwrap.dedent('''
         float: right;
         padding: 1em;
         margin-top: -1ex;
+        margin-left: 1ex;
         background: #ececec;
+        border-collapse: separate;
     }
     .calendar th {
         padding-bottom: 1ex;
+        text-align: center;
     }
     .calendar td {
         width: 2.75ex;
         text-align: right;
+    }
+
+    pre {
+        border: none;
+        background: inherit;
     }
 '''.lstrip('\n'))
 
@@ -535,14 +564,11 @@ def static(environ, pathname):
         return Response(f.read(), content_type=content_type)
 
 
-main_template = Template(textwrap.dedent('''
-    <html>
-      <head>
-        <title>/root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="${prefix}/style.css" />
-      </head>
-      <body>
-        <h1>/root/Changelog on ${hostname}</h1>
+main_template = Template(uri="main.html", text=textwrap.dedent('''
+    <%inherit file="page.html" />
+    <%def name="title()">/root/Changelog on ${hostname}</%def>
+
+        <h1>${self.title()}</h1>
 
         <div class="searchbox">
           <form action="${prefix}/search" method="get">
@@ -583,8 +609,6 @@ main_template = Template(textwrap.dedent('''
         </a>
     %     endif
     % endif
-      </body>
-    </html>
 '''))
 
 
@@ -616,13 +640,10 @@ def raw_page(environ, content_disposition='inline'):
                     headers=headers)
 
 
-all_template = Template(textwrap.dedent('''
-    <html>
-      <head>
-        <title>All entries - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="${prefix}/style.css" />
-      </head>
-      <body>
+all_template = Template(uri="all.html", text=textwrap.dedent('''
+    <%inherit file="page.html" />
+    <%def name="title()">All entries - /root/Changelog on ${hostname}</%def>
+
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
@@ -642,8 +663,6 @@ all_template = Template(textwrap.dedent('''
         ${entry.pre(slice(1, None))|n}
     %     endfor
     % endif
-      </body>
-    </html>
 '''))
 
 
@@ -656,13 +675,10 @@ def all_page(environ):
         hostname=hostname, changelog=changelog, prefix=prefix)
 
 
-year_template = Template(textwrap.dedent('''
-    <html>
-      <head>
-        <title>${date} - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="${prefix}/style.css" />
-      </head>
-      <body>
+year_template = Template(uri="year.html", text=textwrap.dedent('''
+    <%inherit file="page.html" />
+    <%def name="title()">${date} - /root/Changelog on ${hostname}</%def>
+
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
@@ -675,7 +691,7 @@ year_template = Template(textwrap.dedent('''
         ${calendar|n}
 
     <%def name="navbar()">
-        <div class="navbar">
+        <div class="simple-navbar">
     % if prev_url:
           <a href="${prev_url}">&laquo; ${prev_date}</a>
     % endif
@@ -698,8 +714,6 @@ year_template = Template(textwrap.dedent('''
     % endif
 
         ${navbar()}
-      </body>
-    </html>
 '''))
 
 
@@ -760,13 +774,10 @@ def year_header(year, prefix, prev_url=None, next_url=None):
             '</thead>'.format(prev=prev, next=next, title=title))
 
 
-month_template = Template(textwrap.dedent('''
-    <html>
-      <head>
-        <title>${date} - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="${prefix}/style.css" />
-      </head>
-      <body>
+month_template = Template(uri="month.html", text=textwrap.dedent('''
+    <%inherit file="page.html" />
+    <%def name="title()">${date} - /root/Changelog on ${hostname}</%def>
+
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
@@ -779,7 +790,7 @@ month_template = Template(textwrap.dedent('''
         ${calendar|n}
 
     <%def name="navbar()">
-        <div class="navbar">
+        <div class="simple-navbar">
     % if prev_url:
           <a href="${prev_url}">&laquo; ${prev_date}</a>
     % endif
@@ -802,8 +813,6 @@ month_template = Template(textwrap.dedent('''
     % endif
 
         ${navbar()}
-      </body>
-    </html>
 '''))
 
 
@@ -878,12 +887,9 @@ def html_table(matrix, css_class, header=''):
 
 
 day_template = Template(textwrap.dedent('''
-    <html>
-      <head>
-        <title>${date} - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="${prefix}/style.css" />
-      </head>
-      <body>
+    <%inherit file="page.html" />
+    <%def name="title()">${date} - /root/Changelog on ${hostname}</%def>
+
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
@@ -896,7 +902,7 @@ day_template = Template(textwrap.dedent('''
         ${calendar|n}
 
     <%def name="navbar()">
-        <div class="navbar">
+        <div class="simple-navbar">
     % if prev_url:
           <a href="${prev_url}">&laquo; ${prev_date}</a>
     % endif
@@ -919,8 +925,6 @@ day_template = Template(textwrap.dedent('''
     % endif
 
         ${navbar()}
-      </body>
-    </html>
 '''))
 
 
@@ -949,12 +953,9 @@ def day_page(environ, year, month, day):
 
 
 search_template = Template(textwrap.dedent('''
-    <html>
-      <head>
-        <title>${query} - /root/Changelog on ${hostname}</title>
-        <link rel="stylesheet" href="${prefix}/style.css" />
-      </head>
-      <body>
+    <%inherit file="page.html" />
+    <%def name="title()">${query} - /root/Changelog on ${hostname}</%def>
+
         <h1><a href="${prefix}/">/root/Changelog on ${hostname}</a></h1>
 
         <div class="searchbox">
@@ -970,9 +971,6 @@ search_template = Template(textwrap.dedent('''
         <h3><a href="${entry.url(prefix)}">${entry.title()}</a></h3>
         ${entry.pre(slice(1, None))|n}
     % endfor
-
-      </body>
-    </html>
 '''))
 
 
