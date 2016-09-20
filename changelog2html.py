@@ -22,7 +22,7 @@ import mako.exceptions
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.7.1'
+__version__ = '0.7.2'
 
 
 HOSTNAME = socket.gethostname()
@@ -237,7 +237,7 @@ class Motd(object):
 
     def as_html(self):
         if self.raw:
-            return u'<pre class="motd">%s</pre>' % ansi2html(self.raw)
+            return u'<pre class="motd">%s</pre>' % ansi2html(self.raw.rstrip())
         else:
             return u''
 
