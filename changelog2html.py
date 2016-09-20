@@ -591,6 +591,9 @@ STYLESHEET = textwrap.dedent('''
         border: none;
         background: inherit;
     }
+    pre + pre {
+        margin-top: -10px;
+    }
 '''.lstrip('\n'))
 
 
