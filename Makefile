@@ -89,7 +89,13 @@ VCS_STATUS = git status --porcelain
 
 .PHONY: clean-build-tree
 clean-build-tree:
-	@test -z "`$(VCS_STATUS) 2>&1`" || { echo; echo "Your working tree is not clean; please commit and try again" 1>&2; $(VCS_STATUS); exit 1; }
+	@test -z "`$(VCS_STATUS) 2>&1`" || { \
+	    echo; \
+	    echo "Your working tree is not clean; please commit and try again" 1>&2; \
+	    $(VCS_STATUS); \
+	    echo 'E.g. run git commit -am "Release $(version)"' 1>&2; \
+	    exit 1; }
+	git pull -r
 	rm -rf pkgbuild/$(source)
 	git archive --format=tar --prefix=pkgbuild/$(source)/ HEAD | tar -xf -
 	(cd webtreemap && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap/ HEAD) | tar -xf -

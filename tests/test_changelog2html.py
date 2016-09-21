@@ -252,7 +252,7 @@ class TestMotd(TestCase):
         self.assertEqual(motd.as_html(), '')
 
     def test_as_html_nonempty(self):
-        motd = c2h.Motd(raw='Hello <\033[31mworld\033[0m>!')
+        motd = c2h.Motd(raw='Hello <\033[31mworld\033[0m>!\n')
         self.assertEqual(
             motd.as_html(),
             '<pre class="motd">Hello &lt;<span style="color: #cc0000">world</span>&gt;!</pre>')
@@ -611,8 +611,7 @@ class TestMainPage(PageTestCase):
               </form>
             </div>
 
-            <pre class="motd">Welcome to example.com!
-        </pre>
+            <pre class="motd">Welcome to example.com!</pre>
 
             <pre>Test changelog
         with some rambling preamble text
