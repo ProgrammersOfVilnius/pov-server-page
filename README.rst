@@ -6,7 +6,7 @@ information:
 
 - contents of /root/Changelog
 - graphs for collectd
-- open TCP ports
+- open TCP and UDP ports
 - SSH host key fingerprints
 - disk usage treemaps (if configured)
 
@@ -19,8 +19,11 @@ Requirements
 - Perl
 - Python
 - collectd
-- an SSL certificate (you can get one from letsencrypt.org)
 - an Apache password file
+
+And if you want this publically accessible (as opposed to localhost-only):
+
+- an SSL certificate (you can get one from letsencrypt.org)
 
 
 Usage
@@ -34,6 +37,7 @@ Usage
     vim /etc/pov/server-page.conf
       at the very least uncomment 'enable = 1'
       you'll also need to make sure some SSL certificate is available
+      OR set 'loopback_only = 1'
       I also recommend 'disk_usage = all'
     chmod +x /root  # make /root/Changelog readable by www-data
     pov-update-server-page -v

@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2016-09-21
-:Version: 0.30.2
+:Date: 2016-10-13
+:Version: 0.31.0
 :Manual section: 8
 
 
@@ -28,7 +28,7 @@ information:
 
   - contents of /root/Changelog
   - graphs for collectd
-  - open TCP ports
+  - open TCP and UDP ports
   - SSH host key fingerprints
   - disk usage treemaps (if configured)
   - last entries in /root/Changelog (if readable by www-data)
@@ -69,7 +69,9 @@ something like ``a2enmod ssl rewrite; a2ensite`` *HOSTNAME*\ ``.conf; htpasswd -
 
 It is private: the site configuration will require SSL and password
 authentication.  You're expected to provide the SSL certificate and the Apache
-password file yourself.
+password file yourself.  (If you don't want to deal with SSL, you can
+enable the ``loopback-only`` option and the page will only be accessible
+at http://localhost/.)
 
 It is safe: it won't touch anything on disk if you do not explicitly enable
 it in the config file (set ``enabled = 1``), so the daily cron script that's
@@ -134,6 +136,13 @@ The following options are defined:
     Turn this off if you need to test the apache configuration in
     a machine you can't access directly and need to use SSH port
     forwarding.
+
+**loopback_only** (default: false)
+
+    Make the page accessible on localhost only, without SSL.
+
+    Turn this on if you want to use this on a laptop or some machine that
+    has no public IP and cannot get a valid SSL certificate.
 
 **include** (default: empty)
 

@@ -1,3 +1,9 @@
+pov-server-page (0.31.0) UNRELEASED; urgency=medium
+
+  * New option: loopback_only.
+
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 13 Oct 2016 09:31:41 +0300
+
 pov-server-page (0.30.2) precise; urgency=medium
 
   * changelog2html 0.7.1:

@@ -1,3 +1,19 @@
+% if LOOPBACK_ONLY:
+<VirtualHost 127.0.0.1:80 [::1]:80>
+  ServerName localhost
+  ServerAlias ${HOSTNAME}
+% for alias in SERVER_ALIAS_LIST:
+  ServerAlias ${alias}
+% endfor
+  ServerAdmin root@${HOSTNAME}
+
+  DocumentRoot /var/www/${HOSTNAME}
+  ErrorLog /var/log/apache2/${HOSTNAME}/error.log
+  CustomLog /var/log/apache2/${HOSTNAME}/access.log combined
+
+  RewriteEngine on
+
+% else:
 <VirtualHost *:80>
   ServerName ${HOSTNAME}
 % for alias in SERVER_ALIAS_LIST:
@@ -33,6 +49,7 @@
   RewriteCond %{HTTP_HOST} !=${HOSTNAME}
   RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R=302,L]
 
+% endif
 % endif
 % if INCLUDE:
 %     for filename in INCLUDE.split():

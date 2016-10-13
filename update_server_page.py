@@ -191,6 +191,7 @@ class Builder(object):
         ENABLED=False,
         HOSTNAME=get_fqdn(),
         SERVER_ALIASES='',
+        LOOPBACK_ONLY=False,
         CANONICAL_REDIRECT=True,
         COLLECTION_CGI=COLLECTION_CGI,
         UPDATE_PORTS_SCRIPT=UPDATE_PORTS_SCRIPT,
