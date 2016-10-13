@@ -1,6 +1,8 @@
 pov-server-page (0.31.0) UNRELEASED; urgency=medium
 
   * New option: loopback_only.
+  * debian/postinst:
+    - update Apache configuration after an upgrade (GH #18).
 
  -- Marius Gedminas <marius@gedmin.as>  Thu, 13 Oct 2016 09:31:41 +0300
 
