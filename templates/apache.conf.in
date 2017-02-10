@@ -1,5 +1,5 @@
 % if LOOPBACK_ONLY:
-<VirtualHost 127.0.0.1:80 [::1]:80>
+<VirtualHost 127.0.0.1:${HTTP_PORT} [::1]:${HTTP_PORT}>
   ServerName localhost
   ServerAlias ${HOSTNAME}
 % for alias in SERVER_ALIAS_LIST:
@@ -14,7 +14,7 @@
   RewriteEngine on
 
 % else:
-<VirtualHost *:80>
+<VirtualHost *:${HTTP_PORT}>
   ServerName ${HOSTNAME}
 % for alias in SERVER_ALIAS_LIST:
   ServerAlias ${alias}
@@ -31,7 +31,7 @@
   RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R=302,L]
 </VirtualHost>
 
-<VirtualHost *:443>
+<VirtualHost *:${HTTPS_PORT}>
   ServerName ${HOSTNAME}
 % for alias in SERVER_ALIAS_LIST:
   ServerAlias ${alias}

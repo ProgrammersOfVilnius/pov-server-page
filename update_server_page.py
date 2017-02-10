@@ -192,6 +192,8 @@ class Builder(object):
         HOSTNAME=get_fqdn(),
         SERVER_ALIASES='',
         LOOPBACK_ONLY=False,
+        HTTP_PORT=80,
+        HTTPS_PORT=443,
         CANONICAL_REDIRECT=True,
         COLLECTION_CGI=COLLECTION_CGI,
         UPDATE_PORTS_SCRIPT=UPDATE_PORTS_SCRIPT,

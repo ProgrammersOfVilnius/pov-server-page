@@ -1,3 +1,9 @@
+pov-server-page (0.32.0) UNRELEASED; urgency=medium
+
+  * New options: http_port, https_port.
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 10 Feb 2017 17:56:11 +0200
+
 pov-server-page (0.31.0) precise; urgency=medium
 
   * New option: loopback_only.

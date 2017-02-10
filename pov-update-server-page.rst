@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2016-10-13
-:Version: 0.31.0
+:Date: 2017-02-10
+:Version: 0.32.0
 :Manual section: 8
 
 
@@ -143,6 +143,18 @@ The following options are defined:
 
     Turn this on if you want to use this on a laptop or some machine that
     has no public IP and cannot get a valid SSL certificate.
+
+**http_port** (default: 80)
+
+    Port to use for the <VirtualHost> section in the generated Apache config.
+
+    You can use this to avoid conflicts with other web servers.
+
+**https_port** (default: 443)
+
+    Port to use for the <VirtualHost> section in the generated Apache config.
+
+    You can use this to avoid conflicts with other web servers.
 
 **include** (default: empty)
 
