@@ -31,6 +31,7 @@ CMDLINES = {
     2150: b"(squid-1)\0-YC\0-f\0/etc/squid3/squid.conf\0",
     2408: b"/usr/lib/postfix/master\0",
     9000: b"/usr/bin/python2.7\0webserver.py\0--port=8080\0",
+    9003: b"nginx: master process /opt/gitlab/embedded/sbin/nginx -p /var/opt/gitlab/nginx",
 }
 
 NETSTAT_SAMPLE = b"""\
@@ -204,6 +205,10 @@ class TestWithFakeEnvironment(unittest.TestCase):
     def test_getargv(self):
         self.assertEqual(get_argv(9000),
                          ["/usr/bin/python2.7", "webserver.py", "--port=8080"])
+
+    def test_getargv_no_trailing_nul(self):
+        self.assertEqual(get_argv(9003),
+                         ["nginx: master process /opt/gitlab/embedded/sbin/nginx -p /var/opt/gitlab/nginx"])
 
     def test_get_program(self):
         self.assertEqual(get_program(9000), 'webserver.py')

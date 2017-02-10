@@ -17,7 +17,7 @@ from collections import namedtuple, defaultdict
 from contextlib import contextmanager
 
 
-__version__ = '0.7.1'
+__version__ = '0.7.2'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -165,9 +165,13 @@ def username(uid):
 def get_argv(pid):
     try:
         with open('/proc/%d/cmdline' % pid) as f:
-            return f.read().split('\0')[:-1]
+            argv = f.read().split('\0')
     except (TypeError, IOError):
         return []
+    else:
+        if argv and not argv[-1]:
+            argv = argv[:-1]
+        return argv
 
 
 def format_arg(arg):
@@ -192,6 +196,7 @@ def get_program(pid, unknown='-'):
     if len(argv) >= 1 and ''.join(argv[1:]) == '' and ' ' in argv[0]:
         # programs that change their argv like postgrey or spamd
         argv = argv[0].split()
+        argv[0] = argv[0].rstrip(':')
     args = [escape(format_arg(arg)) for arg in argv]
     if not args:
         return unknown

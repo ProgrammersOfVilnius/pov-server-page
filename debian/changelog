@@ -1,6 +1,9 @@
 pov-server-page (0.32.0) UNRELEASED; urgency=medium
 
   * New options: http_port, https_port.
+  * update-ports 0.7.2:
+    - correctly handle programs without a trailing NUL in their
+      /proc/.../cmdline.
 
  -- Marius Gedminas <marius@gedmin.as>  Fri, 10 Feb 2017 17:56:11 +0200
 
