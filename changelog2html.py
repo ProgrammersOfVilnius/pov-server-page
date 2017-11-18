@@ -269,9 +269,9 @@ COLORS = [
 ] + [
     # 6x6x6 color cube
     '#%02x%02x%02x' % (r, g, b)
-    for r in [0] + list(range(55, 255, 40))
-    for g in [0] + list(range(55, 255, 40))
-    for b in [0] + list(range(55, 255, 40))
+    for r in [0] + list(range(95, 256, 40))
+    for g in [0] + list(range(95, 256, 40))
+    for b in [0] + list(range(95, 256, 40))
 ] + [
     # 24 greyscale levels
     '#%02x%02x%02x' % (l, l, l)
