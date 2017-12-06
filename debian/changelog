@@ -1,3 +1,10 @@
+pov-server-page (0.32.1) UNRELEASED; urgency=medium
+
+  * changelog2html 0.7.3:
+    - correct 256-color interpretation.
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 06 Dec 2017 16:56:46 +0200
+
 pov-server-page (0.32.0) precise; urgency=medium
 
   * New options: http_port, https_port.
@@ -17,7 +24,7 @@ pov-server-page (0.31.0) precise; urgency=medium
 
 pov-server-page (0.30.2) precise; urgency=medium
 
-  * changelog2html 0.7.1:
+  * changelog2html 0.7.2:
     - strip trailing whitespace from /etc/motd.
   * debian/control:
     - add missing dependency on libcgi-pm-perl (GH #19).
