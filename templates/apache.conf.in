@@ -25,12 +25,12 @@
   CustomLog /var/log/apache2/${HOSTNAME}/access.log combined
 
   # Redirect everything to HTTPS
-  <If "%{HTTP_HOST} != '${HOSTNAME}'">
-    Redirect / https://${HOSTNAME}/
-  </If>
   <If "%{HTTP_HOST} == '${HOSTNAME}'">
     Redirect permanent / https://${HOSTNAME}/
   </If>
+  <Else>
+    Redirect / https://${HOSTNAME}/
+  </Else>
 </VirtualHost>
 
 <VirtualHost *:${HTTPS_PORT}>
