@@ -1,8 +1,17 @@
+pov-server-page (0.33.1) UNRELEASED; urgency=medium
+
+  * Prompt the user to a2enmod headers.
+  * Tweak http -> https redirect logic in the Apache config to use <If>/<Else>
+    instead of two <If>s with opposing conditions.
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 08 Dec 2017 20:08:56 +0200
+
 pov-server-page (0.33) trusty; urgency=medium
 
   * Use 'Redirect' directives instead of rewrite rules.
-  * Change the http -> https redirect to be permanent.
-  * Add a bunch of security headers.
+  * Change the http -> https redirect to be permanent, as long as you're using
+    the canonical hostname.
+  * Add a bunch of security headers (NB: this requires mod_headers).
   * New options: 'hsts', 'csp' to turn some of them off.
 
  -- Marius Gedminas <marius@gedmin.as>  Fri, 08 Dec 2017 19:35:57 +0200

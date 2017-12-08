@@ -459,6 +459,7 @@ class Builder(object):
     check_list = [
         ('/etc/apache2/mods-enabled/ssl.load', 'a2enmod ssl'),
         ('/etc/apache2/mods-enabled/rewrite.load', 'a2enmod rewrite'),
+        ('/etc/apache2/mods-enabled/headers.load', 'a2enmod headers'),
         ('/etc/apache2/mods-enabled/wsgi.load', 'a2enmod wsgi'),
         ('/etc/apache2/mods-enabled/cgid.load', 'a2enmod cgid'),
         ('/etc/apache2/sites-enabled/{HOSTNAME}.conf', 'a2ensite {HOSTNAME}.conf'),
