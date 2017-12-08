@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2017-12-06
-:Version: 0.32.1
+:Date: 2017-12-08
+:Version: 0.33
 :Manual section: 8
 
 
@@ -127,15 +127,25 @@ The following options are defined:
     Apache directive.
 
     Note: accessing the server page using any of the aliases will redirect
-    to the canonical hostname.
+    to the canonical hostname (see **canonical_redirect**).
 
 **canonical_redirect** (default: true)
 
-    Generate rewrite rules to redirect to the canonical hostname.
+    Generate directives to redirect to the canonical hostname.
 
     Turn this off if you need to test the apache configuration in
     a machine you can't access directly and need to use SSH port
     forwarding.
+
+**hsts** (default: true)
+
+    Set Strict-Transport-Security header to force all accesses to be HTTPS-only
+    for 2 years.
+
+**csp** (default: true)
+
+    Set Content-Security-Policy header to require same-origin URLs for all
+    subresources.
 
 **loopback_only** (default: false)
 
@@ -144,17 +154,22 @@ The following options are defined:
     Turn this on if you want to use this on a laptop or some machine that
     has no public IP and cannot get a valid SSL certificate.
 
+    Turning this on automatically turns off **canonical_redirect**, **hsts**,
+    **csp** and all other security headers.
+
 **http_port** (default: 80)
 
     Port to use for the <VirtualHost> section in the generated Apache config.
 
-    You can use this to avoid conflicts with other web servers.
+    You can use this to avoid conflicts with other web servers, or when you use
+    port forwarding.
 
 **https_port** (default: 443)
 
     Port to use for the <VirtualHost> section in the generated Apache config.
 
-    You can use this to avoid conflicts with other web servers.
+    You can use this to avoid conflicts with other web servers, or when you use
+    port forwarding.
 
 **include** (default: empty)
 
@@ -162,7 +177,7 @@ The following options are defined:
     configuration.
 
     You need to use this (or **apache_extra_conf**) to specify the SSL
-    certificate.
+    certificate!
 
     Example::
 
@@ -177,7 +192,7 @@ The following options are defined:
 
     Note: all leading whitespace will be normalized.
 
-    You need to use this (or **include**) to specify the SSL certificate.
+    You need to use this (or **include**) to specify the SSL certificate!
 
     Example::
 

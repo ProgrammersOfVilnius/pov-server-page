@@ -2,9 +2,9 @@
 <VirtualHost 127.0.0.1:${HTTP_PORT} [::1]:${HTTP_PORT}>
   ServerName localhost
   ServerAlias ${HOSTNAME}
-% for alias in SERVER_ALIAS_LIST:
+%     for alias in SERVER_ALIAS_LIST:
   ServerAlias ${alias}
-% endfor
+%     endfor
   ServerAdmin root@${HOSTNAME}
 
   DocumentRoot /var/www/${HOSTNAME}
@@ -16,26 +16,28 @@
 % else:
 <VirtualHost *:${HTTP_PORT}>
   ServerName ${HOSTNAME}
-% for alias in SERVER_ALIAS_LIST:
+%     for alias in SERVER_ALIAS_LIST:
   ServerAlias ${alias}
-% endfor
+%     endfor
   ServerAdmin root@${HOSTNAME}
 
-  DocumentRoot /var/www/${HOSTNAME}
   ErrorLog /var/log/apache2/${HOSTNAME}/error.log
   CustomLog /var/log/apache2/${HOSTNAME}/access.log combined
 
-  RewriteEngine on
-
   # Redirect everything to HTTPS
-  RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R=302,L]
+  <If "%{HTTP_HOST} != '${HOSTNAME}'">
+    Redirect / https://${HOSTNAME}/
+  </If>
+  <If "%{HTTP_HOST} == '${HOSTNAME}'">
+    Redirect permanent / https://${HOSTNAME}/
+  </If>
 </VirtualHost>
 
 <VirtualHost *:${HTTPS_PORT}>
   ServerName ${HOSTNAME}
-% for alias in SERVER_ALIAS_LIST:
+%     for alias in SERVER_ALIAS_LIST:
   ServerAlias ${alias}
-% endfor
+%     endfor
   ServerAdmin root@${HOSTNAME}
 
   DocumentRoot /var/www/${HOSTNAME}
@@ -45,11 +47,34 @@
   SSLEngine on
   RewriteEngine on
 
-% if CANONICAL_REDIRECT:
-  RewriteCond %{HTTP_HOST} !=${HOSTNAME}
-  RewriteRule ^/(.*)$ https://${HOSTNAME}/$1 [R=302,L]
+%     if CANONICAL_REDIRECT:
+  <If "%{HTTP_HOST} != '${HOSTNAME}'">
+    Redirect / https://${HOSTNAME}/
+  </If>
 
-% endif
+%     endif
+%     if HSTS:
+  # HSTS for 2 years
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
+
+%     endif
+%     if CSP:
+  # CSP: everything from the same domain
+  Header always set Content-Security-Policy "default-src 'self'; block-all-mixed-content"
+
+%     endif
+  # Frames: no clickjacking thanks.
+  Header always set X-Frame-Options "DENY"
+
+  # XSS protection: please?
+  Header always set X-Xss-Protection "1; mode=block"
+
+  # No sniffing MIME types thanks.
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Referrer policy: don't expose our hidden URL structure to other sites
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
 % endif
 % if INCLUDE:
 %     for filename in INCLUDE.split():
@@ -84,7 +109,7 @@
   </Location>
 
   # Collectd stats
-  RewriteRule ^/stats/?$ /stats/${SHORTHOSTNAME} [R,L]
+  RedirectMatch "/stats/?$" /stats/${SHORTHOSTNAME}
   ScriptAlias /stats/${SHORTHOSTNAME} ${COLLECTION_CGI}
 
   # Access control

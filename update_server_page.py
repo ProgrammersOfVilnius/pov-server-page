@@ -195,6 +195,8 @@ class Builder(object):
         HTTP_PORT=80,
         HTTPS_PORT=443,
         CANONICAL_REDIRECT=True,
+        HSTS=True,
+        CSP=True,
         COLLECTION_CGI=COLLECTION_CGI,
         UPDATE_PORTS_SCRIPT=UPDATE_PORTS_SCRIPT,
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,

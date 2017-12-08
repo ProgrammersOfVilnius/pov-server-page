@@ -1,3 +1,12 @@
+pov-server-page (0.33) UNRELEASED; urgency=medium
+
+  * Use 'Redirect' directives instead of rewrite rules.
+  * Change the http -> https redirect to be permanent.
+  * Add a bunch of security headers.
+  * New options: 'hsts', 'csp' to turn some of them off.
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 08 Dec 2017 18:59:54 +0200
+
 pov-server-page (0.32.1) trusty; urgency=medium
 
   * changelog2html 0.7.3:
