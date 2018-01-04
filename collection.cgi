@@ -923,7 +923,7 @@ Cache-Control: no-cache
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
   <head>
     <title>collection.cgi, Version 2</title>
-    <link rel="stylesheet" href="/static/css/stats.css">
+    <link rel="stylesheet" href="/static/css/stats.css" />
   </head>
 
   <body>
