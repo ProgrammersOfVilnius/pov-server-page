@@ -133,8 +133,6 @@ dudiff_template = Template(textwrap.dedent('''
         % endfor
     % endfor
         </style>
-
-        <script src="/static/js/dudiff.js"></script>
       </head>
       <body>
         <h1>du-diff for ${location} <small>${old} to ${new}</small></h1>
@@ -144,7 +142,7 @@ dudiff_template = Template(textwrap.dedent('''
       <label>Limit to depth</label>
       <div class="btn-group" role="toolbar" aria-label="Depth filter">
     %     for n in range(1, max_depth + 1):
-        <button class="btn btn-default" id="depth-btn-${n}" role="group" aria-label="${n}" onclick="limit(${n})">${n}</a>
+        <button class="btn btn-default" id="depth-btn-${n}" role="group" aria-label="${n}">${n}</a>
     %     endfor
       </div>
     </div>
@@ -153,8 +151,8 @@ dudiff_template = Template(textwrap.dedent('''
         <table id="du-diff" class="du-diff table table-hover">
           <thead>
             <tr>
-              <th onclick="sort(by_delta);">Delta</th>
-              <th onclick="sort(by_path);">Location</th>
+              <th id="sort_by_delta">Delta</th>
+              <th id="sort_by_path">Location</th>
             </tr>
           </thead>
           <tbody>
@@ -166,6 +164,7 @@ dudiff_template = Template(textwrap.dedent('''
     % endfor
           </tbody>
         <table>
+        <script src="/static/js/dudiff.js"></script>
       </body>
     </html>
 '''))

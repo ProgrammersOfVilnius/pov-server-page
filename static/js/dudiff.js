@@ -38,3 +38,18 @@ function limit(depth) {
     }
   }
 }
+function limiter(depth) {
+  return function() { limit(depth) };
+}
+function onclick(id, handler) {
+  document.getElementById(id).onclick = handler;
+}
+function init() {
+  onclick("sort_by_delta", function() { sort(by_delta) });
+  onclick("sort_by_path", function() { sort(by_path) });
+  var i, btn;
+  for (i = 1; (btn = document.getElementById('depth-btn-' + i)); i++) {
+    btn.onclick = limiter(i);
+  }
+}
+init()
