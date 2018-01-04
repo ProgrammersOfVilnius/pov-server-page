@@ -10,41 +10,8 @@
     <link rel="stylesheet" href="../../static/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../static/css/style.css">
     <link rel="stylesheet" href="../webtreemap/webtreemap.css" />
+    <link rel="stylesheet" href="../static/css/du-page.css">
     <script src="du.js"></script>
-    <style>
-
-      #map {
-        width: auto;
-        height: 480px;
-        position: relative;
-        cursor: pointer;
-        -webkit-user-select: none;
-      }
-
-      .graphs { overflow: auto; }
-      .graphs img { vertical-align: top; }
-      .graphs img { display: inline-block; }
-
-      .snapshots {
-        margin: 20px 0;
-      }
-
-      @media (min-width: 768px) {
-        #map {
-          width: 800px;
-        }
-        .snapshots {
-          float: right;
-          margin: 0;
-        }
-        .snapshots > ul {
-          height: 480px;
-          overflow: auto;
-          min-width: 120px;
-          padding: 0;
-        }
-      }
-    </style>
   </head>
   <body>
     <h1>Disk Usage of ${HOSTNAME}:${location}</h1>
@@ -60,12 +27,7 @@
     <div id="map"></div>
     <p id="footer"></p>
     <script src="../webtreemap/webtreemap.js"></script>
-    <script>
-      var map = document.getElementById('map');
-      appendTreemap(map, tree);
-      var footer = document.getElementById('footer');
-      footer.innerHTML = 'Last updated on ' + last_updated + '.  Disk usage computed in ' + duration + ' seconds.';
-    </script>
+    <script src="../../static/js/du-page.js"></script>
 % if has_disk_graph(location):
     <div class="graphs">
       <img src="${disk_graph_url(location, 'trend')}">

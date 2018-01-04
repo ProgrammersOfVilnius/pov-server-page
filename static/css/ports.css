@@ -1,0 +1,10 @@
+tr.system { background: #eff; }
+tr.user { background: #cfc; }
+tr.user2 { background: #ffc; }
+tr.user7 { background: #efc; }
+tr.user8 { background: #fec; }
+tr.user9 { background: #cfe; }
+tr.user10 { background: #ccc; }
+tr.user11 { background: #cff; }
+td.public { font-weight: bold; }
+td > p { margin: 10px 0 0 0; }

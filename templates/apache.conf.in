@@ -106,6 +106,7 @@
   WSGIScriptAlias /du/diff ${DUDIFF2HTML_SCRIPT}
   <Location /du/diff>
     SetEnv DIRECTORY "/var/www/${HOSTNAME}/du"
+    Header always set Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; block-all-mixed-content"
   </Location>
 
   # Collectd stats

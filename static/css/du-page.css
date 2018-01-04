@@ -1,0 +1,31 @@
+#map {
+    width: auto;
+    height: 480px;
+    position: relative;
+    cursor: pointer;
+    -webkit-user-select: none;
+}
+
+.graphs { overflow: auto; }
+.graphs img { vertical-align: top; }
+.graphs img { display: inline-block; }
+
+.snapshots {
+    margin: 20px 0;
+}
+
+@media (min-width: 768px) {
+    #map {
+        width: 800px;
+    }
+    .snapshots {
+        float: right;
+        margin: 0;
+    }
+    .snapshots > ul {
+        height: 480px;
+        overflow: auto;
+        min-width: 120px;
+        padding: 0;
+    }
+}

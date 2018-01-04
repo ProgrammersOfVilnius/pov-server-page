@@ -36,18 +36,7 @@ TEMPLATE = string.Template("""\
   <title>TCP port assignments on ${hostname}</title>
   <link rel="stylesheet" href="../static/css/bootstrap.min.css">
   <link rel="stylesheet" href="../static/css/style.css">
-  <style>
-    tr.system { background: #eff; }
-    tr.user { background: #cfc; }
-    tr.user2 { background: #ffc; }
-    tr.user7 { background: #efc; }
-    tr.user8 { background: #fec; }
-    tr.user9 { background: #cfe; }
-    tr.user10 { background: #ccc; }
-    tr.user11 { background: #cff; }
-    td.public { font-weight: bold; }
-    td > p { margin: 10px 0 0 0; }
-  </style>
+  <link rel="stylesheet" href="../static/css/ports.css">
 </head>
 <body>
 <h1>TCP & UDP port assignments on ${hostname}</h1>

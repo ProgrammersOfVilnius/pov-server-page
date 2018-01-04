@@ -1,0 +1,11 @@
+img {
+    border: none;
+}
+table.graphs {
+    border-collapse: collapse;
+}
+table.graphs td,
+table.graphs th {
+    border: 1px solid black;
+    empty-cells: hide;
+}

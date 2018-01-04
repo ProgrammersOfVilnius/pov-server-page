@@ -9,11 +9,7 @@
 
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
     <link rel="stylesheet" href="../static/css/style.css">
-    <style>
-      .graphs { margin-top: 20px; }
-      .graphs img { vertical-align: top; }
-      .graphs img { display: inline-block; }
-    </style>
+    <link rel="stylesheet" href="../static/css/du-index.css">
   </head>
   <body>
     <h1>Disk Usage on ${HOSTNAME}</h1>
