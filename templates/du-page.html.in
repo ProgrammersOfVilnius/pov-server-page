@@ -9,8 +9,8 @@
 
     <link rel="stylesheet" href="../../static/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="stylesheet" href="../../static/css/du-page.css">
     <link rel="stylesheet" href="../webtreemap/webtreemap.css" />
-    <link rel="stylesheet" href="../static/css/du-page.css">
     <script src="du.js"></script>
   </head>
   <body>
