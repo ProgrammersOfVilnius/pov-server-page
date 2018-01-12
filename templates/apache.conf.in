@@ -99,6 +99,7 @@
   WSGIScriptAlias /changelog ${CHANGELOG2HTML_SCRIPT}
   <Location /changelog>
     SetEnv HOSTNAME "${HOSTNAME}"
+    Header always set Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; block-all-mixed-content"
   </Location>
 
 % endif
