@@ -1,3 +1,9 @@
+pov-server-page (0.33.4) UNRELEASED; urgency=medium
+
+  * Stricter Content-Security-Policy (base-uri, form-action, object-src).
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 12 Jan 2018 14:41:43 +0200
+
 pov-server-page (0.33.3) trusty; urgency=medium
 
   * Fix broken MOTD colorization in /changelog (GH: #21).

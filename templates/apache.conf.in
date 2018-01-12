@@ -60,7 +60,7 @@
 %     endif
 %     if CSP:
   # CSP: everything from the same domain
-  Header always set Content-Security-Policy "default-src 'self'; block-all-mixed-content"
+  Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; block-all-mixed-content"
 
 %     endif
   # Frames: no clickjacking thanks.
@@ -99,7 +99,7 @@
   WSGIScriptAlias /changelog ${CHANGELOG2HTML_SCRIPT}
   <Location /changelog>
     SetEnv HOSTNAME "${HOSTNAME}"
-    Header always set Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; block-all-mixed-content"
+    Header always set Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'self'; object-src 'none'; block-all-mixed-content"
   </Location>
 
 % endif
@@ -107,7 +107,7 @@
   WSGIScriptAlias /du/diff ${DUDIFF2HTML_SCRIPT}
   <Location /du/diff>
     SetEnv DIRECTORY "/var/www/${HOSTNAME}/du"
-    Header always set Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; block-all-mixed-content"
+    Header always set Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'self'; object-src 'none'; block-all-mixed-content"
   </Location>
 
   # Collectd stats
