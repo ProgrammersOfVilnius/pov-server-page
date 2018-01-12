@@ -1,8 +1,8 @@
-pov-server-page (0.33.3) UNRELEASED; urgency=medium
+pov-server-page (0.33.3) trusty; urgency=medium
 
   * Fix broken MOTD colorization in /changelog (GH: #21).
 
- -- Marius Gedminas <marius@gedmin.as>  Fri, 12 Jan 2018 11:04:06 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 12 Jan 2018 11:08:06 +0200
 
 pov-server-page (0.33.2) trusty; urgency=medium
 
