@@ -85,6 +85,7 @@ install:
 	cd static/fonts && for f in *.eot *.svg *.ttf *.woff *.woff2; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/static/fonts/; done
 	cd static/js && for f in *.js; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/static/js/; done
 	install cron_daily.sh $(DESTDIR)/etc/cron.daily/pov-update-server-page
+	install cron_hourly.sh $(DESTDIR)/etc/cron.hourly/pov-update-server-page
 
 
 VCS_STATUS = git status --porcelain

@@ -12,6 +12,7 @@ This is a collection of scripts:
   the list of open network ports (not CGI/WSGI because it runs as root
   to get all the desired information)
 - cron_daily.sh -- a cron script that runs pov-update-server-page every day
+- cron_hourly.sh -- a cron script that runs pov-update-server-page -q every hour
 - update_server_page.py -- the main pov-update-server-page script
   that generates the Apache configuration, static HTML files in /var/www,
   and computes daily disk usage.
