@@ -1,0 +1,15 @@
+include README.rst
+include .coveragerc
+include Makefile
+include tox.ini
+recursive-include src *.css
+recursive-include src *.eot
+recursive-include src *.in
+recursive-include src *.js
+recursive-include src *.map
+recursive-include src *.svg
+recursive-include src *.ttf
+recursive-include src *.woff
+recursive-include src *.woff2
+recursive-include tests *.in
+recursive-include tests *.py

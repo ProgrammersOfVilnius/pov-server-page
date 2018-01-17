@@ -1,6 +1,5 @@
 build/
 debian/files
-debian/pov-server-page*
 pkgbuild
 *.8
 *.pyc

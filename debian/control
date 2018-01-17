@@ -1,16 +1,20 @@
 Source: pov-server-page
 Section: admin
-Priority: extra
+Priority: optional
 Maintainer: Marius Gedminas <marius@gedmin.as>
-Build-Depends: debhelper (>= 8.0.0), python-docutils, python-nose, python-mako, python-mock, python-tox
+Build-Depends: debhelper (>=9), dh-python, python-docutils,
+ python-all, python-setuptools, python-nose, python-mako, python-mock,
+ python3-all, python3-setuptools, python3-nose, python3-mako, python3-mock
+X-Python-Version: >= 2.7
+X-Python3-Version: >= 3.4
 Standards-Version: 3.9.6
 Homepage: https://github.com/ProgrammersOfVilnius/pov-server-page
 
 Package: pov-server-page
 Architecture: all
 Depends: apache2, libapache2-mod-wsgi | libapache2-mod-wsgi-py3, collectd-core,
- perl, librrds-perl, libhtml-parser-perl, libcgi-pm-perl, python, python-mako,
- ${perl:Depends}, ${misc:Depends}
+ ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
+ ${python:Depends}, ${python3:Depends}, ${misc:Depends}
 Recommends: apache2-utils
 Suggests: collectd
 Description: password-protected Apache virtual host with server information
