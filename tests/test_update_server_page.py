@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import errno
+import getpass
+import grp
 import os
 import random
 import shutil
@@ -587,17 +589,20 @@ class TestBuilderWithStdout(unittest.TestCase):
 
 class TestBuilderFileReadability(unittest.TestCase):
 
+    me = getpass.getuser()
+    mygroup = grp.getgrgid(os.getgid()).gr_name
+
     def test_file_readable_to(self):
         file_readable_to = Builder().file_readable_to
-        self.assertTrue(file_readable_to(__file__, 'root', 'root'))
+        self.assertTrue(file_readable_to(__file__, self.me, self.mygroup))
 
     def test_file_readable_to_bad_user(self):
         file_readable_to = Builder().file_readable_to
-        self.assertTrue(file_readable_to(__file__, 'no-such-user', 'root'))
+        self.assertTrue(file_readable_to(__file__, 'no-such-user', self.mygroup))
 
     def test_file_readable_to_bad_group(self):
         file_readable_to = Builder().file_readable_to
-        self.assertTrue(file_readable_to(__file__, 'root', 'no-such-group'))
+        self.assertTrue(file_readable_to(__file__, self.me, 'no-such-group'))
 
     def test_file_readable_when_not_readable(self):
         builder = Builder()
