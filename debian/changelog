@@ -1,4 +1,4 @@
-pov-server-page (0.34.0) UNRELEASED; urgency=medium
+pov-server-page (0.34.0) trusty; urgency=medium
 
   * Stricter Content-Security-Policy (base-uri, form-action, object-src).
   * Run pov-update-server-page --quick from /etc/cron.hourl (GH: #10).
@@ -6,7 +6,7 @@ pov-server-page (0.34.0) UNRELEASED; urgency=medium
     - show PID in a tooltip (GH: #22),
     - show service name in a tooltip (GH: #22).
 
- -- Marius Gedminas <marius@gedmin.as>  Wed, 17 Jan 2018 19:21:13 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 17 Jan 2018 19:23:30 +0200
 
 pov-server-page (0.33.3) trusty; urgency=medium
 
