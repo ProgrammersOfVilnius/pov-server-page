@@ -1,7 +1,8 @@
+import getpass
 import os
-import unittest
 import sys
 import textwrap
+import unittest
 from io import BytesIO, TextIOWrapper
 
 try:
@@ -149,7 +150,7 @@ class TestProcHelpers(unittest.TestCase):
         self.assertEqual(get_owner(-1), None)
 
     def test_username(self):
-        self.assertEqual(username(os.getuid()), os.getenv('USER'))
+        self.assertEqual(username(os.getuid()), getpass.getuser())
 
     def test_username_no_such_user(self):
         self.assertEqual(username(-1), '-1')
