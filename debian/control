@@ -20,7 +20,7 @@ Description: password-protected Apache virtual host with server information
  that shows:
    - contents of /root/Changelog
    - graphs for collectd
-   - open TCP ports
+   - open TCP and UDP ports
    - SSH host key fingerprints
    - disk usage treemaps (if configured)
  .

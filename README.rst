@@ -55,3 +55,6 @@ Usage with Python 3
 Exactly like the above, only replace the `apt-get install` line with ::
 
     apt-get install pov-update-server-page libapache2-mod-wsgi-py3 python3-mako
+
+This is needed when your Apache needs to use libapache2-mod-wsgi-py3, which
+conflicts with libapache2-mod-wsgi.
