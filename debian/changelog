@@ -1,3 +1,9 @@
+pov-server-page (0.34.1) UNRELEASED; urgency=medium
+
+  * Fix FTBFS.
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 17 Jan 2018 19:33:06 +0200
+
 pov-server-page (0.34.0) trusty; urgency=medium
 
   * Stricter Content-Security-Policy (base-uri, form-action, object-src).
