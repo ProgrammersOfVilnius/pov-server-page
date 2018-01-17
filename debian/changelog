@@ -1,3 +1,9 @@
+pov-server-page (1.0) UNRELEASED; urgency=medium
+
+  * Package the scripts inside a Python package.
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 17 Jan 2018 22:53:04 +0200
+
 pov-server-page (0.34.1) trusty; urgency=medium
 
   * Fix FTBFS.
