@@ -233,7 +233,7 @@ class TestWithFakeEnvironment(unittest.TestCase):
               <td class="public" title="::">tcp</td>
               <td class="public" title="::">80</td>
               <td class="text-nowrap">-</td>
-              <td class="text-nowrap public">apache2</td>
+              <td class="text-nowrap public" title="">apache2</td>
               <td><b>apache2</b></td>
             </tr>
           '''))

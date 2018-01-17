@@ -17,7 +17,7 @@ from collections import namedtuple, defaultdict
 from contextlib import contextmanager
 
 
-__version__ = '0.7.2'
+__version__ = '0.8.0'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -67,7 +67,7 @@ ROW_TEMPLATE = string.Template("""\
     <td class="${port_class}" title="${ips}">${proto}</td>
     <td class="${port_class}" title="${ips}">${port}</td>
     <td class="text-nowrap">${user}</td>
-    <td class="text-nowrap ${port_class}">${program}</td>
+    <td class="text-nowrap ${port_class}" title="${pids}">${program}</td>
     <td>${cmdline}</td>
   </tr>
 """)
@@ -234,7 +234,7 @@ def render_row(netstat_list):
     assert len(netstat_list) >= 1
     proto = netstat_list[0].proto
     port = netstat_list[0].port
-    pids = set(t.pid for t in netstat_list if t.pid is not None)
+    pids = sorted(set(t.pid for t in netstat_list if t.pid is not None))
     ips = set(t.ip for t in netstat_list if t.ip is not None)
     user = sorted(set(map(username, map(get_owner, pids)))) or '-'
     program = sorted(set(map(get_program, pids)))
@@ -249,7 +249,8 @@ def render_row(netstat_list):
         tr_class='system' if port < 1024 else 'user user%d' % (port // 1000),
         port_class='local' if all(is_loopback_ip(ip) for ip in ips) else 'public',
         ips=', '.join(sorted(ips)),
-        user='<p>'.join([escape(u) or '-' for u in user]),
+        user='<p>'.join(escape(u) or '-' for u in user),
+        pids=', '.join('pid %s' % pid for pid in pids),
         program='<p>'.join(program),
         cmdline='<p>'.join(commands),
     )
