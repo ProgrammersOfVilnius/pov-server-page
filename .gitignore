@@ -7,3 +7,4 @@ pkgbuild
 .coverage
 .tox/
 coverage.xml
+.coverage.*
