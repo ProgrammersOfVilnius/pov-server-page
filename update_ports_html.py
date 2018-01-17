@@ -92,7 +92,7 @@ def pipe(*command):
 def netstat():
     with pipe('netstat', '-tunlvp') as f:
         for line in f:
-            if line == 'Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name\n':
+            if line.rstrip() == 'Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name':
                 break
         for line in f:
             parts = line.split()
