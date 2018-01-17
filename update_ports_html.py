@@ -65,7 +65,7 @@ TEMPLATE = string.Template("""\
 ROW_TEMPLATE = string.Template("""\
   <tr class="${tr_class}">
     <td class="${port_class}" title="${ips}">${proto}</td>
-    <td class="${port_class}" title="${ips}">${port}</td>
+    <td class="${port_class}" title="${service}">${port}</td>
     <td class="text-nowrap">${user}</td>
     <td class="text-nowrap ${port_class}" title="${pids}">${program}</td>
     <td>${cmdline}</td>
@@ -230,6 +230,25 @@ def is_loopback_ip(ip):
     return ip == '::1' or ip.startswith('127.')
 
 
+def parse_services(filename='/etc/services'):
+    services = {}
+    with open(filename) as f:
+        for line in f:
+            parts = line.partition('#')[0].split()
+            if len(parts) >= 2:
+                key = parts[1]
+                primary = parts[0]
+                aliases = parts[2:]
+                services[key] = [primary] + aliases
+    return services
+
+
+def get_service_name(proto, port, _cache={}):
+    if 'services' not in _cache:
+        _cache['services'] = parse_services()
+    return '/'.join(_cache['services'].get('%s/%s' % (port, proto), []))
+
+
 def render_row(netstat_list):
     assert len(netstat_list) >= 1
     proto = netstat_list[0].proto
@@ -246,6 +265,7 @@ def render_row(netstat_list):
     return ROW_TEMPLATE.substitute(
         proto=proto,
         port=port,
+        service=get_service_name(proto, port),
         tr_class='system' if port < 1024 else 'user user%d' % (port // 1000),
         port_class='local' if all(is_loopback_ip(ip) for ip in ips) else 'public',
         ips=', '.join(sorted(ips)),
