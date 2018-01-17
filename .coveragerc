@@ -1,5 +1,5 @@
 [run]
-source = update_server_page,changelog2html,dudiff2html,update_ports_html
+source = pov_server_page
 cover_pylib = False
 
 [report]

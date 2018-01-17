@@ -29,7 +29,7 @@ webtreemap webtreemap-du:
 
 .PHONY: test
 test:
-	nosetests
+	tox -e py27 --devel
 
 .PHONY: check
 check: test check-version
@@ -39,7 +39,7 @@ coverage:
 	coverage erase
 	tox -e coverage,coverage3
 	coverage combine
-	coverage report -m
+	coverage report -m --fail-under=100
 
 .PHONY: diff-cover
 diff-cover: coverage

@@ -8,3 +8,4 @@ pkgbuild
 .tox/
 coverage.xml
 .coverage.*
+src/pov_server_page.egg-info/

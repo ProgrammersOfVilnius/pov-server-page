@@ -11,7 +11,7 @@ except ImportError:
 
 import mock
 
-from update_ports_html import (
+from pov_server_page.update_ports_html import (
     main, get_owner, username, get_argv, format_arg, get_program,
     get_html_cmdline, render_row, NetStatTuple,
 )
@@ -176,13 +176,14 @@ class TestWithFakeEnvironment(unittest.TestCase):
 
     def setUp(self):
         self.patch('subprocess.Popen', FakePopen)
-        self.patch('update_ports_html.open', fake_open)
+        self.patch('pov_server_page.update_ports_html.open', fake_open)
         self.stderr = self.patch('sys.stderr', StringIO())
 
     def patch(self, what, with_what):
         patcher = mock.patch(what, with_what)
+        retval = patcher.start()
         self.addCleanup(patcher.stop)
-        return patcher.start()
+        return retval
 
     def run_main(self, *args):
         orig_sys_argv = sys.argv
