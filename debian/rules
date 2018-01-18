@@ -10,7 +10,7 @@
 #export DH_VERBOSE=1
 
 export PYBUILD_NAME=pov_server_page
-export PYBUILD_OPTION=--test-nose
+export PYBUILD_TEST_NOSE=1
 export PYBUILD_AFTER_BUILD=make
 export PYBUILD_AFTER_INSTALL=rm -rf {destdir}/usr/bin {destdir}/{install_dir}/pov_server_page/static  {destdir}/{install_dir}/pov_server_page/templates
 
