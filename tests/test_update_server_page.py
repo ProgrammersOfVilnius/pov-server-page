@@ -695,6 +695,8 @@ class TestBuilderFileReadability(unittest.TestCase):
 
 class TestBuilderWithFilesystem(BuilderTests):
 
+    maxDiff = None
+
     def test_replace_file_with_explicit_marker(self):
         fn = os.path.join(self.tmpdir, 'subdir', 'file.txt')
         self.builder.replace_file(fn, b'@MARKER@', b'content with @MARKER@')
@@ -725,11 +727,13 @@ class TestBuilderWithFilesystem(BuilderTests):
         self.builder.vars['MOTD_FILE'] = '/dev/null'
         self.builder.file_readable_to = lambda f, u, g: True
         self.builder.build(verbose=True, quick=True)
-        self.assertEqual(
+        self.assertMultiLineEqual(
             self.stdout.getvalue().replace(self.tmpdir, '/var/www/frog.example.com'),
             "Created /var/www/frog.example.com/var/www/frog.example.com/frontpage.html\n"
             "Skipping /var/www/frog.example.com/var/www/frog.example.com/ports/index.html\n"
             "Created /var/www/frog.example.com/var/www/frog.example.com/ssh/index.html\n"
+            "Created /var/www/frog.example.com/var/www/frog.example.com/info/machine-summary.txt\n"
+            "Created /var/www/frog.example.com/var/www/frog.example.com/info/disk-inventory.txt\n"
             "Skipping /var/www/frog.example.com/var/www/frog.example.com/du\n"
             "Created /var/www/frog.example.com/var/log/apache2/frog.example.com/\n"
             "Created /var/www/frog.example.com/etc/apache2/sites-available/frog.example.com.conf\n"
