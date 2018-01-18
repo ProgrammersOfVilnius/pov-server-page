@@ -40,7 +40,9 @@ except ImportError:
 from mako.lookup import TemplateLookup
 
 
-debian_package = (__file__ == '/usr/sbin/pov-update-server-page')
+debian_package = (
+    __file__.startswith('/usr/lib/python') and 'dist-packages' in __file__
+)
 
 
 if debian_package:
