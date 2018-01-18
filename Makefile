@@ -33,7 +33,7 @@ test:
 	tox -e py27 --devel
 
 .PHONY: check
-check: test check-version
+check: test
 
 .PHONY: coverage
 coverage:
@@ -106,7 +106,7 @@ clean-build-tree:
 	(cd webtreemap-du && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap-du/ HEAD) | tar -xf -
 
 .PHONY: source-package
-source-package: check check-target clean-build-tree
+source-package: check check-target check-version clean-build-tree
 	cd pkgbuild/$(source) && debuild -S -i -k$(GPGKEY)
 	rm -rf pkgbuild/$(source)
 	@echo
@@ -137,4 +137,4 @@ pbuilder-test-build: source-package
 	# NB: you need to periodically run pbuilder-dist $(TARGET_DISTRO) update
 	pbuilder-dist $(TARGET_DISTRO) build pkgbuild/$(source)_$(version).dsc
 	@echo
-	@echo "Look for the package in ~/pbuilder/$(TARGET_DISTRO)/"
+	@echo "Built ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_all.deb"

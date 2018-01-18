@@ -1,4 +1,4 @@
-pov-server-page (1.0) UNRELEASED; urgency=medium
+pov-server-page (1.0) trusty; urgency=medium
 
   * Package the scripts inside a Python package.
   * Prefer Python 3 by default (Python 2 still works if you need it).
@@ -9,7 +9,7 @@ pov-server-page (1.0) UNRELEASED; urgency=medium
   * changelog2html 0.8:
     - no functional changes, just refactorings.
 
- -- Marius Gedminas <marius@gedmin.as>  Wed, 17 Jan 2018 22:53:04 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 18 Jan 2018 12:38:34 +0200
 
 pov-server-page (0.34.1) trusty; urgency=medium
 
