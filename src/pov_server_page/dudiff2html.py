@@ -49,7 +49,7 @@ def fmt(delta):
 def parse_dudiff(output):
     for line in output.splitlines():
         delta, location = line.split(None, 1)
-        yield DeltaRow(int(delta), location)
+        yield DeltaRow(int(delta), location.decode('UTF-8', 'replace'))
 
 
 class Response(object):

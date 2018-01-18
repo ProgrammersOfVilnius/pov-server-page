@@ -3,7 +3,10 @@ pov-server-page (1.0) UNRELEASED; urgency=medium
   * Package the scripts inside a Python package.
   * Prefer Python 3 by default (Python 2 still works if you need it).
   * dudiff2html 0.4:
-    - can serve plaintext diffs if you add .txt to the URL.
+    - can serve plaintext diffs if you add .txt to the URL,
+    - fixes internal server error due to non-ASCII filenames (GH: #26).
+  * changelog2html 0.8:
+    - no functional changes, just refactorings.
 
  -- Marius Gedminas <marius@gedmin.as>  Wed, 17 Jan 2018 22:53:04 +0200
 

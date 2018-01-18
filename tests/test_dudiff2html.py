@@ -2,7 +2,6 @@ import os
 import shutil
 import tempfile
 import unittest
-import textwrap
 
 try:
     from cStringIO import StringIO
@@ -59,10 +58,10 @@ class TestParseDuDiff(TestCase):
 
     def test(self):
         self.assertEqual(
-            list(d2h.parse_dudiff(textwrap.dedent('''\
-                -12345\t/foo
-                23456\t/bar
-            '''))),
+            list(d2h.parse_dudiff(
+                b'-12345\t/foo\n'
+                b'23456\t/bar\n'
+            )),
             [
                 d2h.DeltaRow(-12345, '/foo'),
                 d2h.DeltaRow(23456, '/bar'),
@@ -75,8 +74,8 @@ class TestParseDuDiff(TestCase):
                 b'23456\t/bar\n'
             )),
             [
-                d2h.DeltaRow(-12345, b'/foo\xff'),
-                d2h.DeltaRow(23456, b'/bar'),
+                d2h.DeltaRow(-12345, u'/foo\ufffd'),
+                d2h.DeltaRow(23456, u'/bar'),
             ])
 
 
@@ -129,10 +128,10 @@ class TestRenderDuDiff(TestCase):
             self.dir = os.path.join(tmpdir, 'dir')
             os.mkdir(self.dir)
 
-    def create_fake_file(self, date):
+    def create_fake_file(self, date, data=b'42 /dir\n'):
         self.create_dir()
-        with open(os.path.join(self.dir, 'du-%s.gz' % date), 'w') as f:
-            f.write('42 /dir\n')
+        with open(os.path.join(self.dir, 'du-%s.gz' % date), 'wb') as f:
+            f.write(data)
 
     def render(self, *args):
         return d2h.render_du_diff(self.environ, *args)
@@ -163,6 +162,15 @@ class TestRenderDuDiff(TestCase):
         self.create_fake_file('2016-02-03')
         self.create_fake_file('2016-02-04')
         response = self.render('dir', '2016-02-03', '2016-02-04')
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(response.headers['Content-Type'], 'text/html; charset=UTF-8')
+
+    def test_non_ascii(self):
+        self.create_fake_file('2016-02-03', data=b'42 /dir\xc3\xbf')
+        self.create_fake_file('2016-02-04', data=b'43 /dir\xc3\xff')
+        d2h.DU_DIFF_SCRIPT = 'cat'  # diff doesn't like .gz files with binary data ;)
+        response = self.render('dir', '2016-02-03', '2016-02-04')
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(response.status, '200 OK')
         self.assertEqual(response.headers['Content-Type'], 'text/html; charset=UTF-8')
 
