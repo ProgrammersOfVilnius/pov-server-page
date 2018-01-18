@@ -2,6 +2,8 @@
 
 set -e
 
+#DEBHELPER#
+
 if [ "$1" = configure ]; then
     pov-update-server-page -q && invoke-rc.d apache2 reload || true
 fi

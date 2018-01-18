@@ -17,15 +17,16 @@ except ImportError:
 
 import mock
 
-import changelog2html as c2h
+import pov_server_page.changelog2html as c2h
 
 
 class TestCase(unittest.TestCase):
 
     def patch(self, *args, **kw):
         patcher = mock.patch(*args, **kw)
+        retval = patcher.start()
         self.addCleanup(patcher.stop)
-        return patcher.start()
+        return retval
 
     def mkdtemp(self):
         tmpdir = tempfile.mkdtemp(prefix='changelog2html-test-')
@@ -558,8 +559,8 @@ class PageTestCase(TestCase):
     motd_text = "Welcome to example.com!\n"
 
     def setUp(self):
-        self.patch('changelog2html.get_changelog', self.get_changelog)
-        self.patch('changelog2html.get_motd', self.get_motd)
+        self.patch('pov_server_page.changelog2html.get_changelog', self.get_changelog)
+        self.patch('pov_server_page.changelog2html.get_motd', self.get_motd)
 
     def get_changelog(self, filename):
         assert filename == 'testlog'

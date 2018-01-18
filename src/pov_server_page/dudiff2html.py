@@ -235,7 +235,7 @@ except ImportError:
 def reloading_wsgi_app(environ, start_response):
     # Horrible hack that gives me a fast development loop: reload the code on
     # every request!
-    import dudiff2html
+    from . import dudiff2html
     reload(dudiff2html)
     return dudiff2html.wsgi_app(environ, start_response)
 

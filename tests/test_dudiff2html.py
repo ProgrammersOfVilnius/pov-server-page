@@ -11,15 +11,16 @@ except ImportError:
 
 import mock
 
-import dudiff2html as d2h
+import pov_server_page.dudiff2html as d2h
 
 
 class TestCase(unittest.TestCase):
 
     def patch(self, *args, **kw):
         patcher = mock.patch(*args, **kw)
+        retval = patcher.start()
         self.addCleanup(patcher.stop)
-        return patcher.start()
+        return retval
 
     def mkdtemp(self):
         tmpdir = tempfile.mkdtemp(prefix='dudiff2html-test-')

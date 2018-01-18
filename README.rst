@@ -43,18 +43,8 @@ Usage
     pov-update-server-page -v
       # this prints what it does and then tells you what you should do,
       # which is basically
-    a2enmod rewrite ssl wsgi cgid
+    a2enmod rewrite ssl wsgi cgid headers
     a2ensite $(hostname -f).conf
     htpasswd -c ...
     service apache2 reload
 
-
-Usage with Python 3
--------------------
-
-Exactly like the above, only replace the `apt-get install` line with ::
-
-    apt-get install pov-update-server-page libapache2-mod-wsgi-py3 python3-mako
-
-This is needed when your Apache needs to use libapache2-mod-wsgi-py3, which
-conflicts with libapache2-mod-wsgi.

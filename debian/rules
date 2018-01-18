@@ -9,8 +9,22 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-%:
-	dh $@
+export PYBUILD_NAME=pov_server_page
+export PYBUILD_OPTION=--test-nose
+export PYBUILD_AFTER_BUILD=make
+export PYBUILD_AFTER_INSTALL=rm -rf {destdir}/usr/bin {destdir}/{install_dir}/pov_server_page/static  {destdir}/{install_dir}/pov_server_page/templates
 
-override_dh_auto_test:
-	# skip tests because python-mock in precise is too old
+# not sure why this isn't set for me already
+export DESTDIR=debian/pov-server-page
+
+%:
+	dh $@ --with python2,python3 --buildsystem=pybuild
+
+override_dh_install:
+	dh_install
+	cd $(DESTDIR)/usr/lib/pov-server-page && \
+	    mv du2webtreemap.py du2webtreemap && \
+	    rm pov-update-server-page
+
+override_dh_installcron:
+	dh_installcron --name=pov-update-server-page

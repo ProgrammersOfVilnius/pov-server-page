@@ -1,3 +1,10 @@
+pov-server-page (1.0) UNRELEASED; urgency=medium
+
+  * Package the scripts inside a Python package.
+  * Prefer Python 3 by default (Python 2 still works if you need it).
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 17 Jan 2018 22:53:04 +0200
+
 pov-server-page (0.34.1) trusty; urgency=medium
 
   * Fix FTBFS.
@@ -7,7 +14,7 @@ pov-server-page (0.34.1) trusty; urgency=medium
 pov-server-page (0.34.0) trusty; urgency=medium
 
   * Stricter Content-Security-Policy (base-uri, form-action, object-src).
-  * Run pov-update-server-page --quick from /etc/cron.hourl (GH: #10).
+  * Run pov-update-server-page --quick from /etc/cron.hourly (GH: #10).
   * update-ports 0.8.0:
     - show PID in a tooltip (GH: #22),
     - show service name in a tooltip (GH: #22).

@@ -1,0 +1,5 @@
+#!/usr/bin/python3
+from pov_server_page.dudiff2html import application, main  # noqa
+
+if __name__ == '__main__':
+    main()

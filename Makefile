@@ -29,7 +29,7 @@ webtreemap webtreemap-du:
 
 .PHONY: test
 test:
-	nosetests
+	tox -e py27 --devel
 
 .PHONY: check
 check: test check-version
@@ -39,7 +39,7 @@ coverage:
 	coverage erase
 	tox -e coverage,coverage3
 	coverage combine
-	coverage report -m
+	coverage report -m --fail-under=100
 
 .PHONY: diff-cover
 diff-cover: coverage
@@ -76,25 +76,6 @@ check-target:
 update-target:
 	dch -r -D $(TARGET_DISTRO) ""
 
-.PHONY: install
-install:
-	install -m 644 server-page.conf $(DESTDIR)/etc/pov/server-page.conf
-	install update_server_page.py $(DESTDIR)/usr/sbin/pov-update-server-page
-	install update_ports_html.py $(DESTDIR)/usr/lib/pov-server-page/update-ports
-	install changelog2html.py $(DESTDIR)/usr/lib/pov-server-page/changelog2html
-	install dudiff2html.py $(DESTDIR)/usr/lib/pov-server-page/dudiff2html
-	install collection.cgi $(DESTDIR)/usr/lib/pov-server-page/collection.cgi
-	install webtreemap-du/du2webtreemap.py $(DESTDIR)/usr/lib/pov-server-page/du2webtreemap
-	install -m 644 webtreemap/webtreemap.css $(DESTDIR)/usr/share/pov-server-page/webtreemap/
-	install -m 644 webtreemap/webtreemap.js $(DESTDIR)/usr/share/pov-server-page/webtreemap/
-	cd templates/ && for f in *.in; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/; done
-	cd static/css && for f in *.css *.map; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/static/css/; done
-	cd static/fonts && for f in *.eot *.svg *.ttf *.woff *.woff2; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/static/fonts/; done
-	cd static/js && for f in *.js; do install -m 644 $$f $(DESTDIR)/usr/share/pov-server-page/static/js/; done
-	install cron_daily.sh $(DESTDIR)/etc/cron.daily/pov-update-server-page
-	install cron_hourly.sh $(DESTDIR)/etc/cron.hourly/pov-update-server-page
-
-
 VCS_STATUS = git status --porcelain
 
 .PHONY: clean-build-tree
@@ -114,6 +95,9 @@ clean-build-tree:
 .PHONY: source-package
 source-package: check check-target clean-build-tree
 	cd pkgbuild/$(source) && debuild -S -i -k$(GPGKEY)
+	rm -rf pkgbuild/$(source)
+	@echo
+	@echo "Built pkgbuild/$(source)_$(version)_source.changes"
 
 .PHONY: upload-to-ppa release
 release upload-to-ppa: source-package
@@ -125,6 +109,7 @@ release upload-to-ppa: source-package
 .PHONY: binary-package
 binary-package: clean-build-tree
 	cd pkgbuild/$(source) && debuild -i -k$(GPGKEY)
+	rm -rf pkgbuild/$(source)
 	@echo
 	@echo "Built pkgbuild/$(source)_$(version)_all.deb"
 

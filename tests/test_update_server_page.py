@@ -17,7 +17,7 @@ except ImportError:
 
 import mock
 
-from update_server_page import (
+from pov_server_page.update_server_page import (
     Builder, Error, newer, mkdir_with_parents, symlink, replace_file,
     pipeline, HTML_MARKER, CHANGELOG2HTML_SCRIPT, main, get_fqdn,
 )
@@ -31,8 +31,9 @@ class FilesystemTests(unittest.TestCase):
 
     def patch(self, *args, **kw):
         patcher = mock.patch(*args, **kw)
+        retval = patcher.start()
         self.addCleanup(patcher.stop)
-        return patcher.start()
+        return retval
 
     def raise_oserror(self, *args):
         raise OSError(errno.EACCES, 'cannot access parent directory')
@@ -182,7 +183,7 @@ class TestReplaceFile(FilesystemTests):
 
     def test_replace_file_error(self):
         fn = os.path.join(self.tmpdir, 'file.txt')
-        with mock.patch('update_server_page.open', self.raise_ioerror):
+        with mock.patch('pov_server_page.update_server_page.open', self.raise_ioerror):
             with self.assertRaises(IOError):
                 replace_file(fn, b'@MARKER@', b'New contents (with @MARKER@)')
 
@@ -469,8 +470,8 @@ class TestDiskUsageBuilder(BuilderTests):
         Builder.DiskUsage().build(self.tmpdir, self.builder)
         self.assertEqual(self.stdout.getvalue(), "Skipping disk usage\n")
 
-    @mock.patch('update_server_page.pipeline')
-    @mock.patch('update_server_page.newer')
+    @mock.patch('pov_server_page.update_server_page.pipeline')
+    @mock.patch('pov_server_page.update_server_page.newer')
     @mock.patch('os.path.exists')
     def test_build_up_to_date(self, mock_exists, mock_newer, mock_pipeline):
         mock_exists.return_value = True
@@ -489,7 +490,7 @@ class TestDiskUsageBuilder(BuilderTests):
         self.assertEqual(mock_pipeline.call_count, 0)
 
     @mock.patch('time.strftime', lambda fmt: '2015-11-01')
-    @mock.patch('update_server_page.pipeline')
+    @mock.patch('pov_server_page.update_server_page.pipeline')
     @mock.patch('os.path.exists')
     def test_build_fresh(self, mock_exists, mock_pipeline):
         mock_exists.return_value = False
@@ -704,7 +705,7 @@ class TestBuilderWithFilesystem(BuilderTests):
         self.assertEqual(self.stdout.getvalue(),
                          "Created %s/subdir/file.txt\n" % self.tmpdir)
 
-    @mock.patch('update_server_page.replace_file', lambda d, m, n: True)
+    @mock.patch('pov_server_page.update_server_page.replace_file', lambda d, m, n: True)
     def test_replace_file_apache_reload(self):
         self.builder.replace_file('/etc/apache2/test.conf', b'@MARKER@', b'content')
         self.assertTrue(self.builder.needs_apache_reload)

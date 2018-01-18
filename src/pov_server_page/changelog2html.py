@@ -1033,7 +1033,7 @@ except ImportError:
 def reloading_wsgi_app(environ, start_response):
     # Horrible hack that gives me a fast development loop: reload the code on
     # every request!
-    import changelog2html
+    from . import changelog2html
     reload(changelog2html)
     environ['_ALLOW_STATIC_FILES'] = True
     return changelog2html.wsgi_app(environ, start_response)
