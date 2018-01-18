@@ -74,8 +74,9 @@ else:
     UPDATE_PORTS_SCRIPT = os.path.join(here, 'update_ports_html.py')
     CHANGELOG2HTML_SCRIPT = os.path.join(here, 'changelog2html.py')
     DUDIFF2HTML_SCRIPT = os.path.join(here, 'dudiff2html.py')
-    DU2WEBTREEMAP = os.path.join(here, 'webtreemap-du', 'du2webtreemap.py')
-    WEBTREEMAP = os.path.join(here, 'webtreemap')
+    root = os.path.dirname(os.path.dirname(here))
+    DU2WEBTREEMAP = os.path.join(root, 'webtreemap-du', 'du2webtreemap.py')
+    WEBTREEMAP = os.path.join(root, 'webtreemap')
 
 
 def get_fqdn():
@@ -165,8 +166,9 @@ def replace_file(filename, marker, new_contents):
         else:
             raise
     mkdir_with_parents(os.path.dirname(filename))
-    with open(filename, 'wb') as f:
+    with open(filename + '.tmp', 'wb') as f:
         f.write(new_contents)
+    os.rename(filename + '.tmp', filename)
     return True
 
 
@@ -388,8 +390,9 @@ class Builder(object):
                         print('Creating %s' % du_file)
                     mkdir_with_parents(datadir)
                     started = time.time()
-                    with open(du_file, 'wb') as f:
+                    with open(du_file + ".tmp", 'wb') as f:
                         pipeline(['du', '-x', location], ['gzip'], stdout=f)
+                    os.rename(du_file + '.tmp', du_file)
                     duration = time.time() - started
                     need_build = True
                 else:
@@ -398,11 +401,12 @@ class Builder(object):
                 if need_build:
                     if builder.verbose:
                         print('Creating %s' % js_file)
-                    with open(js_file, 'w') as f:
+                    with open(js_file + ".tmp", 'w') as f:
                         pipeline(['zcat', du_file], [DU2WEBTREEMAP], stdout=f)
                         timestamp = time.strftime('%Y-%m-%d %H:%M:%S %z')
                         f.write('\nvar last_updated = "%s";\n' % timestamp)
                         f.write('var duration = "%.0f";\n' % duration)
+                    os.rename(js_file + ".tmp", js_file)
                 snapshots = [
                     os.path.basename(fn)[len('du-'):-len('.gz')]
                     for fn in sorted(self.find_old_files(datadir), reverse=True)
