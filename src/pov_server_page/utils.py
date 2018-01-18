@@ -1,7 +1,90 @@
 import linecache
+import re
 import sys
+import cgi
 
 import mako.exceptions
+
+
+#
+# ANSI to HTML colorizer
+#
+
+# CSI: starts with ESC [, followed optionally by a ?, followed by up to 16
+# decimal parameters separated by semicolons, followed by a single character
+# (usually a lowercase or uppercase letter, but could be @ or `).
+ANSI_RX = re.compile(r'(\033\[\??(?:\d+(?:;\d+)*)?.)')
+
+
+COLORS = [
+    # Tango colors 0..15
+    '#000000',
+    '#cc0000',
+    '#4d9a05',
+    '#c3a000',
+    '#3464a3',
+    '#754f7b',
+    '#05979a',
+    '#d3d6cf',
+    '#545652',
+    '#ef2828',
+    '#89e234',
+    '#fbe84f',
+    '#729ecf',
+    '#ac7ea8',
+    '#34e2e2',
+    '#ededeb',
+] + [
+    # 6x6x6 color cube
+    '#%02x%02x%02x' % (r, g, b)
+    for r in [0] + list(range(95, 256, 40))
+    for g in [0] + list(range(95, 256, 40))
+    for b in [0] + list(range(95, 256, 40))
+] + [
+    # 24 greyscale levels
+    '#%02x%02x%02x' % (l, l, l)
+    for l in range(8, 248, 10)
+]
+
+
+def ansi2html(text):
+    parts = []
+    pending = []
+
+    def fg(color_index):
+        parts.extend(pending)
+        parts.append(u'<span style="color: %s">' % COLORS[color_index])
+        pending[:] = u'</span>'
+
+    for bit in re.split(ANSI_RX, cgi.escape(text)):
+        if not bit.startswith(u'\033'):
+            parts.append(bit)
+        elif bit.endswith(u'm'):
+            numbers = [int(n) for n in bit.strip(u'\033[?m').split(';') if n]
+            # this handles just a subset of the allowed color sequences; e.g.
+            # it would ignore ESC [ 35;48 m which tries to set fg and bg colors
+            # in one go
+            if len(numbers) == 3 and numbers[:2] == [38, 5] and 0 <= numbers[2] <= 255:
+                # 256-color code for foreground
+                fg(numbers[2])
+            elif len(numbers) == 2 and numbers[0] == 1 and 30 <= numbers[1] <= 37:
+                # bold foreground color
+                fg(8 + numbers[1] - 30)
+            elif len(numbers) == 2 and numbers[0] == 0 and 30 <= numbers[1] <= 37:
+                # regular foreground color
+                fg(numbers[1] - 30)
+            elif len(numbers) == 1 and 90 <= numbers[0] <= 97:
+                # high-intensity foreground color
+                fg(8 + numbers[0] - 90)
+            elif len(numbers) == 1 and 30 <= numbers[0] <= 37:
+                # regular foreground color
+                fg(numbers[0] - 30)
+            elif numbers == [0] or not numbers:
+                # reset
+                parts.extend(pending)
+                del pending[:]
+    parts += pending
+    return u''.join(parts)
 
 
 #
