@@ -12,7 +12,7 @@ Homepage: https://github.com/ProgrammersOfVilnius/pov-server-page
 
 Package: pov-server-page
 Architecture: all
-Depends: apache2, libapache2-mod-wsgi | libapache2-mod-wsgi-py3, collectd-core,
+Depends: apache2, libapache2-mod-wsgi-py3 | libapache2-mod-wsgi, collectd-core,
  ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
  ${python:Depends}, ${python3:Depends}, ${misc:Depends}
 Recommends: apache2-utils
