@@ -11,18 +11,28 @@ This is a collection of scripts:
 - update_ports_html.py -- a standalone script that generates
   the list of open network ports (not CGI/WSGI because it runs as root
   to get all the desired information)
-- cron_daily.sh -- a cron script that runs pov-update-server-page every day
-- cron_hourly.sh -- a cron script that runs pov-update-server-page -q every hour
 - update_server_page.py -- the main pov-update-server-page script
   that generates the Apache configuration, static HTML files in /var/www,
   and computes daily disk usage.
 
+The Python scripts live in src/pov_server_page/.  The Perl CGI script
+lives at the root, because I don't know where else to stash it.
 
-dudiff2html
-===========
 
-Testing manually
-----------------
+Testing changelog2html manually
+-------------------------------
+
+Run ::
+
+    PYTHONPATH=src python -m pov_server_page.changelog2html
+
+then browse http://localhost:8080.
+
+You can pass ``--help`` to see the options accepted by the script.
+
+
+Testing dudiff2html manually
+----------------------------
 
 Suppose you're looking at a du-diff page and want to fix something in it.
 Assume https://example.com/du/diff/backup/2016-02-16..2016-03-14 is the URL.
@@ -33,7 +43,7 @@ Then you can ::
     wget https://example.com/du/backup/du-2016-02-16.gz
     wget https://example.com/du/backup/du-2016-03-14.gz
     cd ~/src/pov-server-page/
-    ./dudiff2html.py /tmp/du
+    PYTHONPATH=src python -m pov_server_page.dudiff2html /tmp/du
     # now open http://localhost:8080/backup/2016-02-16..2016-03-14
 
 Replace "example.com" with the real server name, and "backup" with the
@@ -44,3 +54,23 @@ because of HTTP auth.
 When you run dudiff2html.py manually this way, it reloads its own source
 code on every request, so you can edit the code and reload the browser
 page for a quick development loop.
+
+You can pass ``--help`` to see the options accepted by the script.
+
+
+Testing update_ports_html manually
+----------------------------------
+
+Run ::
+
+    PYTHONPATH=src python -m pov_server_page.update_ports_html -o ports.html
+
+
+Testing update_server_page manually
+-----------------------------------
+
+Run ::
+
+    PYTHONPATH=src python -m pov_server_page.update_server_page enabled=1 --destdir=/tmp/test/ -v
+
+then look at the files in /tmp/test/.
