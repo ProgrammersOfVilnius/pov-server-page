@@ -12,6 +12,8 @@ from collections import namedtuple
 
 import mako.template
 
+from .utils import mako_error_handler
+
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 __version__ = '0.4'
@@ -66,6 +68,7 @@ def not_found():
 
 def Template(*args, **kw):
     return mako.template.Template(
+        error_handler=mako_error_handler,
         strict_undefined=True,
         default_filters=['unicode', 'h'],
         *args, **kw)
