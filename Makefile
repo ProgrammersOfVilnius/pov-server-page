@@ -95,6 +95,9 @@ clean-build-tree:
 .PHONY: source-package
 source-package: check check-target clean-build-tree
 	cd pkgbuild/$(source) && debuild -S -i -k$(GPGKEY)
+	rm -rf pkgbuild/$(source)
+	@echo
+	@echo "Built pkgbuild/$(source)_$(version)_source.changes"
 
 .PHONY: upload-to-ppa release
 release upload-to-ppa: source-package
@@ -106,6 +109,7 @@ release upload-to-ppa: source-package
 .PHONY: binary-package
 binary-package: clean-build-tree
 	cd pkgbuild/$(source) && debuild -i -k$(GPGKEY)
+	rm -rf pkgbuild/$(source)
 	@echo
 	@echo "Built pkgbuild/$(source)_$(version)_all.deb"
 
