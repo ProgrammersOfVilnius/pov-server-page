@@ -12,7 +12,7 @@
 export PYBUILD_NAME=pov_server_page
 export PYBUILD_OPTION=--test-nose
 export PYBUILD_AFTER_BUILD=make
-export PYBUILD_AFTER_INSTALL=rm -r {destdir}/usr/bin/pov-update-server-page {destdir}/{install_dir}/pov_server_page/static  {destdir}/{install_dir}/pov_server_page/templates
+export PYBUILD_AFTER_INSTALL=rm -rf {destdir}/usr/bin {destdir}/{install_dir}/pov_server_page/static  {destdir}/{install_dir}/pov_server_page/templates
 
 # not sure why this isn't set for me already
 export DESTDIR=debian/pov-server-page

@@ -41,9 +41,4 @@ setup(
             'mock',
         ],
     },
-    entry_points={
-        'console_scripts': [
-            'pov-update-server-page = pov_server_page.update_server_page:main',
-        ],
-    },
 )
