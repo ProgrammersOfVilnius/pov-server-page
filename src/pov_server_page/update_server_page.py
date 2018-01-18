@@ -6,13 +6,12 @@ Reads a configuration file (/etc/pov/server-page.conf by default) and creates
 an Apache vhost in /etc/apache2/sites-enabled/{hostname}.conf, as well as a
 static website in /var/www/{hostname}.
 
-For full setup you also need to create the directory for Apache logs, enable
-mod_rewrite, mod_ssl, make sure your Apache is listening on port 443, set up an
-SSL certificate, set up a password file with htpasswd, enable the site with
-a2ensite and restart Apache::
+For full setup you also need to emable some Apache modules, make sure your
+Apache is listening on port 443, set up an SSL certificate, set up a password
+file with htpasswd, enable the site with a2ensite and restart Apache::
 
     htpasswd -c /etc/pov/fridge.passwd username
-    a2enmod ssl rewrite
+    a2enmod rewrite ssl wsgi cgid headers
     # skipping SSL cert setup: too long
     a2ensite $(hostname -f).conf
     service apache2 reload
@@ -44,7 +43,7 @@ from .utils import ansi2html
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.0'
+__version__ = '1.1.dev0'
 __date__ = '2018-01-18'
 
 
