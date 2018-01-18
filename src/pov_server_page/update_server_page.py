@@ -42,6 +42,7 @@ except ImportError:
 from mako.lookup import TemplateLookup
 
 from .utils import ansi2html
+from . import update_ports_html
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
@@ -309,6 +310,12 @@ class Builder(object):
             else:
                 builder.replace_file(filename, self.marker, new_contents)
 
+    class Ports(object):
+        def build(self, filename, builder):
+            mapping = update_ports_html.get_port_mapping()
+            new_contents = update_ports_html.render_html(mapping, hostname=builder.vars['HOSTNAME'])
+            builder.replace_file(filename, HTML_MARKER, new_contents.encode('UTF-8'))
+
     class DiskUsage(object):
         @staticmethod
         def location_name(location):
@@ -485,7 +492,7 @@ class Builder(object):
         ('/var/www/{HOSTNAME}/index.html',
          Template('index.html.in', HTML_MARKER)),
         ('/var/www/{HOSTNAME}/ports/index.html',
-         ScriptOutput('{UPDATE_PORTS_SCRIPT} -H {HOSTNAME} -o /dev/stdout')),
+         Ports()),
         ('/var/www/{HOSTNAME}/ssh/index.html',
          Template('ssh.html.in', HTML_MARKER)),
         ('/var/www/{HOSTNAME}/info/machine-summary.txt',

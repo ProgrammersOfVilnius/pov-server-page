@@ -17,7 +17,7 @@ from collections import namedtuple, defaultdict
 from contextlib import contextmanager
 
 
-__version__ = '0.8.0'
+__version__ = '0.9.0'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -219,10 +219,18 @@ def get_html_cmdline(pid, unknown='-'):
     return ' '.join(args)
 
 
-def get_port_mapping(netstat_data):
+def parse_port_mapping(netstat_data):
     mapping = defaultdict(list)
     for data in netstat_data:
         mapping[data.proto, data.port].append(data)
+    return mapping
+
+
+def get_port_mapping():
+    mapping = parse_port_mapping(netstat())
+    if ('tcp', 111) in mapping: # portmap is used
+        portmap_data = list(rpcinfo_dump())
+        merge_portmap_data(mapping, portmap_data, open_ports_only=False)
     return mapping
 
 
@@ -307,10 +315,7 @@ def main():
     if args:
         parser.error('unexpected arguments')
     output = opts.output.replace('${hostname}', opts.hostname)
-    mapping = get_port_mapping(netstat())
-    if ('tcp', 111) in mapping: # portmap is used
-        portmap_data = list(rpcinfo_dump())
-        merge_portmap_data(mapping, portmap_data, open_ports_only=False)
+    mapping = get_port_mapping()
     render_file(mapping, output=output, hostname=opts.hostname)
 
 
