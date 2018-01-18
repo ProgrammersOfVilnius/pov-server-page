@@ -15,7 +15,7 @@ Architecture: all
 Depends: apache2, libapache2-mod-wsgi-py3 | libapache2-mod-wsgi, collectd-core,
  ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
  ${python:Depends}, ${python3:Depends}, ${misc:Depends}
-Recommends: apache2-utils
+Recommends: apache2-utils, pov-admin-tools
 Suggests: collectd
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.

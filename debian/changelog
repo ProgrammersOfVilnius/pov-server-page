@@ -1,3 +1,9 @@
+pov-server-page (1.1) UNRELEASED; urgency=medium
+
+  * Added pov-admin-tools to Recommends (for the dudiff script).
+
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 18 Jan 2018 13:21:06 +0200
+
 pov-server-page (1.0) trusty; urgency=medium
 
   * Package the scripts inside a Python package.
