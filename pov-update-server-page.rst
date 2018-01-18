@@ -200,6 +200,10 @@ The following options are defined:
           SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
           SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
 
+**motd_file** (default: /etc/motd)
+
+    File to display at the top of the index page.
+
 **extra_links** (default: empty)
 
     A list of additional links to include on the front page.  Separate the

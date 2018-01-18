@@ -21,6 +21,7 @@ a2ensite and restart Apache::
 
 import datetime
 import errno
+import io
 import glob
 import grp
 import optparse
@@ -38,6 +39,8 @@ except ImportError:
 
 
 from mako.lookup import TemplateLookup
+
+from .utils import ansi2html
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
@@ -198,6 +201,7 @@ class Builder(object):
         ENABLED=False,
         HOSTNAME=get_fqdn(),
         SERVER_ALIASES='',
+        MOTD_FILE='/etc/motd',
         LOOPBACK_ONLY=False,
         HTTP_PORT=80,
         HTTPS_PORT=443,
@@ -518,8 +522,16 @@ class Builder(object):
                                                        'www-data',
                                                        'www-data')
         self.vars['DUDIFF2HTML_SCRIPT'] = DUDIFF2HTML_SCRIPT
+        self.vars['MOTD'] = self.get_motd(self.vars['MOTD_FILE'])
         if self.verbose and not self.vars['CHANGELOG']:
             print("Skipping changelog view since /root/Changelog is not readable by user www-data")
+
+    def get_motd(self, filename):
+        try:
+            with io.open(filename, encoding='UTF-8', errors='replace') as f:
+                return ansi2html(f.read()).rstrip()
+        except IOError:
+            return None
 
     def file_readable_to(self, filename, user, group):
         try:

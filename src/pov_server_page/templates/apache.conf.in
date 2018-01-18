@@ -99,6 +99,9 @@
   WSGIScriptAlias /changelog ${CHANGELOG2HTML_SCRIPT}
   <Location /changelog>
     SetEnv HOSTNAME "${HOSTNAME}"
+% if MOTD_FILE != "/etc/motd":
+    SetEnv MOTD_FILE "${MOTD_FILE}"
+% endif
     Header always set Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'self'; object-src 'none'; block-all-mixed-content"
   </Location>
 

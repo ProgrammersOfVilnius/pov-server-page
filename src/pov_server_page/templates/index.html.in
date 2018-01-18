@@ -13,6 +13,10 @@
   <body>
     <h1>${HOSTNAME}</h1>
 
+% if MOTD:
+    <pre class="motd">${MOTD}</pre>
+% endif
+
     <ul class="nav nav-pills nav-stacked">
 % if CHANGELOG:
       <li><a href="changelog">Changelog</a></li>

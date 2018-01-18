@@ -551,6 +551,14 @@ class TestBuilderParseHelpers(unittest.TestCase):
         self.assertEqual(parse_map("a = b\nc = d"), {'a': 'b', 'c': 'd'})
 
 
+class TestBuilderMotd(unittest.TestCase):
+
+    def test_get_motd(self):
+        get_motd = Builder().get_motd
+        self.assertEqual(get_motd("/dev/null"), "")
+        self.assertIsNone(get_motd("/no-such-file"))
+
+
 class TestBuilderWithStdout(unittest.TestCase):
 
     def setUp(self):
@@ -714,6 +722,7 @@ class TestBuilderWithFilesystem(BuilderTests):
         self.builder.vars['SKIP'] = '{tmpdir}/var/www/frog.example.com/du\n{tmpdir}/var/www/frog.example.com/ports/index.html'.format(tmpdir=self.tmpdir)
         self.builder.vars['REDIRECT'] = '{tmpdir}/var/www/frog.example.com/index.html = {tmpdir}/var/www/frog.example.com/frontpage.html'.format(tmpdir=self.tmpdir)
         self.builder.vars['DISK_USAGE'] = 'all'
+        self.builder.vars['MOTD_FILE'] = '/dev/null'
         self.builder.file_readable_to = lambda f, u, g: True
         self.builder.build(verbose=True, quick=True)
         self.assertEqual(
