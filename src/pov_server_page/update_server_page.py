@@ -40,6 +40,11 @@ except ImportError:
 from mako.lookup import TemplateLookup
 
 
+__author__ = 'Marius Gedminas <marius@gedmin.as>'
+__version__ = '1.0'
+__date__ = '2018-01-18'
+
+
 debian_package = (
     __file__.startswith('/usr/lib/python') and 'dist-packages' in __file__
 )
@@ -59,7 +64,7 @@ if debian_package:
 else:
     # running from source checkout
     here = os.path.abspath(os.path.dirname(__file__))
-    DEFAULT_CONFIG_FILE = 'server-page.conf'
+    DEFAULT_CONFIG_FILE = './server-page.conf'
     DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
     TEMPLATE_DIR = os.path.join(here, 'templates')
     COLLECTION_CGI = os.path.join(here, 'collection.cgi')
@@ -613,7 +618,7 @@ def main():
     # Command-line options
     description = "Generate Apache configuration for a server page"
     parser = optparse.OptionParser('usage: %prog [options] [var=value ...]',
-                                   description=description)
+                                   description=description, version=__version__)
     parser.add_option('-v', '--verbose', action='store_true',
                       help="show what is happening")
     parser.add_option('-q', '--quick', action='store_true', default=False,
@@ -622,7 +627,8 @@ def main():
                       help="don't check system configuration"
                            " (suppresses 'Please run ...' suggestions)",
                       default=True)
-    parser.add_option('-c', '--config-file', default=DEFAULT_CONFIG_FILE)
+    parser.add_option('-c', '--config-file', default=DEFAULT_CONFIG_FILE,
+                      help='configuration file location (default: %default)')
     parser.add_option('--destdir', default='',
                       help='prepend DESTDIR/ in front of all created files'
                            ' (for testing)')

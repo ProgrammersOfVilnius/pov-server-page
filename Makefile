@@ -4,6 +4,7 @@ date := $(shell dpkg-parsechangelog | grep ^Date: | cut -d: -f 2- | date --date=
 target_distribution := $(shell dpkg-parsechangelog | awk '$$1 == "Distribution:" { print $$2 }')
 
 manpage = pov-update-server-page.rst
+mainscript = src/pov_server_page/update_server_page.py
 
 # change this to the lowest supported Ubuntu LTS
 TARGET_DISTRO := trusty
@@ -48,13 +49,23 @@ diff-cover: coverage
 
 .PHONY: check-version
 check-version:
-	@grep -q ":Version: $(version)" $(manpage) || { \
+	@grep -qF ":Version: $(version)" $(manpage) || { \
 	    echo "Version number in $(manpage) doesn't match debian/changelog ($(version))" 2>&1; \
 	    echo "Run make update-version" 2>&1; \
 	    exit 1; \
 	}
-	@grep -q ":Date: $(date)" $(manpage) || { \
+	@grep -qF ":Date: $(date)" $(manpage) || { \
 	    echo "Date in $(manpage) doesn't match debian/changelog ($(date))" 2>&1; \
+	    echo "Run make update-version" 2>&1; \
+	    exit 1; \
+	}
+	@grep -qF "__version__ = '$(version)'" $(mainscript) || { \
+	    echo "Version number in $(mainscript) doesn't match debian/changelog ($(version))" 2>&1; \
+	    echo "Run make update-version" 2>&1; \
+	    exit 1; \
+	}
+	@grep -qF "__date__ = '$(date)'" $(mainscript) || { \
+	    echo "Date in $(mainscript) doesn't match debian/changelog ($(date))" 2>&1; \
 	    echo "Run make update-version" 2>&1; \
 	    exit 1; \
 	}
@@ -63,6 +74,8 @@ check-version:
 update-version:
 	sed -i -e 's/^:Version: .*/:Version: $(version)/' $(manpage)
 	sed -i -e 's/^:Date: .*/:Date: $(date)/' $(manpage)
+	sed -i -e "s/^__version__ = '.*'/__version__ = '$(version)'/" $(mainscript)
+	sed -i -e "s/^__date__ = '.*'/__date__ = '$(date)'/" $(mainscript)
 
 .PHONY: check-target
 check-target:
