@@ -68,6 +68,17 @@ class TestParseDuDiff(TestCase):
                 d2h.DeltaRow(23456, '/bar'),
             ])
 
+    def test_non_ascii(self):
+        self.assertEqual(
+            list(d2h.parse_dudiff(
+                b'-12345\t/foo\xff\n'
+                b'23456\t/bar\n'
+            )),
+            [
+                d2h.DeltaRow(-12345, b'/foo\xff'),
+                d2h.DeltaRow(23456, b'/bar'),
+            ])
+
 
 class TestNotFound(TestCase):
 
