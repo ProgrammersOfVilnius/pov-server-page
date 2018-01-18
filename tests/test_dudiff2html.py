@@ -155,6 +155,13 @@ class TestRenderDuDiff(TestCase):
         self.assertEqual(response.status, '200 OK')
         self.assertEqual(response.headers['Content-Type'], 'text/html; charset=UTF-8')
 
+    def test_plaintext(self):
+        self.create_fake_file('2016-02-03')
+        self.create_fake_file('2016-02-04')
+        response = self.render('dir', '2016-02-03', '2016-02-04', '.txt')
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(response.headers['Content-Type'], 'text/plain; charset=UTF-8')
+
     def test_fail(self):
         d2h.DU_DIFF_SCRIPT = 'false'
         self.create_fake_file('2016-02-03')
@@ -185,7 +192,13 @@ class TestDispatch(TestCase):
         environ = {'PATH_INFO': '/dir/2016-02-03..2016-02-04'}
         view, args = d2h.dispatch(environ)
         self.assertEqual(view, d2h.render_du_diff)
-        self.assertEqual(args, (environ, 'dir', '2016-02-03', '2016-02-04'))
+        self.assertEqual(args, (environ, 'dir', '2016-02-03', '2016-02-04', None))
+
+    def test_du_diff_plaintext(self):
+        environ = {'PATH_INFO': '/dir/2016-02-03..2016-02-04.txt'}
+        view, args = d2h.dispatch(environ)
+        self.assertEqual(view, d2h.render_du_diff)
+        self.assertEqual(args, (environ, 'dir', '2016-02-03', '2016-02-04', '.txt'))
 
 
 class TestWsgiApp(TestCase):

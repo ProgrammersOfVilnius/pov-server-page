@@ -14,11 +14,12 @@ import mako.template
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.3'
+__version__ = '0.4'
+__date__ = '2018-01-18'
 
 
 DU_DIFF_SCRIPT = 'du-diff'  # assume it's on $PATH
-DATE_RANGE_RX = re.compile(r'^(\d\d\d\d-\d\d-\d\d)\.\.(\d\d\d\d-\d\d-\d\d)$')
+DATE_RANGE_RX = re.compile(r'^(\d\d\d\d-\d\d-\d\d)\.\.(\d\d\d\d-\d\d-\d\d)(\.txt)?$')
 
 
 def get_directory(environ):
@@ -170,7 +171,7 @@ dudiff_template = Template(textwrap.dedent('''
 '''))
 
 
-def render_du_diff(environ, location, old, new):
+def render_du_diff(environ, location, old, new, format=None):
     if '.' in location or '/' in location:
         return not_found()
     directory = os.path.join(get_directory(environ), location)
@@ -188,12 +189,13 @@ def render_du_diff(environ, location, old, new):
         sys.stderr.write('%s\n' % e)
         sys.stderr.flush()
         return not_found()
-    else:
-        html = dudiff_template.render_unicode(
-            location=location, old=old, new=new,
-            dudiff=list(parse_dudiff(diff)), fmt=fmt,
-            prefix=get_prefix(environ))
-        return Response(html)
+    if format == '.txt':
+        return Response(diff, content_type='text/plain; charset=UTF-8')
+    html = dudiff_template.render_unicode(
+        location=location, old=old, new=new,
+        dudiff=list(parse_dudiff(diff)), fmt=fmt,
+        prefix=get_prefix(environ))
+    return Response(html)
 
 
 def dispatch(environ):
@@ -208,8 +210,8 @@ def dispatch(environ):
         location, dates = components
         m = DATE_RANGE_RX.match(dates)
         if m:
-            old, new = m.groups()
-            return render_du_diff, (environ, location, old, new)
+            old, new, format = m.groups()
+            return render_du_diff, (environ, location, old, new, format)
     return not_found, ()
 
 
@@ -241,6 +243,7 @@ def reloading_wsgi_app(environ, start_response):
 
 
 def main():
+    import datetime
     import optparse
     from wsgiref.simple_server import make_server
     parser = optparse.OptionParser(
@@ -256,7 +259,10 @@ def main():
         os.environ['DIRECTORY'] = args[0]
     host = '0.0.0.0' if opts.public else 'localhost'
     httpd = make_server(host, opts.port, reloading_wsgi_app)
-    print("Serving on http://%s:%d" % (host, opts.port))
+    print("Looking for files under subdirectories under %s" % get_directory({}))
+    print("Serving http://%s:%d/<subdir>/<date1>..<date2>[.txt]" % (host, opts.port))
+    print("Try http://%s:%d/root/%s..%s"
+          % (host, opts.port, datetime.date.today() - datetime.timedelta(1), datetime.date.today()))
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
