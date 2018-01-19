@@ -75,6 +75,8 @@
   # Referrer policy: don't expose our hidden URL structure to other sites
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
+  AddDefaultCharset UTF-8
+
 % endif
 % if INCLUDE:
 %     for filename in INCLUDE.split():
