@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import importlib
 import os
 import unittest
@@ -187,3 +189,21 @@ class TestOsInfo(TestCase):
             '/etc/lsb-release': '',
         })
         self.assertEqual(ms.get_os_info(), 'n/a')
+
+
+class TestReport(TestCase):
+
+    def test(self):
+        ms.report(print=[].append)
+
+
+class TestMain(TestCase):
+
+    def run_main(self, *args):
+        self.patch('sys.argv', ['machine-summary'] + list(args))
+        ms.main()
+
+    def test_cgi(self):
+        self.patch('sys.stdout', NativeStringIO())
+        self.patch('os.getenv', {'RUN_AS_CGI': '1'}.get)
+        self.run_main()
