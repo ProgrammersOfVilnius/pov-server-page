@@ -1,10 +1,11 @@
-pov-server-page (1.1) UNRELEASED; urgency=medium
+pov-server-page (1.1) trusty; urgency=medium
 
   * Added pov-admin-tools to Recommends (for the dudiff script).
   * Replace files atomically (GH: #3).
   * Ignore squashfs mounts in /du (GH: #28).
+  * Show additional system information in /info (GH: #20).
 
- -- Marius Gedminas <marius@gedmin.as>  Thu, 18 Jan 2018 22:20:51 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 19 Jan 2018 20:51:51 +0200
 
 pov-server-page (1.0) trusty; urgency=medium
 
