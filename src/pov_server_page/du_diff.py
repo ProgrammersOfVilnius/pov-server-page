@@ -45,8 +45,7 @@ def du_diff(f1, f2):
 
 def format_du_diff(diff):
     return u'\n'.join(
-        u"%+d\t%s" % (delta, name)
-        for name, delta in diff
+        u"%+d\t%s" % (delta, name) for delta, name in diff
     )
 
 
