@@ -85,7 +85,7 @@ def get_host_pub_key_fingerprints():
       </tr>
 % endfor
     </table>
-    <h2>Host public keys</h2>
+    <h4>Host public keys</h4>
 <pre>
 % for key in get_host_pub_keys():
 ${key.strip()}
