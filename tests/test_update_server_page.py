@@ -734,6 +734,7 @@ class TestBuilderWithFilesystem(BuilderTests):
             "Created /var/www/frog.example.com/var/www/frog.example.com/ssh/index.html\n"
             "Created /var/www/frog.example.com/var/www/frog.example.com/info/machine-summary.txt\n"
             "Created /var/www/frog.example.com/var/www/frog.example.com/info/disk-inventory.txt\n"
+            "Created /var/www/frog.example.com/var/www/frog.example.com/info/index.html\n"
             "Skipping /var/www/frog.example.com/var/www/frog.example.com/du\n"
             "Created /var/www/frog.example.com/var/log/apache2/frog.example.com/\n"
             "Created /var/www/frog.example.com/etc/apache2/sites-available/frog.example.com.conf\n"
