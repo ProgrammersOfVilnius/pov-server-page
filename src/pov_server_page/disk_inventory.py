@@ -19,7 +19,9 @@ import os
 import sys
 
 
+__author__ = 'Marius Gedminas <marius@gedmin.as>'
 __version__ = '1.3.0'
+__date__ = '2018-01-19'
 
 
 FilesystemInfo = collections.namedtuple(
