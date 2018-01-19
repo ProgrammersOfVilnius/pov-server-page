@@ -42,7 +42,7 @@ except ImportError:
 from mako.lookup import TemplateLookup
 
 from .utils import ansi2html, mako_error_handler
-from . import update_ports_html
+from . import update_ports_html, machine_summary, disk_inventory
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
@@ -61,7 +61,6 @@ if debian_package:
     TEMPLATE_DIR = '/usr/share/pov-server-page/'
     libdir = '/usr/lib/pov-server-page'
     COLLECTION_CGI = os.path.join(libdir, 'collection.cgi')
-    UPDATE_PORTS_SCRIPT = os.path.join(libdir, 'update-ports')
     CHANGELOG2HTML_SCRIPT = os.path.join(libdir, 'changelog2html')
     DUDIFF2HTML_SCRIPT = os.path.join(libdir, 'dudiff2html')
     DU2WEBTREEMAP = os.path.join(libdir, 'du2webtreemap')
@@ -73,18 +72,11 @@ else:
     DEFAULT_AUTH_USER_FILE = '/etc/pov/fridge.passwd'
     TEMPLATE_DIR = os.path.join(here, 'templates')
     COLLECTION_CGI = os.path.join(here, 'collection.cgi')
-    UPDATE_PORTS_SCRIPT = os.path.join(here, 'update_ports_html.py')
     CHANGELOG2HTML_SCRIPT = os.path.join(here, 'changelog2html.py')
     DUDIFF2HTML_SCRIPT = os.path.join(here, 'dudiff2html.py')
     root = os.path.dirname(os.path.dirname(here))
     DU2WEBTREEMAP = os.path.join(root, 'webtreemap-du', 'du2webtreemap.py')
     WEBTREEMAP = os.path.join(root, 'webtreemap')
-
-
-# These are installed in /usr/bin by pov-admin-tools; let's just hope they're
-# on $PATH
-MACHINE_SUMMARY_SCRIPT = 'machine-summary'
-DISK_INVENTORY_SCRIPT = 'disk-inventory'
 
 
 def get_fqdn():
@@ -234,9 +226,6 @@ class Builder(object):
         HSTS=True,
         CSP=True,
         COLLECTION_CGI=COLLECTION_CGI,
-        UPDATE_PORTS_SCRIPT=UPDATE_PORTS_SCRIPT,
-        MACHINE_SUMMARY_SCRIPT=MACHINE_SUMMARY_SCRIPT,
-        DISK_INVENTORY_SCRIPT=DISK_INVENTORY_SCRIPT,
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,
         INCLUDE='',
         APACHE_EXTRA_CONF='',
@@ -315,6 +304,16 @@ class Builder(object):
             mapping = update_ports_html.get_port_mapping()
             new_contents = update_ports_html.render_html(mapping, hostname=builder.vars['HOSTNAME'])
             builder.replace_file(filename, HTML_MARKER, new_contents.encode('UTF-8'))
+
+    class MachineSummary(object):
+        def build(self, filename, builder):
+            new_contents = machine_summary.report_text(title=False)
+            builder.replace_file(filename, NO_MARKER, new_contents.encode('UTF-8'))
+
+    class DiskInventory(object):
+        def build(self, filename, builder):
+            new_contents = disk_inventory.report_text()
+            builder.replace_file(filename, NO_MARKER, new_contents.encode('UTF-8'))
 
     class DiskUsage(object):
         IGNORE = ('tmpfs', 'devtmpfs', 'ecryptfs', 'nfs', 'squashfs')
@@ -503,9 +502,9 @@ class Builder(object):
         ('/var/www/{HOSTNAME}/ssh/index.html',
          Template('ssh.html.in')),
         ('/var/www/{HOSTNAME}/info/machine-summary.txt',
-         ScriptOutput('{MACHINE_SUMMARY_SCRIPT} --no-title', NO_MARKER)),
+         MachineSummary()),
         ('/var/www/{HOSTNAME}/info/disk-inventory.txt',
-         ScriptOutput('{DISK_INVENTORY_SCRIPT}', NO_MARKER)),
+         DiskInventory()),
         ('/var/www/{HOSTNAME}/info/index.html',
          Template('info.html.in')),
         ('/var/www/{HOSTNAME}/du',

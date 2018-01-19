@@ -4,6 +4,8 @@
 Produce a machine summary table in ReStructuredText
 """
 
+from __future__ import print_function
+
 import optparse
 import os
 import socket
@@ -209,18 +211,8 @@ def get_architecture():
     return os.uname()[4] # (kernel_name, node_name, kernel_release, kernel_version, cpu)
 
 
-def main():
-    parser = optparse.OptionParser(
-        'usage: %prog [options]',
-        version=__version__,
-        description="Report machine summary information as ReStructuredText")
-    parser.add_option('-n', '--no-title', action='store_false', dest='title',
-                      default=True, help='skip the title heading')
-    opts, args = parser.parse_args()
-    if os.getenv('RUN_AS_CGI'):
-        print("Content-Type: text/plain; charset=UTF-8")
-        print("")
-    if opts.title:
+def report(title=True, print=print):
+    if title:
         hostname = get_hostname()
         print(hostname)
         print('=' * len(hostname))
@@ -232,6 +224,26 @@ def main():
     for ipaddr, dev in get_ip_addresses():
         print(':IP: %s (%s)' % (ipaddr, dev))
     print(':OS: %s (%s)' % (get_os_info(), get_architecture()))
+
+
+def report_text(**kw):
+    text = []
+    report(print=text.append, **kw)
+    return '\n'.join(text)
+
+
+def main():
+    parser = optparse.OptionParser(
+        'usage: %prog [options]',
+        version=__version__,
+        description="Report machine summary information as ReStructuredText")
+    parser.add_option('-n', '--no-title', action='store_false', dest='title',
+                      default=True, help='skip the title heading')
+    opts, args = parser.parse_args()
+    if os.getenv('RUN_AS_CGI'):
+        print("Content-Type: text/plain; charset=UTF-8")
+        print("")
+    report(title=opts.title)
 
 
 if __name__ == '__main__':
