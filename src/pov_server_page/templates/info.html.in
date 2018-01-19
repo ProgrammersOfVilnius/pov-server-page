@@ -12,8 +12,48 @@
   </head>
   <body>
     <h1>Overview of ${HOSTNAME}</h1>
+
+% if MOTD:
+    <pre class="motd">${MOTD}</pre>
+% endif
+
+    <% import pov_server_page.machine_summary as ms %>
+    <dl class="dl-horizontal">
+      <dt>CPU</dt>
+      <dd>${ms.get_cpu_info()}</dd>
+
+      <dt>RAM</td>
+      <dd>${ms.get_ram_info()}</dd>
+
+      <dt>Disks</td>
+      <dd>
+% for disk in ms.enumerate_disks():
+        ${disk} &ndash; ${ms.get_disk_info(disk)}
+% endfor
+      </dd>
+
+      <dt>Network</td>
+      <dd>
+% for dev, info in ms.get_network_devices():
+        ${dev}\
+%     if info:
+ &ndash; ${info}\
+%     endif
+<br>
+% endfor
+      </dd>
+
+      <dt>IP</td>
+      <dd>
+% for ipaddr, dev in ms.get_ip_addresses():
+        ${ipaddr} (${dev})<br>
+% endfor
+      </dd>
+
+      <dt>OS</td>
+      <dd>${ms.get_os_info()} (${ms.get_architecture()})</dd>
+    </dl>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="machine-summary.txt">Machine summary</a></li>
       <li><a href="disk-inventory.txt">Disk inventory</a></li>
     </ul>
   </body>

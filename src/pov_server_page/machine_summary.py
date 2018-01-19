@@ -10,7 +10,7 @@ import socket
 from collections import Counter
 
 
-__version__ = '0.7.1'
+__version__ = '0.8.0'
 
 
 def fmt_with_units(size, units):
@@ -152,19 +152,27 @@ def get_netdev_info(device):
         return 'MAC: %s' % mac
 
 
+BORING_NETWORK_DEVICES = ('lo', 'virbr', 'vboxnet', 'vnet', 'docker', 'ppp')
+
+
 def is_interesting_netdev(name):
-    return not name.startswith(('lo', 'virbr', 'vboxnet', 'vnet', 'docker'))
+    return not name.startswith(BORING_NETWORK_DEVICES)
 
 
 def is_bridge(name):
     return name.startswith('br')
 
 
-def get_network_info():
+def get_network_devices():
     devices = sorted(
         (d, get_netdev_info(d)) for d in os.listdir('/sys/class/net')
         if '.' not in d and is_interesting_netdev(d) and not is_bridge(d)
     )
+    return devices
+
+
+def get_network_info():
+    devices = get_network_devices()
     return ',\n        '.join(
         '%s - %s' % (d, info) if info else d
         for d, info in devices
