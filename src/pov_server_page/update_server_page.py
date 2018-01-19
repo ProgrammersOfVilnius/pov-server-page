@@ -41,7 +41,7 @@ except ImportError:
 
 from mako.lookup import TemplateLookup
 
-from .utils import ansi2html
+from .utils import ansi2html, mako_error_handler
 from . import update_ports_html
 
 
@@ -282,7 +282,7 @@ class Builder(object):
                 kw.update(extra_vars)
             else:
                 kw = builder.vars
-            new_contents = template.render(**kw).encode('UTF-8')
+            new_contents = template.render_unicode(**kw).encode('UTF-8')
             builder.replace_file(filename, self.marker, new_contents)
 
     class ScriptOutput(object):
@@ -532,7 +532,12 @@ class Builder(object):
         self.verbose = verbose
         self.quick = quick
         self.vars = vars
-        self.lookup = TemplateLookup(directories=[template_dir])
+        self.lookup = TemplateLookup(
+            directories=[template_dir],
+            error_handler=mako_error_handler,
+            strict_undefined=True,
+            default_filters=['h'],
+        )
         self.destdir = destdir
         for name, value in self.defaults.items():
             self.vars.setdefault(name, value)

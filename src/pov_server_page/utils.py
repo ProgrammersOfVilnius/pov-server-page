@@ -4,6 +4,7 @@ import sys
 import cgi
 
 import mako.exceptions
+from markupsafe import Markup
 
 
 #
@@ -84,7 +85,7 @@ def ansi2html(text):
                 parts.extend(pending)
                 del pending[:]
     parts += pending
-    return u''.join(parts)
+    return Markup(u''.join(parts))
 
 
 #
@@ -110,7 +111,7 @@ def mako_error_handler(context, error):
         co = f.f_code
         filename = co.co_filename
         lineno = tb.tb_lineno
-        if filename.startswith('memory:') or filename.endswith('_html'):
+        if filename.startswith('memory:') or filename.endswith(('_html', '_html_in')):
             lines = source.get(filename)
             if lines is None:
                 info = mako.template._get_module_info(filename)

@@ -73,7 +73,7 @@ def get_cpu_info():
     """Return the model of the first"""
     models = Counter(get_fields('/proc/cpuinfo', ['model name', 'cpu model']))
     return ', '.join(
-        '%d × %s' % (count, model)
+        u'%d × %s' % (count, model)
         for model, count in sorted(models.items())
     )
 
@@ -210,7 +210,8 @@ def get_architecture():
 
 
 def main():
-    parser = optparse.OptionParser('usage: %prog [options]',
+    parser = optparse.OptionParser(
+        'usage: %prog [options]',
         version=__version__,
         description="Report machine summary information as ReStructuredText")
     parser.add_option('-n', '--no-title', action='store_false', dest='title',
