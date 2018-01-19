@@ -31,9 +31,18 @@ def parse_du(stream):
 DeltaRow = namedtuple('DeltaRow', 'delta, path')
 
 
+def gzip_open(filename):
+    if filename.endswith('.gz'):
+        return gzip.open(filename)
+    else:
+        return open(filename, 'rb')
+
+
 def du_diff(f1, f2):
-    du1 = parse_du(gzip.open(f1))
-    du2 = parse_du(gzip.open(f2))
+    with gzip_open(f1) as fp:
+        du1 = parse_du(fp)
+    with gzip_open(f2) as fp:
+        du2 = parse_du(fp)
     diffs = dict((name, du2[name] - du1[name])
                  for name in set(du1) | set(du2))
     return [
