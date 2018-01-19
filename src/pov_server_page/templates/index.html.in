@@ -18,6 +18,7 @@
 % endif
 
     <ul class="nav nav-pills nav-stacked">
+      <li><a href="info">Overview</a></li>
 % if CHANGELOG:
       <li><a href="changelog">Changelog</a></li>
 % endif
