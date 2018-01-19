@@ -33,19 +33,19 @@ class PatchMixin(object):
         setattr(mod, name, mock)
 
     def patch_files(self, files):
-        if hasattr(self, '_files'):
-            self._files.update(files)
-        else:
-            self._files = files
+        if not hasattr(self, '_files'):
+            self._files = {}
             self.patch('read_file', self._read_file)
             self.patch('open', self._open)
             self.patch('os.path.exists', self._exists)
             self.patch('os.listdir', self._listdir)
             self.patch('os.path.islink', self._islink)
             self.patch('os.readlink', self._readlink)
-        for fn in list(files):
+        for fn, content in files.items():
+            self._files[fn] = content
+            dn = fn
             while True:
-                dn = os.path.dirname(fn)
+                dn = os.path.dirname(dn)
                 if dn in self._files:
                     break
                 self._files[dn] = Directory()
@@ -54,11 +54,11 @@ class PatchMixin(object):
         try:
             f = self._files[filename]
         except KeyError:
-            raise IOError(2, 'File not found')
+            raise IOError(2, 'File not found: %r' % filename)
         if isinstance(f, Symlink):
             return self._read_file(f.destination)
         if isinstance(f, Directory):
-            raise IOError(21, 'Is a directory')
+            raise IOError(21, 'Is a directory: %r' % filename)
         return self._files[filename]
 
     def _open(self, filename):
@@ -70,7 +70,7 @@ class PatchMixin(object):
 
     def _listdir(self, dirname):
         if not self._exists(dirname):
-            raise OSError(2, 'Directory not found')
+            raise OSError(2, 'Directory not found: %r' % dirname)
         if not dirname.endswith('/'):
             dirname += '/'
         files = sorted(set(fn[len(dirname):].partition('/')[0]
@@ -85,9 +85,9 @@ class PatchMixin(object):
         try:
             f = self._files[filename]
         except KeyError:
-            raise IOError(2, 'File not found')
+            raise IOError(2, 'File not found: %r' % filename)
         if not isinstance(f, Symlink):
-            raise IOError(22, 'Not a symlink')
+            raise IOError(22, 'Not a symlink: %r' % filename)
         return f.destination
 
     def patch_commands(self, commands):
@@ -98,5 +98,7 @@ class PatchMixin(object):
             self.patch('os.popen', self._popen)
 
     def _popen(self, command):
-        assert command in self._commands
-        return self._commands[command]
+        try:
+            return NativeStringIO(self._commands[command])
+        except KeyError:
+            raise IOError(2, 'Command not found: %r' % command)
