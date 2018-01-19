@@ -28,7 +28,7 @@
       <dt>Disks</td>
       <dd>
 % for disk in ms.enumerate_disks():
-        ${disk} &ndash; ${ms.get_disk_info(disk)}
+        ${disk} &ndash; ${ms.get_disk_info(disk)}<br>
 % endfor
       </dd>
 
