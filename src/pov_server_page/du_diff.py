@@ -10,11 +10,12 @@ Can read from gzipped files.
 import sys
 import gzip
 import optparse
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 
-__version__ = '1.0'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
+__version__ = '1.1'
+__date__ = '2018-01-19'
 
 
 def parse_du(stream):
@@ -23,8 +24,30 @@ def parse_du(stream):
         if not line.strip():
             continue
         size, name = line.split(None, 1)
-        res[name.rstrip('\r\n')] = int(size)
+        res[name.rstrip(b'\r\n')] = int(size)
     return res
+
+
+DeltaRow = namedtuple('DeltaRow', 'delta, path')
+
+
+def du_diff(f1, f2):
+    du1 = parse_du(gzip.open(f1))
+    du2 = parse_du(gzip.open(f2))
+    diffs = dict((name, du2[name] - du1[name])
+                 for name in set(du1) | set(du2))
+    return [
+        DeltaRow(delta, name.decode('UTF-8', 'replace'))
+        for name, delta in sorted(diffs.items(), key=lambda t: t[1])
+        if delta != 0
+    ]
+
+
+def format_du_diff(diff):
+    return u'\n'.join(
+        u"%+d\t%s" % (delta, name)
+        for name, delta in diff
+    )
 
 
 def main():
@@ -39,13 +62,8 @@ def main():
         f1, f2 = args
     except ValueError:
         sys.exit(__doc__.strip())
-    du1 = parse_du(gzip.open(f1))
-    du2 = parse_du(gzip.open(f2))
-    diffs = dict((name, du2[name] - du1[name])
-                 for name in set(du1) | set(du2))
-    for name, delta in sorted(diffs.items(), key=lambda t: t[1]):
-        if delta != 0:
-            print("%+d\t%s" % (delta, name))
+    print(format_du_diff(du_diff(f1, f2)))
+
 
 if __name__ == '__main__':
     main()

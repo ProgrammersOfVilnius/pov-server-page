@@ -5,22 +5,19 @@ WSGI application that renders du-diff output
 
 import os
 import re
-import subprocess
-import sys
 import textwrap
-from collections import namedtuple
 
 import mako.template
 
 from .utils import mako_error_handler
+from .du_diff import du_diff, format_du_diff
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.4'
-__date__ = '2018-01-18'
+__version__ = '0.5'
+__date__ = '2018-01-19'
 
 
-DU_DIFF_SCRIPT = 'du-diff'  # assume it's on $PATH
 DATE_RANGE_RX = re.compile(r'^(\d\d\d\d-\d\d-\d\d)\.\.(\d\d\d\d-\d\d-\d\d)(\.txt)?$')
 
 
@@ -33,9 +30,6 @@ def get_prefix(environ):
     return script_name.rstrip('/')
 
 
-DeltaRow = namedtuple('DeltaRow', 'delta, path')
-
-
 def fmt(delta):
     # du reports sizes in kibibytes, let's convert to bytes then humanize
     size = delta * 1024
@@ -44,12 +38,6 @@ def fmt(delta):
         if abs(size) < 1000:
             break
     return '{size:+,.1f} {unit}'.format(size=size, unit=unit)
-
-
-def parse_dudiff(output):
-    for line in output.splitlines():
-        delta, location = line.split(None, 1)
-        yield DeltaRow(int(delta), location.decode('UTF-8', 'replace'))
 
 
 class Response(object):
@@ -186,17 +174,12 @@ def render_du_diff(environ, location, old, new, format=None):
         return not_found()
     if not os.path.exists(new_file):
         return not_found()
-    try:
-        diff = subprocess.check_output([DU_DIFF_SCRIPT, old_file, new_file])
-    except subprocess.CalledProcessError as e:
-        sys.stderr.write('%s\n' % e)
-        sys.stderr.flush()
-        return not_found()
+    diff = du_diff(old_file, new_file)
     if format == '.txt':
-        return Response(diff, content_type='text/plain; charset=UTF-8')
+        return Response(format_du_diff(diff).encode('UTF-8'), content_type='text/plain; charset=UTF-8')
     html = dudiff_template.render_unicode(
         location=location, old=old, new=new,
-        dudiff=list(parse_dudiff(diff)), fmt=fmt,
+        dudiff=diff, fmt=fmt,
         prefix=get_prefix(environ))
     return Response(html)
 

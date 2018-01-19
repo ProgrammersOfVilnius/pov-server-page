@@ -1,3 +1,4 @@
+import gzip
 import os
 import shutil
 import tempfile
@@ -54,31 +55,6 @@ class TestFormat(TestCase):
         self.assertEqual(d2h.fmt(1234567890000), '+1,264.2 TB')
 
 
-class TestParseDuDiff(TestCase):
-
-    def test(self):
-        self.assertEqual(
-            list(d2h.parse_dudiff(
-                b'-12345\t/foo\n'
-                b'23456\t/bar\n'
-            )),
-            [
-                d2h.DeltaRow(-12345, '/foo'),
-                d2h.DeltaRow(23456, '/bar'),
-            ])
-
-    def test_non_ascii(self):
-        self.assertEqual(
-            list(d2h.parse_dudiff(
-                b'-12345\t/foo\xff\n'
-                b'23456\t/bar\n'
-            )),
-            [
-                d2h.DeltaRow(-12345, u'/foo\ufffd'),
-                d2h.DeltaRow(23456, u'/bar'),
-            ])
-
-
 class TestNotFound(TestCase):
 
     def test(self):
@@ -114,9 +90,6 @@ class TestRenderDuDiff(TestCase):
     def setUp(self):
         os.environ.pop('DIRECTORY', None)
         self.dir = None
-        # cannot rely on du-diff being installed while running tests
-        d2h.DU_DIFF_SCRIPT = 'diff'
-        self.addCleanup(setattr, d2h, 'DU_DIFF_SCRIPT', 'du-diff')
         self.stderr = self.patch('sys.stderr', StringIO())
         self.environ = {'SCRIPT_NAME': '/du/diff'}
 
@@ -130,7 +103,7 @@ class TestRenderDuDiff(TestCase):
 
     def create_fake_file(self, date, data=b'42 /dir\n'):
         self.create_dir()
-        with open(os.path.join(self.dir, 'du-%s.gz' % date), 'wb') as f:
+        with gzip.open(os.path.join(self.dir, 'du-%s.gz' % date), 'wb') as f:
             f.write(data)
 
     def render(self, *args):
@@ -168,9 +141,7 @@ class TestRenderDuDiff(TestCase):
     def test_non_ascii(self):
         self.create_fake_file('2016-02-03', data=b'42 /dir\xc3\xbf')
         self.create_fake_file('2016-02-04', data=b'43 /dir\xc3\xff')
-        d2h.DU_DIFF_SCRIPT = 'cat'  # diff doesn't like .gz files with binary data ;)
         response = self.render('dir', '2016-02-03', '2016-02-04')
-        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(response.status, '200 OK')
         self.assertEqual(response.headers['Content-Type'], 'text/html; charset=UTF-8')
 
@@ -180,14 +151,6 @@ class TestRenderDuDiff(TestCase):
         response = self.render('dir', '2016-02-03', '2016-02-04', '.txt')
         self.assertEqual(response.status, '200 OK')
         self.assertEqual(response.headers['Content-Type'], 'text/plain; charset=UTF-8')
-
-    def test_fail(self):
-        d2h.DU_DIFF_SCRIPT = 'false'
-        self.create_fake_file('2016-02-03')
-        self.create_fake_file('2016-02-04')
-        response = self.render('dir', '2016-02-03', '2016-02-04')
-        self.assertEqual(response.status, '404 Not Found')
-        self.assertIn('returned non-zero exit status', self.stderr.getvalue())
 
 
 class TestDispatch(TestCase):
