@@ -105,7 +105,7 @@ class LinuxDiskInfo(object):
         return name
 
     def warn(self, message):
-        print(message, file=sys.stderr, flush=True)
+        print(message, file=sys.stderr)
 
     def list_swap_devices(self):
         """Return short device names such as ['sda1']"""
@@ -162,7 +162,7 @@ class LinuxDiskInfo(object):
                     continue
                 number = os.readlink('/dev/mapper/' + name).split('/')[-1]
                 res.append(DMName('mapper/' + name, number))
-        except IOError:
+        except OSError:
             pass
         return res
 

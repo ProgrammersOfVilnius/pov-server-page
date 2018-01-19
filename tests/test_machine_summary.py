@@ -1,14 +1,10 @@
 from __future__ import print_function
 
-import importlib
 import os
 import unittest
-import io
 
 import pov_server_page.machine_summary as ms
-
-
-NativeStringIO = io.BytesIO if str is bytes else io.StringIO
+from . import PatchMixin, NativeStringIO
 
 
 def test_fmt_with_units():
@@ -54,42 +50,8 @@ def test_round_binary():
     assert ms.round_binary(8061912 * 1024) == 8 * 1024**3
 
 
-class TestCase(unittest.TestCase):
-
-    def patch(self, what, mock):
-        if '.' in what:
-            modname, name = what.rsplit('.', 1)
-            mod = importlib.import_module(modname)
-        else:
-            name = what
-            mod = ms
-        try:
-            orig_what = getattr(mod, name)
-        except AttributeError:
-            self.addCleanup(delattr, mod, name)
-        else:
-            self.addCleanup(setattr, mod, name, orig_what)
-        setattr(mod, name, mock)
-
-    def patch_files(self, files):
-        if hasattr(self, '_files'):
-            self._files.update(files)
-        else:
-            self._files = files
-            self.patch('read_file', self._read_file)
-            self.patch('open', self._open)
-            self.patch('os.path.exists', self._exists)
-
-    def _read_file(self, filename):
-        if filename not in self._files:
-            raise IOError(2, 'File not found')
-        return self._files[filename]
-
-    def _open(self, filename):
-        return NativeStringIO(self._read_file(filename))
-
-    def _exists(self, filename):
-        return filename in self._files
+class TestCase(PatchMixin, unittest.TestCase):
+    module_under_test = ms
 
 
 class TestHostname(TestCase):
