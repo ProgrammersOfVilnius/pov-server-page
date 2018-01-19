@@ -317,6 +317,8 @@ class Builder(object):
             builder.replace_file(filename, HTML_MARKER, new_contents.encode('UTF-8'))
 
     class DiskUsage(object):
+        IGNORE = ('tmpfs', 'devtmpfs', 'ecryptfs', 'nfs', 'squashfs')
+
         @staticmethod
         def location_name(location):
             # mimic collectd's mangling
@@ -366,12 +368,17 @@ class Builder(object):
         @classmethod
         def get_all_locations(cls):
             locations = []
+            # We're invoking df because it already filters out most
+            # of the irrelevant mounts (like /proc and /sys).
+            # We're asking df to exclude debugfs to suppress a warning
+            # that df prints to stderr when it tries to statvfs() the
+            # debugfs mountpoint.
             for line in os.popen("df -PT -x debugfs").readlines()[1:]:
                 bits = line.split()
                 # device, type, size, used, free, %, mountpoint
                 fstype = bits[1]
                 mountpoint = bits[-1]
-                if fstype not in ('tmpfs', 'devtmpfs', 'ecryptfs', 'nfs'):
+                if fstype not in cls.IGNORE:
                     locations.append(mountpoint)
             return locations
 
