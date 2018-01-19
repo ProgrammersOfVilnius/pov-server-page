@@ -94,6 +94,7 @@ class TestPhysicalDisks(TestCase):
 
     def test(self):
         self.patch_files({
+            '/sys/block/dm-0': Symlink('../devices/virtual/block/dm-0'),
             '/sys/block/loop0': Symlink('../devices/virtual/block/loop0'),
             '/sys/block/sda': Symlink('../devices/pci0000:00/0000:00:1f.2/ata1/host0/target0:0:0/0:0:0:0/block/sda'),
         })
@@ -109,11 +110,11 @@ class TestDeviceMapper(TestCase):
 
     def test_list_device_mapper(self):
         self.patch_commands({
-            'dmsetup -c --noheadings info': NativeStringIO(textwrap.dedent('''\
-                platonas-swap_1:253:2:L--w:2:1:0:LVM-blahblah
-                platonas-root:253:1:L--w:1:1:0:LVM-blahblah
-                sda5_crypt:253:0:L--w:2:1:0:CRYPT-LUKS1-blah-sda5_crypt
-            ''')),
+            'dmsetup -c --noheadings info': NativeStringIO(
+                'platonas-swap_1:253:2:L--w:2:1:0:LVM-blahblah\n'
+                'platonas-root:253:1:L--w:1:1:0:LVM-blahblah\n'
+                'sda5_crypt:253:0:L--w:2:1:0:CRYPT-LUKS1-blah-sda5_crypt\n'
+            ),
         })
         self.assertEqual(self.info.list_device_mapper(), [
             ('platonas-swap_1', 253, 2),
@@ -235,77 +236,6 @@ class TestPartitions(TestCase):
         })
         self.assertEqual(self.info.get_partition_size_bytes('sda1'),
                          510656512)
-
-    def test_get_partition_offset(self):
-        self.patch_files({
-            '/sys/block/sda/sda1/start': '2048\n',
-        })
-        self.assertEqual(self.info.get_partition_offset_bytes('sda1'),
-                         1048576)
-
-    def test_list_partition_holders(self):
-        self.patch_files({
-            '/sys/block/sda/sda5/holders/dm-0': Symlink('../../../../../../../../../../virtual/block/dm-0'),
-        })
-        self.assertEqual(self.info.list_partition_holders('sda5'),
-                         ['dm-0'])
-
-    def test_partition_raid_devices(self):
-        self.patch_files({
-            '/sys/block/sda/sda5/holders/md0': Symlink('../../../../../../../../../../virtual/block/dm-0'),
-        })
-        self.assertEqual(self.info.partition_raid_devices('sda5'),
-                         ['md0'])
-
-    def test_partition_dm_devices(self):
-        self.patch_files({
-            '/sys/block/sda/sda5/holders/dm-0': Symlink('../../../../../../../../../../virtual/block/dm-0'),
-            '/sys/block/dm-0/holders': Directory(),
-        })
-        self.assertEqual(self.info.partition_dm_devices('sda5'),
-                         ['dm-0'])
-
-    def test_list_partition_dm_devices_nested(self):
-        self.patch_files({
-            '/sys/block/sda/sda5/holders/dm-0': Symlink('../../../../../../../../../../virtual/block/dm-0'),
-            '/sys/block/dm-0/holders/dm-1': Symlink('../../dm-1'),
-            '/sys/block/dm-0/holders/dm-2': Symlink('../../dm-2'),
-            '/sys/block/dm-1/holders': Directory(),
-            '/sys/block/dm-2/holders': Directory(),
-        })
-        self.assertEqual(self.info.partition_dm_devices('sda5'),
-                         ['dm-0', 'dm-1', 'dm-2'])
-
-    def test_get_partition_fsinfo(self):
-        self.patch_files({
-            '/dev/mapper/platonas-root': Symlink('../dm-1'),
-            '/dev/mapper/sda5_crypt': Symlink('../dm-0'),
-            '/sys/block/dm-0/holders/dm-1': Symlink('../../dm-1'),
-            '/sys/block/dm-0/holders/dm-2': Symlink('../../dm-2'),
-            '/sys/block/sda/sda1/holders': Directory(),
-            '/sys/block/sda/sda2/holders': Directory(),
-            '/sys/block/sda/sda5/holders/dm-0': Symlink('../../../../../../../../../../virtual/block/dm-0'),
-        })
-        self.patch_commands({
-            'dmsetup -c --noheadings info': NativeStringIO(textwrap.dedent('''\
-                platonas-swap_1:253:2:L--w:2:1:0:LVM-blahblah
-                platonas-root:253:1:L--w:1:1:0:LVM-blahblah
-                sda5_crypt:253:0:L--w:2:1:0:CRYPT-LUKS1-blah-sda5_crypt
-            ''')),
-            'df -P --local --print-type -x debugfs': NativeStringIO(textwrap.dedent('''\
-                Filesystem                Type     1024-blocks      Used Available Capacity Mounted on
-                /dev/mapper/platonas-root ext4       471950640 143870928 304082888      33% /
-                /dev/sda1                 ext2          482922    143130    314858      32% /boot
-            ''')),
-        })
-        self.assertEqual(
-            self.info.get_partition_fsinfo('sda1'),
-            ('sda1', '/boot', 'ext2', 482922, 143130, 314858))
-        self.assertIsNone(
-            self.info.get_partition_fsinfo('sda2'))
-        self.assertEqual(
-            self.info.get_partition_fsinfo('sda5'),
-            ('mapper/platonas-root', '/', 'ext4', 471950640, 143870928, 304082888))
 
 
 class TestMain(TestCase):

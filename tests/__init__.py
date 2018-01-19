@@ -54,11 +54,11 @@ class PatchMixin(object):
         try:
             f = self._files[filename]
         except KeyError:
-            raise IOError(2, 'File not found: %r' % filename)
+            raise IOError(2, 'File not found')
         if isinstance(f, Symlink):
             return self._read_file(f.destination)
         if isinstance(f, Directory):
-            raise IOError(21, 'Is a directory: %r' % filename)
+            raise IOError(21, 'Is a directory')
         return self._files[filename]
 
     def _open(self, filename):
@@ -70,7 +70,7 @@ class PatchMixin(object):
 
     def _listdir(self, dirname):
         if not self._exists(dirname):
-            raise OSError(2, 'Directory not found: %r' % dirname)
+            raise OSError(2, 'Directory not found')
         if not dirname.endswith('/'):
             dirname += '/'
         files = sorted(set(fn[len(dirname):].partition('/')[0]
@@ -85,9 +85,9 @@ class PatchMixin(object):
         try:
             f = self._files[filename]
         except KeyError:
-            raise IOError(2, 'File not found: %r' % filename)
+            raise IOError(2, 'File not found')
         if not isinstance(f, Symlink):
-            raise IOError(22, 'Not a symlink: %r' % filename)
+            raise IOError(22, 'Not a symlink')
         return f.destination
 
     def patch_commands(self, commands):

@@ -304,9 +304,6 @@ class LinuxDiskInfo(object):
         sysdir = self.get_sys_dir_for_partition(partition_name)
         return sorted(os.listdir(sysdir + '/holders'))
 
-    def list_device_holders(self, device):
-        return sorted(os.listdir('/sys/block/%s/holders' % device))
-
     def partition_raid_devices(self, partition_name):
         holders = self.list_partition_holders(partition_name)
         raid_devices = [d for d in holders if d.startswith('md')]
@@ -314,11 +311,8 @@ class LinuxDiskInfo(object):
 
     def partition_dm_devices(self, partition_name):
         holders = self.list_partition_holders(partition_name)
-        dms = {d for d in holders if d.startswith('dm-')}
-        for dev in list(dms):
-            dms.update(d for d in self.list_device_holders(dev)
-                       if d.startswith('dm-'))
-        return sorted({self._dm_names.get(d, d) for d in dms})
+        return [self._dm_names.get(d, d)
+                for d in holders if d.startswith('dm-')]
 
     def get_partition_fsinfo(self, partition_name):
         raid_devices = self.partition_raid_devices(partition_name)
