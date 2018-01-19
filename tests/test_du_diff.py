@@ -1,6 +1,6 @@
 import sys
 import unittest
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
 
 from pov_server_page.du_diff import parse_du, main
 
@@ -18,10 +18,13 @@ class TestMain(unittest.TestCase):
 
     def run_main(self, *args):
         orig_sys_argv = sys.argv
+        orig_sys_stdout = sys.stdout
         try:
             sys.argv = ['du-diff'] + list(args)
+            sys.stdout = self.stdout = TextIOWrapper(BytesIO())
             main()
         finally:
+            sys.stdout = orig_sys_stdout
             sys.argv = orig_sys_argv
 
     def test_main(self):

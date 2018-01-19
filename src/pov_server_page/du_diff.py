@@ -7,6 +7,7 @@ Computes the differences between two disk usage files (produced by du > filename
 Can read from gzipped files.
 """
 
+import sys
 import gzip
 import argparse
 from collections import defaultdict, namedtuple
@@ -68,7 +69,9 @@ def main():
     parser.add_argument('files', metavar='FILE', nargs=2,
                         help='files to compare (old, new)')
     args = parser.parse_args()
-    print(format_du_diff(du_diff(*args.files)))
+    report = format_du_diff(du_diff(*args.files)).encode('UTF-8') + b'\n'
+    buffer = getattr(sys.stdout, 'buffer', sys.stdout)
+    buffer.write(report)
 
 
 if __name__ == '__main__':
