@@ -373,7 +373,7 @@ class Builder(object):
             # We're asking df to exclude debugfs to suppress a warning
             # that df prints to stderr when it tries to statvfs() the
             # debugfs mountpoint.
-            for line in os.popen("df -PT -x debugfs").readlines()[1:]:
+            for line in os.popen("df -PT --local -x debugfs").readlines()[1:]:
                 bits = line.split()
                 # device, type, size, used, free, %, mountpoint
                 fstype = bits[1]
