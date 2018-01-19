@@ -75,7 +75,7 @@ def get_cpu_info():
     """Return the model of the first"""
     models = Counter(get_fields('/proc/cpuinfo', ['model name', 'cpu model']))
     return ', '.join(
-        u'%d × %s' % (count, model)
+        '%d × %s' % (count, model)
         for model, count in sorted(models.items())
     )
 

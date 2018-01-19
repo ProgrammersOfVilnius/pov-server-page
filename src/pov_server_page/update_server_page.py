@@ -267,7 +267,9 @@ class Builder(object):
     class MachineSummary(object):
         def build(self, filename, builder):
             new_contents = machine_summary.report_text(title=False)
-            builder.replace_file(filename, NO_MARKER, new_contents.encode('UTF-8'))
+            if not isinstance(new_contents, bytes):
+                new_contents = new_contents.encode('UTF-8')
+            builder.replace_file(filename, NO_MARKER, new_contents)
 
     class DiskInventory(object):
         def build(self, filename, builder):
@@ -494,7 +496,7 @@ class Builder(object):
             directories=[template_dir],
             error_handler=mako_error_handler,
             strict_undefined=True,
-            default_filters=['h'],
+            default_filters=['decode.utf8', 'h'],
         )
         self.destdir = destdir
         for name, value in self.defaults.items():
