@@ -258,34 +258,6 @@ class TestBuilders(BuilderTests):
         self.assertEqual(self.stdout.getvalue(),
                          "Created %s/subdir/index.html\n" % self.tmpdir)
 
-    def test_ScriptOutput(self):
-        pathname = os.path.join(self.tmpdir, 'subdir', 'index.html')
-        Builder.ScriptOutput('printf "%s\n" one {foo}').build(pathname, self.builder)
-        with open(pathname, 'rb') as f:
-            self.assertEqual(f.read(),
-                             HTML_MARKER + b'\none\ntwo\n')
-        self.assertEqual(self.stdout.getvalue(),
-                         "Created %s/subdir/index.html\n" % self.tmpdir)
-
-    def test_ScriptOutput_error_handling_without_stderr(self):
-        pathname = os.path.join(self.tmpdir, 'subdir', 'index.html')
-        Builder.ScriptOutput('false').build(pathname, self.builder)
-        self.assertFalse(os.path.exists(pathname))
-        self.assertEqual(self.stdout.getvalue(), "")
-        self.assertEqual(self.stderr.getvalue(),
-                         "Error running false (rc=1)\n")
-
-    def test_ScriptOutput_error_handling_with_stderr(self):
-        pathname = os.path.join(self.tmpdir, 'subdir', 'index.html')
-        Builder.ScriptOutput("""python -c 'import sys; sys.exit("failed\\nwith error")'""").build(pathname, self.builder)
-        self.assertFalse(os.path.exists(pathname))
-        self.assertEqual(self.stdout.getvalue(), "")
-        self.assertEqual(
-            self.stderr.getvalue(),
-            '''Error running python -c 'import sys; sys.exit("failed\\nwith error")' (rc=1):\n'''
-            '''  failed\n'''
-            '''  with error\n''')
-
 
 class TestDiskUsageBuilderHelpers(unittest.TestCase):
 

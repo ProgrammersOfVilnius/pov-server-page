@@ -26,9 +26,7 @@ import grp
 import optparse
 import os
 import pwd
-import shlex
 import stat
-import string
 import subprocess
 import sys
 import time
@@ -187,20 +185,6 @@ def pipeline(*args, **kwargs):
         child.wait()
 
 
-SHELL_SAFE_CHARS = set(string.ascii_letters + string.digits + '%+,-./:=@^_~')
-
-
-def format_command(command):
-    # This is not indented to be fed to a shell; this is for pretty-printing
-    # error messages.  Do not rely on correctness and safety of this
-    # implementation.
-    return ' '.join(
-        arg if all(c in SHELL_SAFE_CHARS for c in arg) else
-        "'%s'" % arg.replace("'", "'\\''")
-        for arg in command
-    )
-
-
 class Error(Exception):
     pass
 
@@ -273,31 +257,6 @@ class Builder(object):
                 kw = builder.vars
             new_contents = template.render_unicode(**kw).encode('UTF-8')
             builder.replace_file(filename, self.marker, new_contents)
-
-    class ScriptOutput(object):
-        def __init__(self, command, marker=HTML_MARKER):
-            self.command = command if isinstance(command, list) else shlex.split(command)
-            self.marker = marker
-
-        def build(self, filename, builder):
-            command = [arg.format(**builder.vars) for arg in self.command]
-            p = subprocess.Popen(command, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            new_contents, errors = p.communicate()
-            rc = p.wait()
-            if rc != 0 or errors:
-                sys.stderr.write("Error running {} (rc={})".format(format_command(command), rc))
-                if errors:
-                    sys.stderr.write(':\n')
-                    if bytes is not str:  # Python 3
-                        errors = errors.decode('UTF-8', 'replace')
-                    errors = '\n'.join('  ' + line for line in errors.split('\n')).rstrip(' ')
-                    sys.stderr.write(errors)
-                else:
-                    sys.stderr.write('\n')
-                sys.stderr.flush()
-            else:
-                builder.replace_file(filename, self.marker, new_contents)
 
     class Ports(object):
         def build(self, filename, builder):
