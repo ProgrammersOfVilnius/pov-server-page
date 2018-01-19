@@ -53,8 +53,12 @@
       <dt>OS</td>
       <dd>${ms.get_os_info()} (${ms.get_architecture()})</dd>
     </dl>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="disk-inventory.txt">Disk inventory</a></li>
-    </ul>
+
+    <h4>Disk usage details</h4>
+    <% import pov_server_page.disk_inventory as di %>
+    <pre class="disk-inventory">${di.report_text()}</pre>
+
+    <% import time %>
+    <footer>Last updated on ${time.strftime('%Y-%m-%d %H:%M:%S %z')}.</footer>
   </body>
 </html>
