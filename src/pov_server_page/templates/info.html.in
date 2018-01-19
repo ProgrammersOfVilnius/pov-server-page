@@ -5,13 +5,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Overview</title>
+    <title>Overview of ${HOSTNAME}</title>
 
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
     <link rel="stylesheet" href="../static/css/style.css">
   </head>
   <body>
-    <h1>Overview</h1>
+    <h1>Overview of ${HOSTNAME}</h1>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="machine-summary.txt">Machine summary</a></li>
       <li><a href="disk-inventory.txt">Disk inventory</a></li>
