@@ -758,3 +758,10 @@ class TestMain(FilesystemTests):
             f.write('Preexisting file with no marker')
         e = self.run_main('-c', '/dev/null', '-v', 'enabled=true')
         self.assertEqual(str(e), "Refusing to overwrite %s/var/www/%s/index.html" % (self.tmpdir, get_fqdn()))
+
+    def test_main_exception_handling(self):
+        self.patch('pov_server_page.utils.to_unicode',
+                   side_effect=Exception('induced failure'))
+        e = self.run_main('-c', '/dev/null', '-v', 'enabled=true')
+        self.assertIn('__M_writer', self.stderr.getvalue())
+        self.assertEqual(e.args[0], 1)
