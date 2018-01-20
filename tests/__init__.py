@@ -37,6 +37,7 @@ class PatchMixin(object):
             self._files = {}
             self.patch('read_file', self._read_file)
             self.patch('open', self._open)
+            self.patch('xml.etree.ElementTree.open', self._open)
             self.patch('os.path.exists', self._exists)
             self.patch('os.listdir', self._listdir)
             self.patch('os.path.islink', self._islink)
@@ -61,8 +62,12 @@ class PatchMixin(object):
             raise IOError(21, 'Is a directory: %r' % filename)
         return self._files[filename]
 
-    def _open(self, filename):
-        return NativeStringIO(self._read_file(filename))
+    def _open(self, filename, mode='r'):
+        assert mode in ('r', 'rb')
+        if mode == 'r':
+            return NativeStringIO(self._read_file(filename))
+        else:
+            return io.BytesIO(self._read_file(filename).encode('UTF-8'))
 
     def _exists(self, filename):
         # Ignoring the corner case of broken symlinks for now

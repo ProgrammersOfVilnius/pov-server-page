@@ -185,6 +185,43 @@ class TestLVM(TestCase):
         ])
 
 
+class TestKVM(TestCase):
+
+    def test(self):
+        self.patch_files({
+            '/dev/fridge/box': Symlink('../dm-34'),
+            '/dev/mapper/fridge-box': Symlink('../dm-34'),
+            '/etc/libvirt/qemu/box.xml': '''
+                <domain type='kvm'>
+                  <name>box</name>
+                  ...
+                  <devices>
+                    <emulator>/usr/bin/kvm</emulator>
+                    <disk type='file' device='disk'>
+                      <driver name='qemu' type='raw'/>
+                      <source file='/dev/fridge/box'/>
+                      <target dev='vda' bus='virtio'/>
+                      ...
+                    </disk>
+                    ...
+                  </devices>
+                </domain>
+            '''
+        })
+        self.patch_commands({
+            'dmsetup -c --noheadings info': textwrap.dedent('''\
+                fridge-box_rimage_1:252:33:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2xMjyUUhS8GSQvnw8d7TgQvbEYIffzihX
+                fridge-box_rimage_0:252:31:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2ksxmomSjYZM3NJnWGwapZXVxBoM6IL2n
+                fridge-box_rmeta_1:252:32:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2t8tbRWsEM2co6FdzpO9tiT3xqqPvOmR4
+                fridge-box_rmeta_0:252:30:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2zXVgjP5sBfkdQ0zMl7pTbK8AXxYTlge4
+                fridge-box:252:34:L--w:0:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2gClj1O6U8a1x70slRyUyFFmhRCUC1gsY
+            '''),
+        })
+        self.assertEqual(self.info.list_kvm_vms(), [
+            ('box', 'mapper/fridge-box'),
+        ])
+
+
 class TestDiskInfo(TestCase):
 
     def test_get_disk_size(self):
@@ -372,6 +409,77 @@ class TestPartitions(TestCase):
         self.assertIsNone(self.info.get_partition_lvm_pv('sda2'))
         self.assertEqual(self.info.get_partition_lvm_pv('sda5'),
                          ('mapper/sda5_crypt', 'platonas'))
+
+    def test_get_partition_kvm_vm(self):
+        self.patch_files({
+            '/dev/fridge/box': Symlink('../dm-34'),
+            '/dev/mapper/fridge-box': Symlink('../dm-34'),
+            '/etc/libvirt/qemu/box.xml': '''
+                <domain type='kvm'>
+                  <name>box</name>
+                  ...
+                  <devices>
+                    <emulator>/usr/bin/kvm</emulator>
+                    <disk type='file' device='disk'>
+                      <driver name='qemu' type='raw'/>
+                      <source file='/dev/fridge/box'/>
+                      <target dev='vda' bus='virtio'/>
+                      ...
+                    </disk>
+                    ...
+                  </devices>
+                </domain>
+            ''',
+            '/sys/block/dm-34/holders': Directory(),
+        })
+        self.patch_commands({
+            'dmsetup -c --noheadings info': textwrap.dedent('''\
+                fridge-box_rimage_1:252:33:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2xMjyUUhS8GSQvnw8d7TgQvbEYIffzihX
+                fridge-box_rimage_0:252:31:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2ksxmomSjYZM3NJnWGwapZXVxBoM6IL2n
+                fridge-box_rmeta_1:252:32:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2t8tbRWsEM2co6FdzpO9tiT3xqqPvOmR4
+                fridge-box_rmeta_0:252:30:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2zXVgjP5sBfkdQ0zMl7pTbK8AXxYTlge4
+                fridge-box:252:34:L--w:0:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2gClj1O6U8a1x70slRyUyFFmhRCUC1gsY
+            '''),
+        })
+        self.assertEqual(self.info.get_partition_kvm_vm('mapper/fridge-box'),
+                         ('box', 'mapper/fridge-box'))
+
+    def test_get_partition_usage_kvm_vm(self):
+        self.patch_files({
+            '/dev/fridge/box': Symlink('../dm-34'),
+            '/dev/mapper/fridge-box': Symlink('../dm-34'),
+            '/etc/libvirt/qemu/box.xml': '''
+                <domain type='kvm'>
+                  <name>box</name>
+                  ...
+                  <devices>
+                    <emulator>/usr/bin/kvm</emulator>
+                    <disk type='file' device='disk'>
+                      <driver name='qemu' type='raw'/>
+                      <source file='/dev/fridge/box'/>
+                      <target dev='vda' bus='virtio'/>
+                      ...
+                    </disk>
+                    ...
+                  </devices>
+                </domain>
+            ''',
+            '/sys/block/dm-34/holders': Directory(),
+            '/proc/swaps': '',
+        })
+        self.patch_commands({
+            'pvdisplay -c 2>/dev/null': '',
+            'df -P --local --print-type -x debugfs': '',
+            'dmsetup -c --noheadings info': textwrap.dedent('''\
+                fridge-box_rimage_1:252:33:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2xMjyUUhS8GSQvnw8d7TgQvbEYIffzihX
+                fridge-box_rimage_0:252:31:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2ksxmomSjYZM3NJnWGwapZXVxBoM6IL2n
+                fridge-box_rmeta_1:252:32:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2t8tbRWsEM2co6FdzpO9tiT3xqqPvOmR4
+                fridge-box_rmeta_0:252:30:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2zXVgjP5sBfkdQ0zMl7pTbK8AXxYTlge4
+                fridge-box:252:34:L--w:0:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2gClj1O6U8a1x70slRyUyFFmhRCUC1gsY
+            '''),
+        })
+        self.assertEqual(self.info.get_partition_usage('mapper/fridge-box'),
+                         'KVM: box')
 
     def test_get_partition_usage_lvm_on_mdraid(self):
         self.patch_files({

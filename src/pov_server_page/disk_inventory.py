@@ -17,6 +17,7 @@ import collections
 import optparse
 import os
 import sys
+from xml.etree import ElementTree as ET
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
@@ -37,6 +38,8 @@ DMInfo = collections.namedtuple('LVInfo', 'name major minor')
 
 DMName = collections.namedtuple('LVInfo', 'name number')
 
+KVMInfo = collections.namedtuple('KVMInfo', 'name device')
+
 
 class LinuxDiskInfo(object):
 
@@ -44,6 +47,7 @@ class LinuxDiskInfo(object):
     _filesystems_cache = None
     _filesystems_by_device_cache = None
     _lvm_pvs_cache = None
+    _kvm_vm_cache = None
     _dm_cache = None
     _dm_name_cache = None
 
@@ -74,6 +78,13 @@ class LinuxDiskInfo(object):
         return self._lvm_pvs_cache
 
     @property
+    def _kvm_vms(self):
+        if self._kvm_vm_cache is None:
+            self._kvm_vm_cache = dict(
+                (vm.device, vm) for vm in self.list_kvm_vms())
+        return self._kvm_vm_cache
+
+    @property
     def _dms(self):
         if self._dm_cache is None:
             self._dm_cache = dict(
@@ -101,7 +112,11 @@ class LinuxDiskInfo(object):
         if name.startswith('cciss/'):
             name = name.replace('/', '!')
         if name.startswith('dm-'):
-            name = self._dm_names.get(name)
+            name = self._dm_names.get(name, name)
+        if '/' in name and not name.startswith('mapper/'):
+            target = os.readlink(device)
+            if target.startswith('../dm-'):
+                name = self._dm_names.get(target[len('../'):], name)
         return name
 
     def warn(self, message):
@@ -250,6 +265,22 @@ class LinuxDiskInfo(object):
                 res.append(LVInfo(lvname, vgname, int(size_sectors), device))
         return res
 
+    def list_kvm_vms(self):
+        libvirt_dir = '/etc/libvirt/qemu'
+        if not os.path.exists(libvirt_dir):
+            return []
+        res = []
+        for filename in os.listdir(libvirt_dir):
+            if filename.endswith('.xml'):
+                name = filename[:-len('.xml')]
+                t = ET.parse(os.path.join(libvirt_dir, filename))
+                for source in t.findall('.//disk/source'):
+                    disk_file = source.get('file')
+                    if disk_file.startswith('/dev/'):
+                        dev = self._canonical_device_name(disk_file)
+                        res.append(KVMInfo(name, dev))
+        return res
+
     def get_disk_size_sectors(self, disk_name):
         return self._read_int('/sys/block/%s/size' % disk_name)
 
@@ -353,6 +384,15 @@ class LinuxDiskInfo(object):
                 return pv
         return None
 
+    def get_partition_kvm_vm(self, partition_name):
+        raid_devices = self.partition_raid_devices(partition_name)
+        dm_devices = self.partition_dm_devices(partition_name)
+        for dev in [partition_name] + raid_devices + dm_devices:
+            vm = self._kvm_vms.get(dev)
+            if vm:
+                return vm
+        return None
+
     def get_partition_usage(self, partition_name):
         users = []
         raid_devices = self.partition_raid_devices(partition_name)
@@ -361,6 +401,9 @@ class LinuxDiskInfo(object):
         pv = self.get_partition_lvm_pv(partition_name)
         if pv:
             users.append('LVM: ' + pv.vgname)
+        vm = self.get_partition_kvm_vm(partition_name)
+        if vm:
+            users.append('KVM: ' + vm.name)
         if partition_name in self._swap_devices:
             users.append('swap')
         fsinfo = self.get_partition_fsinfo(partition_name)
