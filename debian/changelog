@@ -2,6 +2,8 @@ pov-server-page (1.2.1) UNRELEASED; urgency=medium
 
   * disk-inventory 1.3.1:
     - support KVM virtual machines and OpenVZ containers (GH: #33).
+  * machine-summary 0.8.1:
+    - correctly assign IPv6 addresses to network interfaces (GH: #30).
 
  -- Marius Gedminas <marius@gedmin.as>  Sat, 20 Jan 2018 23:09:55 +0200
 

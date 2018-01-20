@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import textwrap
 import unittest
 
 import pov_server_page.machine_summary as ms
@@ -126,6 +127,33 @@ class TestEnumerateDisks(TestCase):
     def test_vzfs(self):
         self.patch_files({'/dev/vzfs': None})
         self.assertEqual(ms.enumerate_disks(), ['vzfs'])
+
+
+class TestIpAddresses(TestCase):
+
+    def test(self):
+        self.patch('os.popen', lambda cmd: NativeStringIO(textwrap.dedent('''\
+            1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default 
+                link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+                inet 127.0.0.1/8 scope host lo
+                   valid_lft forever preferred_lft forever
+                inet6 ::1/128 scope host 
+                   valid_lft forever preferred_lft forever
+            2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+                link/ether d4:ae:52:c8:70:d5 brd ff:ff:ff:ff:ff:ff
+                inet 151.236.45.231 peer 151.236.45.193/32 brd 151.236.45.231 scope global eth0
+                   valid_lft forever preferred_lft forever
+                inet6 2a02:af8:6:1200::1:2586/128 scope global 
+                   valid_lft forever preferred_lft forever
+                inet6 fe80::d6ae:52ff:fec8:70d5/64 scope link 
+                   valid_lft forever preferred_lft forever
+            3: eth1: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+                link/ether d4:ae:52:c8:70:d6 brd ff:ff:ff:ff:ff:ff
+        ''')))
+        self.assertEqual(ms.get_ip_addresses(), [
+            ('151.236.45.231', 'eth0'),
+            ('2a02:af8:6:1200::1:2586', 'eth0'),
+        ])
 
 
 class TestOsInfo(TestCase):

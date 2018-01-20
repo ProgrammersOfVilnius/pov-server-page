@@ -12,7 +12,9 @@ import socket
 from collections import Counter
 
 
-__version__ = '0.8.0'
+__author__ = 'Marius Gedminas <marius@gedmin.as>'
+__version__ = '0.8.1'
+__date__ = '2018-01-20'
 
 
 def fmt_with_units(size, units):
@@ -183,12 +185,15 @@ def get_network_info():
 
 def get_ip_addresses():
     addresses = []
+    dev = '???'
     for line in os.popen('ip addr'):
+        if line[:1].isdigit():
+            dev = line.split()[1].rstrip(':')
+            continue
         line = line.strip()
         if line.startswith(('inet ', 'inet6 ')) and 'scope global' in line:
-            d = line.split()[-1]
-            if is_interesting_netdev(d):
-                addresses.append((line.split()[1].partition('/')[0], d))
+            if is_interesting_netdev(dev):
+                addresses.append((line.split()[1].partition('/')[0], dev))
     return addresses
 
 
