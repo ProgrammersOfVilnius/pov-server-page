@@ -366,9 +366,11 @@ def fmt_size_decimal(bytes):
 
 
 def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size_decimal,
-           print=print):
+           print=print, warn=None):
     if info is None:
         info = LinuxDiskInfo()
+    if warn is not None:
+        info.warn = warn
     for disk in info.list_physical_disks():
         for partition in info.list_partitions(disk):
             name_width = max(name_width, len(partition) + 1)
@@ -454,7 +456,7 @@ def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size
 
 def report_text(**kw):
     text = []
-    report(print=text.append, **kw)
+    report(print=text.append, warn=text.append, **kw)
     return '\n'.join(text)
 
 
