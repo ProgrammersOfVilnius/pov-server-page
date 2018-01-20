@@ -257,6 +257,8 @@ class LinuxDiskInfo(object):
     def get_disk_model(self, disk_name):
         if disk_name.startswith('xvd'):
             return 'Xen virtual disk'
+        if disk_name.startswith('vda'):
+            return 'KVM virtual disk'
         return self._read_string('/sys/block/%s/device/model' % disk_name)
 
     def get_disk_firmware_rev(self, disk_name):
