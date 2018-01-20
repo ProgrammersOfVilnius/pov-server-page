@@ -111,7 +111,7 @@ def mako_error_handler(context, error):
         co = f.f_code
         filename = co.co_filename
         lineno = tb.tb_lineno
-        if filename.startswith('memory:') or filename.endswith(('_html', '_html_in')):
+        if filename.startswith('memory:') or filename.endswith(('_html', '_in')):
             lines = source.get(filename)
             if lines is None:
                 info = mako.template._get_module_info(filename)
