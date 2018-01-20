@@ -262,7 +262,7 @@ class LinuxDiskInfo(object):
         return self._read_string('/sys/block/%s/device/model' % disk_name)
 
     def get_disk_firmware_rev(self, disk_name):
-        if disk_name.startswith('xvd'):
+        if disk_name.startswith(('xvd', 'vda')):
             return 'N/A'
         return self._read_string('/sys/block/%s/device/rev' % disk_name)
 
