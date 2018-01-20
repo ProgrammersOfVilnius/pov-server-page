@@ -497,7 +497,8 @@ class Builder(object):
             directories=[template_dir],
             error_handler=mako_error_handler,
             strict_undefined=True,
-            default_filters=['decode.utf8', 'h'],
+            default_filters=['to_unicode', 'h'],
+            imports=['from pov_server_page.utils import to_unicode'],
         )
         self.destdir = destdir
         for name, value in self.defaults.items():

@@ -125,3 +125,19 @@ def mako_error_handler(context, error):
     # Don't return False -- that will lose the actual Mako frame.  Instead
     # re-raise.
     raise
+
+
+#
+# Unicode conversion for Mako, because decode.utf8 is buggy in
+# python-mako 0.9.1 from Ubuntu 14.04 LTS
+#
+
+text_type = unicode if str is bytes else str
+
+
+def to_unicode(s):
+    if isinstance(s, text_type):
+        return s
+    if isinstance(s, bytes):
+        return s.decode('UTF-8')
+    return text_type(s)
