@@ -30,6 +30,7 @@ import stat
 import subprocess
 import sys
 import time
+import traceback
 
 try:
     from ConfigParser import SafeConfigParser
@@ -680,6 +681,9 @@ def main():
             builder.check()
     except Error as e:
         sys.exit(str(e))
+    except Exception:
+        traceback.print_exc()
+        sys.exit(1)
 
 
 if __name__ == '__main__':
