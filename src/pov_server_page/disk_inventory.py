@@ -136,11 +136,15 @@ class LinuxDiskInfo(object):
 
         Limitations: only handles ATA/SATA/SCSI disks; no RAID or whatnot.
         """
-        if not os.path.exists('/sys/block'):
+        if os.path.exists('/sys/block'):
+            return sorted(name for name in os.listdir('/sys/block')
+                          if name.startswith(('sd', 'cciss', 'xvd', 'vd')))
+        elif os.path.exists('/dev/simfs'):
+            # OpenVZ container
+            return ['simfs']
+        else:
             self.warn("disk-inventory: cannot discover block devices: /sys/block is missing")
             return []
-        return sorted(name for name in os.listdir('/sys/block')
-                      if name.startswith(('sd', 'cciss', 'xvd', 'vd')))
 
     def list_device_mapper(self):
         """Return a list of DMInfo tuples."""
@@ -250,6 +254,10 @@ class LinuxDiskInfo(object):
         return self._read_int('/sys/block/%s/size' % disk_name)
 
     def get_disk_size_bytes(self, disk_name):
+        if disk_name == 'simfs':
+            # iv.lt VPSes have no /sys/block; they mount /dev/simfs on /
+            r = os.statvfs('/')
+            return r.f_blocks * r.f_bsize
         # Experiments show that the kernel always reports 512-byte sectors,
         # even when the disk uses 4KiB sectors.
         return self.get_disk_size_sectors(disk_name) * 512
@@ -259,10 +267,12 @@ class LinuxDiskInfo(object):
             return 'Xen virtual disk'
         if disk_name.startswith('vda'):
             return 'KVM virtual disk'
+        if disk_name == 'simfs':
+            return 'OpenVZ virtual filesystem'
         return self._read_string('/sys/block/%s/device/model' % disk_name)
 
     def get_disk_firmware_rev(self, disk_name):
-        if disk_name.startswith(('xvd', 'vda')):
+        if disk_name.startswith(('xvd', 'vda', 'simfs')):
             return 'N/A'
         return self._read_string('/sys/block/%s/device/rev' % disk_name)
 
@@ -271,6 +281,9 @@ class LinuxDiskInfo(object):
 
         Includes primary, extended and logical partition names.
         """
+        if disk_name == 'simfs':
+            # OpenVZ container
+            return ['simfs']
         return sorted(name for name in os.listdir('/sys/block/%s' % disk_name)
                       if name.startswith(disk_name))
 
@@ -293,9 +306,13 @@ class LinuxDiskInfo(object):
         return self._read_int(sysdir + '/size')
 
     def get_partition_size_bytes(self, partition_name):
+        if partition_name == 'simfs':
+            return self.get_disk_size_bytes('simfs')
         return self.get_partition_size_sectors(partition_name) * 512
 
     def get_partition_offset_sectors(self, partition_name):
+        if partition_name == 'simfs':
+            return 0
         sysdir = self.get_sys_dir_for_partition(partition_name)
         return self._read_int(sysdir + '/start')
 
@@ -303,6 +320,8 @@ class LinuxDiskInfo(object):
         return self.get_partition_offset_sectors(partition_name) * 512
 
     def list_partition_holders(self, partition_name):
+        if partition_name == 'simfs':
+            return []
         sysdir = self.get_sys_dir_for_partition(partition_name)
         return sorted(os.listdir(sysdir + '/holders'))
 
