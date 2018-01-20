@@ -57,19 +57,31 @@ diff-cover: coverage
 
 
 define check_version =
-	@grep -qF $(1) $(2) || { \
-	    echo "Version number in $(2) doesn't match debian/changelog ($(version))" 2>&1; \
+	@grep -qF $1 $2 || { \
+	    echo "Version number in $2 doesn't match debian/changelog ($(version))" 2>&1; \
 	    echo "Run make update-version" 2>&1; \
 	    exit 1; \
 	}
 endef
 define check_date =
-	@grep -qF $(1) $(2) || { \
-	    echo "Date in $(2) doesn't match debian/changelog ($(date))" 2>&1; \
+	@grep -qF $1 $2 || { \
+	    echo "Date in $2 doesn't match debian/changelog ($(date))" 2>&1; \
 	    echo "Run make update-version" 2>&1; \
 	    exit 1; \
 	}
 endef
+define check_man_version =
+	@grep -qF ":Version: $3" $1 || { \
+	    echo "Version number in $1 doesn't match $2 ($3)" 2>&1; \
+	    echo "Run make update-version" 2>&1; \
+	    exit 1; \
+	}
+endef
+
+
+disk_inventory_version = $(shell PYTHONPATH=src python3 -m pov_server_page.disk_inventory --version)
+du_diff_version = $(shell PYTHONPATH=src python3 -m pov_server_page.du_diff --version)
+machine_summary_version = $(shell PYTHONPATH=src python3 -m pov_server_page.machine_summary --version)
 
 
 .PHONY: check-version
@@ -79,6 +91,9 @@ check-version:
 	$(call check_version,"__version__ = '$(version)'",$(mainscript))
 	$(call check_date,"__date__ = '$(date)'",$(mainscript))
 	$(call check_version,"version='$(version)'",setup.py)
+	$(call check_man_version,docs/disk-inventory.rst,src/pov_server_page/disk_inventory.py,$(disk_inventory_version))
+	$(call check_man_version,docs/du-diff.rst,src/pov_server_page/du_diff.py,$(du_diff_version))
+	$(call check_man_version,docs/machine-summary.rst,src/pov_server_page/machine_summary.py,$(machine_summary_version))
 
 .PHONY: update-version
 update-version:
@@ -87,6 +102,10 @@ update-version:
 	sed -i -e "s/^__version__ = '.*'/__version__ = '$(version)'/" $(mainscript)
 	sed -i -e "s/^__date__ = '.*'/__date__ = '$(date)'/" $(mainscript)
 	sed -i -e "s/version='.*',/version='$(version)',/" setup.py
+	sed -i -e 's/^:Version: .*/:Version: $(disk_inventory_version)/' docs/disk-inventory.rst
+	sed -i -e 's/^:Version: .*/:Version: $(du_diff_version)/' docs/du-diff.rst
+	sed -i -e 's/^:Version: .*/:Version: $(machine_summary_version)/' docs/machine-summary.rst
+	@echo "Check if you need to update dates as well!"
 
 .PHONY: check-target
 check-target:

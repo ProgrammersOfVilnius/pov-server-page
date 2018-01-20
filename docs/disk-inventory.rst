@@ -7,8 +7,8 @@ print an overview of your disks and partitions
 ----------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2017-03-13
-:Version: 1.2.2
+:Date: 2018-01-20
+:Version: 1.3.0
 :Manual section: 8
 
 

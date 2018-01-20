@@ -8,7 +8,7 @@ print some basic facts about this machine
 
 :Author: Marius Gedminas <marius@gedmin.as>
 :Date: 2016-09-21
-:Version: 0.7.1
+:Version: 0.8.0
 :Manual section: 8
 
 
