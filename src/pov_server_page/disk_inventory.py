@@ -276,7 +276,7 @@ class LinuxDiskInfo(object):
                 t = ET.parse(os.path.join(libvirt_dir, filename))
                 for source in t.findall('.//disk/source'):
                     disk_file = source.get('file')
-                    if disk_file.startswith('/dev/'):
+                    if disk_file and disk_file.startswith('/dev/'):
                         dev = self._canonical_device_name(disk_file)
                         res.append(KVMInfo(name, dev))
         return res
