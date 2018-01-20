@@ -1,3 +1,4 @@
+import os
 import textwrap
 import unittest
 
@@ -107,6 +108,12 @@ class TestPhysicalDisks(TestCase):
         self.patch('sys.stderr', NativeStringIO())
         self.assertEqual(self.info.list_physical_disks(), [])
 
+    def test_openvz(self):
+        self.patch_files({
+            '/dev/simfs': 'character device actually',
+        })
+        self.assertEqual(self.info.list_physical_disks(), ['simfs'])
+
 
 class TestDeviceMapper(TestCase):
 
@@ -186,6 +193,15 @@ class TestDiskInfo(TestCase):
         })
         self.assertEqual(self.info.get_disk_size_bytes('sda'), 500107862016)
 
+    def test_get_disk_size_openvz(self):
+        self.patch_files({
+            '/dev/simfs': 'character device actually',
+        })
+        self.patch('os.statvfs', lambda fs: os.statvfs_result(
+            (4096, 4096, 20971520, 17750785, 17750785, 1600000, 1275269, 1275269, 4096, 255)
+        ))
+        self.assertEqual(self.info.get_disk_size_bytes('simfs'), 85899345920)
+
     def test_get_disk_model(self):
         self.patch_files({
             '/sys/block/sda/device/model': 'Samsung SSD 850\n',
@@ -195,6 +211,19 @@ class TestDiskInfo(TestCase):
     def test_get_disk_model_xen(self):
         self.patch_files({})
         self.assertEqual(self.info.get_disk_model('xvda'), 'Xen virtual disk')
+        self.assertEqual(self.info.get_disk_model('xvdb'), 'Xen virtual disk')
+
+    def test_get_disk_model_kvm(self):
+        self.patch_files({})
+        self.assertEqual(self.info.get_disk_model('vda'), 'KVM virtual disk')
+        self.assertEqual(self.info.get_disk_model('vdb'), 'KVM virtual disk')
+
+    def test_get_disk_model_simfs(self):
+        self.patch_files({
+            '/dev/simfs': 'character device actually',
+        })
+        self.assertEqual(self.info.get_disk_model('simfs'),
+                         'OpenVZ virtual filesystem')
 
     def test_get_disk_firmware_rev(self):
         self.patch_files({
@@ -205,6 +234,12 @@ class TestDiskInfo(TestCase):
     def test_get_disk_firmware_rev_xen(self):
         self.patch_files({})
         self.assertEqual(self.info.get_disk_firmware_rev('xvda'), 'N/A')
+        self.assertEqual(self.info.get_disk_firmware_rev('xvdb'), 'N/A')
+
+    def test_get_disk_firmware_rev_kvm(self):
+        self.patch_files({})
+        self.assertEqual(self.info.get_disk_firmware_rev('vda'), 'N/A')
+        self.assertEqual(self.info.get_disk_firmware_rev('vdb'), 'N/A')
 
 
 class TestPartitions(TestCase):
@@ -218,6 +253,10 @@ class TestPartitions(TestCase):
         })
         self.assertEqual(self.info.list_partitions('sda'),
                          ['sda1', 'sda2', 'sda5'])
+
+    def test_list_partitions_openvz(self):
+        self.assertEqual(self.info.list_partitions('simfs'),
+                         ['simfs'])
 
     def test_get_sys_dir_for_partition(self):
         self.patch_commands({
@@ -239,6 +278,13 @@ class TestPartitions(TestCase):
         self.assertEqual(self.info.get_partition_size_bytes('sda1'),
                          510656512)
 
+    def test_get_partition_size_openvz(self):
+        self.patch('os.statvfs', lambda fs: os.statvfs_result(
+            (4096, 4096, 20971520, 17750785, 17750785, 1600000, 1275269, 1275269, 4096, 255)
+        ))
+        self.assertEqual(self.info.get_partition_size_bytes('simfs'),
+                         85899345920)
+
     def test_get_partition_offset(self):
         self.patch_files({
             '/sys/block/sda/sda1/start': '2048\n',
@@ -246,12 +292,18 @@ class TestPartitions(TestCase):
         self.assertEqual(self.info.get_partition_offset_bytes('sda1'),
                          1048576)
 
+    def test_get_partition_offset_openvz(self):
+        self.assertEqual(self.info.get_partition_offset_bytes('simfs'), 0)
+
     def test_list_partition_holders(self):
         self.patch_files({
             '/sys/block/sda/sda5/holders/dm-0': Symlink('../../../../../../../../../../virtual/block/dm-0'),
         })
         self.assertEqual(self.info.list_partition_holders('sda5'),
                          ['dm-0'])
+
+    def test_list_partition_holders_simfs(self):
+        self.assertEqual(self.info.list_partition_holders('simfs'), [])
 
     def test_partition_raid_devices(self):
         self.patch_files({
