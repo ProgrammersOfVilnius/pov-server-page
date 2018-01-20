@@ -1,7 +1,6 @@
 server-page.conf                         etc/pov/
-wrappers/pov-update-server-page          usr/sbin/
-wrappers/*                               usr/lib/pov-server-page/
-collection.cgi                           usr/lib/pov-server-page/
+scripts/pov-update-server-page           usr/sbin/
+scripts/*                                usr/lib/pov-server-page/
 webtreemap-du/du2webtreemap.py           usr/lib/pov-server-page/
 webtreemap/webtreemap.css                usr/share/pov-server-page/webtreemap/
 webtreemap/webtreemap.js                 usr/share/pov-server-page/webtreemap/

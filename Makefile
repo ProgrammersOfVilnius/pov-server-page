@@ -3,7 +3,7 @@ version := $(shell dpkg-parsechangelog | awk '$$1 == "Version:" { print $$2 }')
 date := $(shell dpkg-parsechangelog | grep ^Date: | cut -d: -f 2- | date --date="$$(cat)" +%Y-%m-%d)
 target_distribution := $(shell dpkg-parsechangelog | awk '$$1 == "Distribution:" { print $$2 }')
 
-manpage = pov-update-server-page.rst
+manpage = docs/pov-update-server-page.rst
 mainscript = src/pov_server_page/update_server_page.py
 
 # change this to the lowest supported Ubuntu LTS
@@ -20,7 +20,7 @@ VAGRANT_SSH_ALIAS = vagrantbox
 
 
 .PHONY: all
-all: pov-update-server-page.8 webtreemap webtreemap-du
+all: docs/pov-update-server-page.8 webtreemap webtreemap-du
 
 %.8: %.rst
 	rst2man $< > $@
