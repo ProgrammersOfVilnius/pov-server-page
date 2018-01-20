@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+import io
 import os
 from setuptools import setup, find_packages
 
 here = os.path.dirname(__file__)
-with open(os.path.join(here, 'README.rst')) as f:
+with io.open(os.path.join(here, 'README.rst'), encoding='UTF-8') as f:
     long_description = f.read()
 
 setup(

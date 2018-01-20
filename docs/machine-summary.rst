@@ -7,7 +7,7 @@ print some basic facts about this machine
 -----------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2016-09-21
+:Date: 2018-01-20
 :Version: 0.8.0
 :Manual section: 8
 
