@@ -250,7 +250,10 @@ class Builder(object):
             self.marker = marker
 
         def build(self, filename, builder, extra_vars=None):
-            template = builder.lookup.get_template(self.template_name)
+            if self.template_name.endswith('.html.in'):
+                template = builder.html_lookup.get_template(self.template_name)
+            else:
+                template = builder.lookup.get_template(self.template_name)
             if extra_vars:
                 kw = builder.vars.copy()
                 kw.update(extra_vars)
@@ -493,11 +496,18 @@ class Builder(object):
         self.verbose = verbose
         self.quick = quick
         self.vars = vars
-        self.lookup = TemplateLookup(
+        self.html_lookup = TemplateLookup(
             directories=[template_dir],
             error_handler=mako_error_handler,
             strict_undefined=True,
             default_filters=['to_unicode', 'h'],
+            imports=['from pov_server_page.utils import to_unicode'],
+        )
+        self.lookup = TemplateLookup(
+            directories=[template_dir],
+            error_handler=mako_error_handler,
+            strict_undefined=True,
+            default_filters=['to_unicode'],
             imports=['from pov_server_page.utils import to_unicode'],
         )
         self.destdir = destdir

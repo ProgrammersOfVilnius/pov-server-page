@@ -211,6 +211,7 @@ class BuilderTests(FilesystemTests):
         self.builder.verbose = True
         self.builder.skip = []
         template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+        self.builder.html_lookup.directories.append(os.path.normpath(template_dir))
         self.builder.lookup.directories.append(os.path.normpath(template_dir))
 
 
@@ -697,20 +698,28 @@ class TestBuilderWithFilesystem(BuilderTests):
         self.builder.vars['REDIRECT'] = '{tmpdir}/var/www/frog.example.com/index.html = {tmpdir}/var/www/frog.example.com/frontpage.html'.format(tmpdir=self.tmpdir)
         self.builder.vars['DISK_USAGE'] = 'all'
         self.builder.vars['MOTD_FILE'] = '/dev/null'
+        self.builder.vars['APACHE_EXTRA_CONF'] = '<Location /foo>\nRequire all granted\n</Location>'
+        self.builder.vars['EXTRA_LINKS'] = 'foo = <script>alert("hi")</script>'
         self.builder.file_readable_to = lambda f, u, g: True
         self.builder.build(verbose=True, quick=True)
         self.assertMultiLineEqual(
-            self.stdout.getvalue().replace(self.tmpdir, '/var/www/frog.example.com'),
-            "Created /var/www/frog.example.com/var/www/frog.example.com/frontpage.html\n"
-            "Skipping /var/www/frog.example.com/var/www/frog.example.com/ports/index.html\n"
-            "Created /var/www/frog.example.com/var/www/frog.example.com/ssh/index.html\n"
-            "Created /var/www/frog.example.com/var/www/frog.example.com/info/machine-summary.txt\n"
-            "Created /var/www/frog.example.com/var/www/frog.example.com/info/disk-inventory.txt\n"
-            "Created /var/www/frog.example.com/var/www/frog.example.com/info/index.html\n"
-            "Skipping /var/www/frog.example.com/var/www/frog.example.com/du\n"
-            "Created /var/www/frog.example.com/var/log/apache2/frog.example.com/\n"
-            "Created /var/www/frog.example.com/etc/apache2/sites-available/frog.example.com.conf\n"
+            self.stdout.getvalue().replace(self.tmpdir, ''),
+            "Created /var/www/frog.example.com/frontpage.html\n"
+            "Skipping /var/www/frog.example.com/ports/index.html\n"
+            "Created /var/www/frog.example.com/ssh/index.html\n"
+            "Created /var/www/frog.example.com/info/machine-summary.txt\n"
+            "Created /var/www/frog.example.com/info/disk-inventory.txt\n"
+            "Created /var/www/frog.example.com/info/index.html\n"
+            "Skipping /var/www/frog.example.com/du\n"
+            "Created /var/log/apache2/frog.example.com/\n"
+            "Created /etc/apache2/sites-available/frog.example.com.conf\n"
         )
+        fn = os.path.join(self.tmpdir, 'var/www/frog.example.com/frontpage.html')
+        with open(fn, 'r') as f:
+            self.assertIn('&lt;script&gt;', f.read())
+        fn = os.path.join(self.tmpdir, 'etc/apache2/sites-available/frog.example.com.conf')
+        with open(fn, 'r') as f:
+            self.assertIn('<Location /foo>', f.read())
 
     def test_check(self):
         self.builder.needs_apache_reload = True

@@ -1,3 +1,10 @@
+pov-server-page (1.1.2) UNRELEASED; urgency=medium
+
+  * Do not HTML-escape extra_apache_conf directives in the generated
+    Apache configuration.
+
+ -- Marius Gedminas <marius@gedmin.as>  Sat, 20 Jan 2018 11:31:19 +0200
+
 pov-server-page (1.1.1) trusty; urgency=medium
 
   * Suppress warnings when /sys/block is not available for disk discovery
