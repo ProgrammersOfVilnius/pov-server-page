@@ -20,8 +20,8 @@ import sys
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.3.0'
-__date__ = '2018-01-19'
+__version__ = '1.3.1'
+__date__ = '2018-01-20'
 
 
 FilesystemInfo = collections.namedtuple(
@@ -140,7 +140,7 @@ class LinuxDiskInfo(object):
             self.warn("disk-inventory: cannot discover block devices: /sys/block is missing")
             return []
         return sorted(name for name in os.listdir('/sys/block')
-                      if name.startswith(('sd', 'xvd', 'cciss')))
+                      if name.startswith(('sd', 'cciss', 'xvd', 'vd')))
 
     def list_device_mapper(self):
         """Return a list of DMInfo tuples."""
