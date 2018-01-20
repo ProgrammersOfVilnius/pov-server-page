@@ -8,7 +8,7 @@ with open(os.path.join(here, 'README.rst')) as f:
 
 setup(
     name='pov-server-page',
-    version='0.9',
+    version='1.1.2',
     author='Marius Gedminas',
     author_email='marius@pov.lt',
     url='https://github.com/ProgrammersOfVilnius/pov-server-page',

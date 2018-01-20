@@ -47,28 +47,30 @@ diff-cover: coverage
 	coverage xml
 	diff-cover coverage.xml
 
+
+define check_version =
+	@grep -qF $(1) $(2) || { \
+	    echo "Version number in $(2) doesn't match debian/changelog ($(version))" 2>&1; \
+	    echo "Run make update-version" 2>&1; \
+	    exit 1; \
+	}
+endef
+define check_date =
+	@grep -qF $(1) $(2) || { \
+	    echo "Date in $(2) doesn't match debian/changelog ($(date))" 2>&1; \
+	    echo "Run make update-version" 2>&1; \
+	    exit 1; \
+	}
+endef
+
+
 .PHONY: check-version
 check-version:
-	@grep -qF ":Version: $(version)" $(manpage) || { \
-	    echo "Version number in $(manpage) doesn't match debian/changelog ($(version))" 2>&1; \
-	    echo "Run make update-version" 2>&1; \
-	    exit 1; \
-	}
-	@grep -qF ":Date: $(date)" $(manpage) || { \
-	    echo "Date in $(manpage) doesn't match debian/changelog ($(date))" 2>&1; \
-	    echo "Run make update-version" 2>&1; \
-	    exit 1; \
-	}
-	@grep -qF "__version__ = '$(version)'" $(mainscript) || { \
-	    echo "Version number in $(mainscript) doesn't match debian/changelog ($(version))" 2>&1; \
-	    echo "Run make update-version" 2>&1; \
-	    exit 1; \
-	}
-	@grep -qF "__date__ = '$(date)'" $(mainscript) || { \
-	    echo "Date in $(mainscript) doesn't match debian/changelog ($(date))" 2>&1; \
-	    echo "Run make update-version" 2>&1; \
-	    exit 1; \
-	}
+	$(call check_version,":Version: $(version)",$(manpage))
+	$(call check_date,":Date: $(date)",$(manpage))
+	$(call check_version,"__version__ = '$(version)'",$(mainscript))
+	$(call check_date,"__date__ = '$(date)'",$(mainscript))
+	$(call check_version,"version='$(version)'",setup.py)
 
 .PHONY: update-version
 update-version:
@@ -76,6 +78,7 @@ update-version:
 	sed -i -e 's/^:Date: .*/:Date: $(date)/' $(manpage)
 	sed -i -e "s/^__version__ = '.*'/__version__ = '$(version)'/" $(mainscript)
 	sed -i -e "s/^__date__ = '.*'/__date__ = '$(date)'/" $(mainscript)
+	sed -i -e "s/version='.*',/version='$(version)',/" setup.py
 
 .PHONY: check-target
 check-target:
