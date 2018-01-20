@@ -1,10 +1,10 @@
-pov-server-page (1.1.1) UNRELEASED; urgency=medium
+pov-server-page (1.1.1) trusty; urgency=medium
 
   * Suppress warnings when /sys/block is not available for disk discovery
     (e.g. in OpenVZ containers).
   * Fix TypeError: decoding str is not supported on Ubuntu 14.04 LTS.
 
- -- Marius Gedminas <marius@gedmin.as>  Sat, 20 Jan 2018 10:20:54 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Sat, 20 Jan 2018 11:08:01 +0200
 
 pov-server-page (1.1) trusty; urgency=medium
 
