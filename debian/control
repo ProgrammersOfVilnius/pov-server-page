@@ -17,6 +17,8 @@ Depends: apache2, libapache2-mod-wsgi-py3 | libapache2-mod-wsgi, collectd-core,
  ${python:Depends}, ${python3:Depends}, ${misc:Depends}
 Recommends: apache2-utils
 Suggests: collectd
+Breaks: pov-admin-tools (<< 0.16)
+Replaces: pov-admin-tools (<< 0.16)
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
  .

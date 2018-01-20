@@ -3,8 +3,13 @@ version := $(shell dpkg-parsechangelog | awk '$$1 == "Version:" { print $$2 }')
 date := $(shell dpkg-parsechangelog | grep ^Date: | cut -d: -f 2- | date --date="$$(cat)" +%Y-%m-%d)
 target_distribution := $(shell dpkg-parsechangelog | awk '$$1 == "Distribution:" { print $$2 }')
 
+# Version and date in these should match overall package version
 manpage = docs/pov-update-server-page.rst
 mainscript = src/pov_server_page/update_server_page.py
+
+# Manual pages that need to be built
+manpage_sources = $(wildcard docs/*.rst)
+manpages = $(manpage_sources:%.rst=%.8)
 
 # change this to the lowest supported Ubuntu LTS
 TARGET_DISTRO := trusty
@@ -20,7 +25,10 @@ VAGRANT_SSH_ALIAS = vagrantbox
 
 
 .PHONY: all
-all: docs/pov-update-server-page.8 webtreemap webtreemap-du
+all: $(manpages) webtreemap webtreemap-du
+
+%.1: %.rst
+	rst2man $< > $@
 
 %.8: %.rst
 	rst2man $< > $@
@@ -133,7 +141,7 @@ binary-package: clean-build-tree
 vagrant-test-install: binary-package
 	cp pkgbuild/$(source)_$(version)_all.deb $(VAGRANT_DIR)/
 	cd $(VAGRANT_DIR) && vagrant up
-	ssh $(VAGRANT_SSH_ALIAS) 'sudo DEBIAN_FRONTEND=noninteractive dpkg -i /vagrant/$(source)_$(version)_all.deb; sudo apt-get install -f -y && sudo pov-update-server-page -v'
+	ssh $(VAGRANT_SSH_ALIAS) 'sudo DEBIAN_FRONTEND=noninteractive dpkg -i /vagrant/$(source)_$(version)_all.deb; sudo apt-get install -f -y'
 
 .PHONY: pbuilder-test-build
 pbuilder-test-build: source-package

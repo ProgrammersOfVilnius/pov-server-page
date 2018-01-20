@@ -1,3 +1,11 @@
+pov-server-page (1.2) UNRELEASED; urgency=medium
+
+  * New scripts in /usr/sbin: machine-summary, disk-inventory, du-diff,
+    with corresponding manual pages.
+  * Breaks: and Replaces: old versions of pov-admin-tools because of the above.
+
+ -- Marius Gedminas <marius@gedmin.as>  Sat, 20 Jan 2018 16:04:18 +0200
+
 pov-server-page (1.1.2) trusty; urgency=medium
 
   * Do not HTML-escape extra_apache_conf directives in the generated
@@ -15,7 +23,6 @@ pov-server-page (1.1.1) trusty; urgency=medium
 
 pov-server-page (1.1) trusty; urgency=medium
 
-  * Added pov-admin-tools to Recommends (for the dudiff script).
   * Replace files atomically (GH: #3).
   * Ignore squashfs mounts in /du (GH: #28).
   * Show additional system information in /info (GH: #20).

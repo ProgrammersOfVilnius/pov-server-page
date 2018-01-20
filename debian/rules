@@ -22,9 +22,9 @@ export DESTDIR=debian/pov-server-page
 
 override_dh_install:
 	dh_install
+	rm $(DESTDIR)/usr/sbin/du-diff
 	cd $(DESTDIR)/usr/lib/pov-server-page && \
-	    mv du2webtreemap.py du2webtreemap && \
-	    rm pov-update-server-page
+	    mv du2webtreemap.py du2webtreemap
 
 override_dh_installcron:
 	dh_installcron --name=pov-update-server-page

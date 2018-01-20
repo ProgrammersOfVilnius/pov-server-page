@@ -1,1 +1,2 @@
-docs/pov-update-server-page.8
+docs/*.1
+docs/*.8
