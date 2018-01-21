@@ -32,6 +32,7 @@ use HTML::Entities ('encode_entities');
 use URI::Escape ('uri_escape');
 use RRDs ();
 use Data::Dumper ();
+use Net::Domain ('hostfqdn');
 
 # This is Debian's config location, which differs from upstream
 our $Config = "/etc/collectd/collection.conf";
@@ -870,7 +871,15 @@ HTML
   for (my $i = 0; $i < @hosts; $i++)
   {
     my $host = encode_entities ($hosts[$i]);
-    my $selected = defined ($selected_hosts{$hosts[$i]}) ? ' selected="selected"' : '';
+    my $selected;
+    if (keys %selected_hosts)
+    {
+      $selected = defined ($selected_hosts{$hosts[$i]}) ? ' selected' : '';
+    }
+    else
+    {
+      $selected = ($hosts[$i] == hostfqdn) ? ' selected' : '';
+    }
     print qq(\t  <option value="$host"$selected>$host</option>\n);
   }
   print "\t</select>\n";
@@ -911,6 +920,7 @@ HTML
 
 sub print_header
 {
+  my $hostname = hostfqdn;
   print <<HEAD;
 Content-Type: text/html; charset=utf-8
 Cache-Control: no-cache
@@ -931,7 +941,7 @@ Cache-Control: no-cache
   </head>
 
   <body>
-    <h1>Server stats</h1>
+    <h1>Server stats on $hostname</h1>
 HEAD
   print_selector ();
 } # print_header
