@@ -587,7 +587,7 @@ sub action_show_host
   . join ('', map { ';host=' . uri_escape ($_) } (@hosts))
   . ';timespan=' . uri_escape ($timespan);
 
-  print qq(    <div><a href="${\script_name ()}?action=overview">Back to list of hosts</a></div>\n);
+  print qq(    <p><a href="${\script_name ()}?action=overview">Back to list of hosts</a></p>\n);
 
   print "    <p>Available plugins:</p>\n"
   . "    <ul>\n";
@@ -629,11 +629,11 @@ sub action_show_plugin
     }
   }
 
-  print qq(    <div><a href="${\script_name ()}?action=show_host;$hosts_url">Back to list of plugins</a></div>\n);
+  print qq(    <p><a href="${\script_name ()}?action=show_host;$hosts_url">Back to list of plugins</a></p>\n);
 
   # Print table header
   print <<HTML;
-    <table class="graphs">
+    <table class="graphs table">
       <tr>
         <th>Plugins</th>
 HTML
@@ -864,9 +864,8 @@ sub print_selector
 
   print <<HTML;
     <form action="${\script_name ()}" method="get">
-      <fieldset>
-	<legend>Selector</legend>
-	<select name="host" multiple="multiple" size="10">
+      <div class="form-group">
+	<select name="host" multiple size="10">
 HTML
   for (my $i = 0; $i < @hosts; $i++)
   {
@@ -893,7 +892,7 @@ HTML
     print "</select>\n";
   } # if (keys %selected_hosts)
 
-  print qq(\t<select name="timespan">\n);
+  print qq(\t<select name="timespan" size="10">\n);
   for (qw(Hour Day Week Month Year Trend))
   {
     my $timespan_uc = $_;
@@ -905,7 +904,7 @@ HTML
   print <<HTML;
 	</select>
 	<input type="submit" name="button" value="Ok" />
-      </fieldset>
+      </div>
     </form>
 HTML
 }
@@ -913,20 +912,26 @@ HTML
 sub print_header
 {
   print <<HEAD;
-Content-Type: application/xhtml+xml; charset=utf-8
+Content-Type: text/html; charset=utf-8
 Cache-Control: no-cache
 
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>collection.cgi, Version 2</title>
-    <link rel="stylesheet" href="/static/css/stats.css" />
+
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/stats.css">
   </head>
 
   <body>
+    <h1>Server stats</h1>
 HEAD
   print_selector ();
 } # print_header

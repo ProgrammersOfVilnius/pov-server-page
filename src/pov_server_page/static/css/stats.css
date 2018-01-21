@@ -1,11 +1,6 @@
-img {
-    border: none;
+select {
+    overflow: auto;
 }
-table.graphs {
-    border-collapse: collapse;
-}
-table.graphs td,
-table.graphs th {
-    border: 1px solid black;
-    empty-cells: hide;
+option {
+    padding: 2px 8px;
 }
