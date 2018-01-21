@@ -75,6 +75,9 @@
   # Referrer policy: don't expose our hidden URL structure to other sites
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
+  # Try to avoid caching stale styles etc
+  Header always setifempty Cache-control "must-revalidate"
+
   AddDefaultCharset UTF-8
 
 % endif
