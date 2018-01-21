@@ -422,7 +422,7 @@ sub list_hosts
   my @hosts = _find_hosts ();
   @hosts = sort (@hosts);
 
-  print "<ul>\n";
+  print "<ul class='nav nav-pills nav-stacked'>\n";
   for (my $i = 0; $i < @hosts; $i++)
   {
     my $host_html = encode_entities ($hosts[$i]);
@@ -591,7 +591,7 @@ sub action_show_host
   print qq(    <p><a href="${\script_name ()}?action=overview">Back to list of hosts</a></p>\n);
 
   print "    <p>Available plugins:</p>\n"
-  . "    <ul>\n";
+  . "    <ul class='nav nav-pills nav-stacked'>\n";
   for (sort (keys %$all_plugins))
   {
     my $plugin = $_;
