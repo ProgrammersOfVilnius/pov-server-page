@@ -291,6 +291,8 @@ class LinuxDiskInfo(object):
             return r.f_blocks * r.f_bsize
         # Experiments show that the kernel always reports 512-byte sectors,
         # even when the disk uses 4KiB sectors.
+        # XXX: I should probably read /sys/block/%s/queue/hw_sector_size
+        # instead of hardcoding
         return self.get_disk_size_sectors(disk_name) * 512
 
     def get_disk_model(self, disk_name):
