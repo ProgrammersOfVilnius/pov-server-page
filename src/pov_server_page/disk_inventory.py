@@ -154,6 +154,8 @@ class LinuxDiskInfo(object):
         if os.path.exists('/sys/block'):
             return sorted(name for name in os.listdir('/sys/block')
                           if name.startswith(('sd', 'cciss', 'xvd', 'vd')))
+            # XXX: maybe also list mmcblk in case somebody runs this on a
+            # Raspberry Pi or something
         elif os.path.exists('/dev/simfs'):
             # OpenVZ container
             return ['simfs']
