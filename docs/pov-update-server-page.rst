@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2018-01-21
-:Version: 1.3
+:Date: 2018-06-26
+:Version: 1.4
 :Manual section: 8
 
 
@@ -197,8 +197,37 @@ The following options are defined:
     Example::
 
         apache_extra_conf =
-          SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
-          SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+          SSLCertificateFile /etc/letsencrypt/live/foo.example.com/fullchain.pem
+          SSLCertificateKeyFile /etc/letsencrypt/live/foo.example.com/privkey.pem
+
+**include_post** (default: empty)
+
+    Add one or more ``Include`` *FILENAME* directive in the generated Apache
+    configuration, before the end of the ``<VirtualHost>`` section.
+
+    You may need this to override access control requirements for a portion
+    of the site.
+
+    Example::
+
+        include =
+          /etc/apache2/conf-available/le-webroot.conf
+
+**apache_extra_conf_post** (default: empty)
+
+    Insert the value into the end of the generated Apache configuration.
+
+    Note: all leading whitespace will be normalized.
+
+    You may need this to override access control requirements for a portion
+    of the site.
+
+    Example::
+
+        apache_extra_conf_post =
+          <Location /.well-known/acme-challenge>
+            Require all granted
+          </Location>
 
 **motd_file** (default: /etc/motd)
 

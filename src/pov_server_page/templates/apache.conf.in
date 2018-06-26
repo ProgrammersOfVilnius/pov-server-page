@@ -140,4 +140,14 @@
     Require valid-user
   </Location>
 
+% if INCLUDE_POST:
+%     for filename in INCLUDE_POST.split():
+  Include ${filename}
+%     endfor
+
+% endif
+% if APACHE_EXTRA_CONF_POST:
+  ${APACHE_EXTRA_CONF_POST.strip().replace('\n', '\n  ')}
+
+% endif
 </VirtualHost>

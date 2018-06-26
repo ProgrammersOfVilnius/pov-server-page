@@ -45,8 +45,8 @@ from . import update_ports_html, machine_summary, disk_inventory
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.3'
-__date__ = '2018-01-21'
+__version__ = '1.4'
+__date__ = '2018-06-26'
 
 
 debian_package = (
@@ -213,7 +213,9 @@ class Builder(object):
         COLLECTION_CGI=COLLECTION_CGI,
         AUTH_USER_FILE=DEFAULT_AUTH_USER_FILE,
         INCLUDE='',
+        INCLUDE_POST='',
         APACHE_EXTRA_CONF='',
+        APACHE_EXTRA_CONF_POST='',
         EXTRA_LINKS='',
         DISK_USAGE='',
         DISK_USAGE_DELETE_OLD=True,
