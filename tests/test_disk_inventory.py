@@ -1,9 +1,21 @@
+import functools
 import os
 import textwrap
 import unittest
 
 import pov_server_page.disk_inventory as di
 from . import PatchMixin, Symlink, Directory, NativeStringIO
+
+
+# TODO: switch from nose to pytest and replace with @pytest.mark.parametrize
+def parametrize(args, values):
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper():
+            for testcase in values:
+                fn(**dict(zip(args, testcase)))
+        return wrapper
+    return decorator
 
 
 def test_fmt_size_decimal():
@@ -28,6 +40,26 @@ def test_fmt_size_si():
     assert di.fmt_size_si(1200*1024**2) == '1.2 GiB'
     assert di.fmt_size_si(1200*1024**3) == '1.2 TiB'
     assert di.fmt_size_si(1200*1024**4) == '1.2 PiB'
+
+
+@parametrize(
+    ['fs_avail_kb', 'pv_free_kb', 'total_kb', 'used', 'expected'],
+    [
+        (1200, None, 3000, False, '1.2 MB free'),
+        (1200, None, 3000, True, '1.8 MB used'),
+        (None, 1300, 3000, False, '1.3 MB free'),
+        (None, 1300, 3000, True, '1.7 MB used'),
+    ],
+)
+def test_fmt_free_space(fs_avail_kb, pv_free_kb, total_kb, used, expected):
+    fsinfo = fs_avail_kb and di.FilesystemInfo(
+        'sda1', '/', 'ext4', total_kb, total_kb - fs_avail_kb, fs_avail_kb,
+    )
+    pvinfo = pv_free_kb and di.PVInfo('sda2', 'ubuntu', pv_free_kb)
+    actual = di.fmt_free_space(
+        fsinfo=fsinfo, pvinfo=pvinfo, partition_size_bytes=total_kb * 1024,
+        fmt_size=di.fmt_size_decimal, show_used_instead_of_free=used)
+    assert actual == expected, vars()
 
 
 class TestCase(PatchMixin, unittest.TestCase):

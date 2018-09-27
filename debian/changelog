@@ -1,7 +1,8 @@
 pov-server-page (1.5) UNRELEASED; urgency=medium
 
   * disk-inventory 1.4:
-    - show space available in each LVM physical volume.
+    - show space available in each LVM physical volume,
+    - --used option to show used space instead of free.
 
  -- Marius Gedminas <marius@gedmin.as>  Thu, 27 Sep 2018 21:24:09 +0300
 

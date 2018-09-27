@@ -440,8 +440,24 @@ def fmt_size_decimal(bytes):
     return '%.1f %s' % (size, units)
 
 
+def fmt_free_space(fsinfo, pvinfo, partition_size_bytes,
+                   fmt_size, show_used_instead_of_free):
+    free_bytes = (
+        fsinfo.avail_kb * 1024 if fsinfo else
+        pvinfo.free_kb * 1024 if pvinfo else
+        None
+    )
+    if free_bytes is None:
+        return ''
+    if show_used_instead_of_free:
+        used_bytes = partition_size_bytes - free_bytes
+        return fmt_size(used_bytes) + ' used'
+    else:
+        return fmt_size(free_bytes) + ' free'
+
+
 def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size_decimal,
-           print=print, warn=None):
+           print=print, warn=None, show_used_instead_of_free=False):
     if info is None:
         info = LinuxDiskInfo()
     if warn is not None:
@@ -482,10 +498,10 @@ def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size
                 name=partition + ':', nw=name_width,
                 usage=usage, uw=usage_width,
                 size=fmt_size(partition_size_bytes),
-                free_space=(
-                    fmt_size(fsinfo.avail_kb * 1024) + ' free' if fsinfo else
-                    fmt_size(pvinfo.free_kb * 1024) + ' free' if pvinfo
-                    else ''
+                free_space=fmt_free_space(
+                    fsinfo=fsinfo, pvinfo=pvinfo,
+                    partition_size_bytes=partition_size_bytes, fmt_size=fmt_size,
+                    show_used_instead_of_free=show_used_instead_of_free,
                 ),
             ).rstrip())
             unallocated -= partition_size_bytes
@@ -519,9 +535,11 @@ def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size
                 name=lv.name+':', nw=name_width,
                 usage=usage, uw=usage_width,
                 size=fmt_size(lv.size_sectors * 512),
-                free_space=(
-                    fmt_size(fsinfo.avail_kb * 1024) + ' free' if fsinfo
-                    else ''
+                free_space=fmt_free_space(
+                    fsinfo=fsinfo, pvinfo=None,
+                    partition_size_bytes=lv.size_sectors * 512,
+                    fmt_size=fmt_size,
+                    show_used_instead_of_free=show_used_instead_of_free,
                 ),
             ).rstrip())
         if vgroup.free_kb >= 1024 or verbose >= 2:
@@ -547,9 +565,14 @@ def main():
     parser.add_option('--si', help='use SI units (1 KiB = 1024 B)',
                       action='store_const', dest='fmt_size',
                       const=fmt_size_si)
+    parser.add_option('--used', help='show used space instead of free space',
+                      action='store_true')
     parser.set_defaults(fmt_size=fmt_size_decimal)
     opts, args = parser.parse_args()
-    report(verbose=opts.verbose, fmt_size=opts.fmt_size)
+    report(
+        verbose=opts.verbose, fmt_size=opts.fmt_size,
+        show_used_instead_of_free=opts.used,
+    )
 
 
 if __name__ == '__main__':
