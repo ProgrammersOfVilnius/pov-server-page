@@ -21,14 +21,14 @@ from xml.etree import ElementTree as ET
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.3.1'
-__date__ = '2018-01-20'
+__version__ = '1.4'
+__date__ = '2018-09-27'
 
 
 FilesystemInfo = collections.namedtuple(
     'FilesystemInfo', 'device mountpoint fstype size_kb used_kb avail_kb')
 
-PVInfo = collections.namedtuple('PVInfo', 'device vgname')
+PVInfo = collections.namedtuple('PVInfo', 'device vgname free_kb')
 
 VGInfo = collections.namedtuple('VGInfo', 'name size_kb used_kb free_kb')
 
@@ -229,6 +229,8 @@ class LinuxDiskInfo(object):
                     (device, vgname, size_kb, _, status, wtf, n_volumes,
                      extent_size_kb, n_extents, free_extents,
                      used_extents, uuid) = line.strip().split(':')
+                    extent_size_kb = int(extent_size_kb)
+                    free_extents = int(free_extents)
                 except ValueError:
                     # Could be something like a
                     #    "/dev/sdc2" is a new physical volume of "231.95 GiB"
@@ -236,7 +238,8 @@ class LinuxDiskInfo(object):
                     pass
                 else:
                     if device.startswith('/dev/'):
-                        res.append(PVInfo(device[len('/dev/'):], vgname))
+                        res.append(PVInfo(device[len('/dev/'):], vgname,
+                                          free_extents * extent_size_kb))
         return res
 
     def list_lvm_logical_volumes(self):
@@ -470,12 +473,14 @@ def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size
                 continue
             usage = info.get_partition_usage(partition)
             fsinfo = info.get_partition_fsinfo(partition)
+            pvinfo = info.get_partition_lvm_pv(partition)
             print("  {name:{nw}} {size:>10}  {usage:{uw}}  {free_space:>15}".format(
                 name=partition + ':', nw=name_width,
                 usage=usage, uw=usage_width,
                 size=fmt_size(partition_size_bytes),
                 free_space=(
-                    fmt_size(fsinfo.avail_kb * 1024) + ' free' if fsinfo
+                    fmt_size(fsinfo.avail_kb * 1024) + ' free' if fsinfo else
+                    fmt_size(pvinfo.free_kb * 1024) + ' free' if pvinfo
                     else ''
                 ),
             ).rstrip())

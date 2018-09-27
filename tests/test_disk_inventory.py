@@ -169,7 +169,7 @@ class TestLVM(TestCase):
             ),
         })
         self.assertEqual(self.info.list_lvm_physical_volumes(), [
-            ('mapper/sda5_crypt', 'platonas'),
+            ('mapper/sda5_crypt', 'platonas', 0),
         ])
 
     def test_list_lvm_logical_volumes(self):
@@ -408,7 +408,7 @@ class TestPartitions(TestCase):
         self.assertIsNone(self.info.get_partition_lvm_pv('sda1'))
         self.assertIsNone(self.info.get_partition_lvm_pv('sda2'))
         self.assertEqual(self.info.get_partition_lvm_pv('sda5'),
-                         ('mapper/sda5_crypt', 'platonas'))
+                         ('mapper/sda5_crypt', 'platonas', 0))
 
     def test_get_partition_kvm_vm(self):
         self.patch_files({
@@ -744,7 +744,7 @@ class TestReport(TestCase):
         self.assertMultiLineEqual(di.report_text() + '\n', textwrap.dedent('''\
             sde: Samsung SSD 850 (500.1 GB)
               sde1:             510.7 MB
-              sde5:             499.6 GB  LVM: platonas
+              sde5:             499.6 GB  LVM: platonas                        0.0 B free
             platonas: LVM (499.6 GB)
               root:             491.1 GB
               swap_1:             8.5 GB  swap
