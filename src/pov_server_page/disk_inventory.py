@@ -278,7 +278,11 @@ class LinuxDiskInfo(object):
         for filename in os.listdir(libvirt_dir):
             if filename.endswith('.xml'):
                 name = filename[:-len('.xml')]
-                t = ET.parse(os.path.join(libvirt_dir, filename))
+                try:
+                    t = ET.parse(os.path.join(libvirt_dir, filename))
+                except IOError:
+                    # you have to be root
+                    continue
                 for source in t.findall('.//disk/source'):
                     disk_file = source.get('file')
                     if disk_file and disk_file.startswith('/dev/'):
