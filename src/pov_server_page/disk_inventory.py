@@ -280,8 +280,9 @@ class LinuxDiskInfo(object):
                 name = filename[:-len('.xml')]
                 try:
                     t = ET.parse(os.path.join(libvirt_dir, filename))
-                except IOError:
-                    # you have to be root
+                except IOError:  # nocover: difficult to test
+                    # if you're not root, you'll get permission denied
+                    # from reading these
                     continue
                 for source in t.findall('.//disk/source'):
                     disk_file = source.get('file')
