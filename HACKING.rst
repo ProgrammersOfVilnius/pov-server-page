@@ -73,4 +73,7 @@ Run ::
 
     PYTHONPATH=src python -m pov_server_page.update_server_page enabled=1 --destdir=/tmp/test/ -v
 
-then look at the files in /tmp/test/.
+then look at the files in /tmp/test/.  They may look better if you also do ::
+
+    ln -sr src/pov_server_page/static/ /tmp/test/var/www/*/
+

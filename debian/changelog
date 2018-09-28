@@ -4,7 +4,7 @@ pov-server-page (1.5) UNRELEASED; urgency=medium
     - show space available in each LVM physical volume,
     - --used option to show used space instead of free.
   * pov-server-page -q now creates HTML files under /du and skips only the
-    slow parts (i.e. disk crawling).
+    slow parts, i.e. disk crawling (GH: #36).
 
  -- Marius Gedminas <marius@gedmin.as>  Thu, 27 Sep 2018 21:24:09 +0300
 

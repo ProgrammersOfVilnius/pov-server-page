@@ -420,6 +420,7 @@ class Builder(object):
                         location_name=location_name,
                         has_disk_graph=self.has_disk_graph,
                         disk_graph_url=self.disk_graph_url,
+                        has_data=os.path.exists(js_file),
                         snapshots=snapshots,
                     ),
                 )

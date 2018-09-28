@@ -15,19 +15,26 @@
   </head>
   <body>
     <h1>Disk Usage of ${HOSTNAME}:${location}</h1>
+% if snapshots:
     <div class="snapshots">
       <h4>Snapshots</h4>
       <ul class="nav nav-pills nav-stacked">
-% for date in snapshots:
+%     for date in snapshots:
         <li><a href="../diff/${location_name}/${date}..${snapshots[0]}">${date}</a></li>
-% endfor
+%     endfor
       </ul>
     </div>
+% endif
+% if has_data:
     <p>Click on a box to zoom in.  Click on the outermost box to zoom out.</p>
     <div id="map"></div>
     <p id="footer"></p>
     <script src="../webtreemap/webtreemap.js"></script>
     <script src="../../static/js/du-page.js"></script>
+% else:
+    <p>Disk usage hasn't been computed yet.  Wait for the cron script or run
+    <tt>sudo pov-update-server-page</tt> manually.</p>
+% endif
 % if has_disk_graph(location):
     <div class="graphs">
       <img src="${disk_graph_url(location, 'trend')}">
