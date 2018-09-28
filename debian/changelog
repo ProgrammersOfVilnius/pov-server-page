@@ -3,6 +3,8 @@ pov-server-page (1.5) UNRELEASED; urgency=medium
   * disk-inventory 1.4:
     - show space available in each LVM physical volume,
     - --used option to show used space instead of free.
+  * pov-server-page -q now creates HTML files under /du and skips only the
+    slow parts (i.e. disk crawling).
 
  -- Marius Gedminas <marius@gedmin.as>  Thu, 27 Sep 2018 21:24:09 +0300
 

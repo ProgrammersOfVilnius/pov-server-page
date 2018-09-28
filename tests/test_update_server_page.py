@@ -441,7 +441,8 @@ class TestDiskUsageBuilder(BuilderTests):
         self.builder.vars['DISK_USAGE_LIST'] = ['/pond']
         self.builder.quick = True
         Builder.DiskUsage().build(self.tmpdir, self.builder)
-        self.assertEqual(self.stdout.getvalue(), "Skipping disk usage\n")
+        self.assertNotIn('Deleting old snapshots', self.stdout.getvalue())
+        self.assertNotIn('du.js', self.stdout.getvalue())
 
     @mock.patch('pov_server_page.update_server_page.pipeline')
     @mock.patch('pov_server_page.update_server_page.newer')

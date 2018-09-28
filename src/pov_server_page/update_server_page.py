@@ -359,10 +359,6 @@ class Builder(object):
             locations = builder.vars['DISK_USAGE_LIST']
             if not locations:
                 return
-            if builder.quick:
-                if builder.verbose:
-                    print('Skipping disk usage')
-                return
             delete_old = builder.vars['DISK_USAGE_DELETE_OLD']
             keep_daily = builder.vars['DISK_USAGE_KEEP_DAILY']
             keep_monthly = builder.vars['DISK_USAGE_KEEP_MONTHLY']
@@ -381,7 +377,7 @@ class Builder(object):
             for location in locations:
                 location_name = self.location_name(location)
                 datadir = os.path.join(dirname, location_name)
-                if delete_old:
+                if delete_old and not builder.quick:
                     if builder.verbose:
                         print('Deleting old snapshots in %s' % datadir)
                     self.delete_old_files(datadir, keep_daily,
@@ -389,7 +385,9 @@ class Builder(object):
                 du_file = os.path.join(datadir, 'du-%s.gz' % today)
                 js_file = os.path.join(datadir, 'du.js')
                 index_html = os.path.join(datadir, 'index.html')
-                if not os.path.exists(du_file):
+                if builder.quick:
+                    need_build = False
+                elif not os.path.exists(du_file):
                     if builder.verbose:
                         print('Creating %s' % du_file)
                     mkdir_with_parents(datadir)
