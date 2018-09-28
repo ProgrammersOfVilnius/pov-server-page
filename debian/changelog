@@ -5,6 +5,7 @@ pov-server-page (1.5) UNRELEASED; urgency=medium
     - --used option to show used space instead of free.
   * pov-server-page -q now creates HTML files under /du and skips only the
     slow parts, i.e. disk crawling (GH: #36).
+  * The list of partitions in /du is now sorted (GH: #37).
 
  -- Marius Gedminas <marius@gedmin.as>  Thu, 27 Sep 2018 21:24:09 +0300
 

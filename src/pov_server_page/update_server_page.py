@@ -346,7 +346,7 @@ class Builder(object):
                 mountpoint = bits[-1]
                 if fstype not in cls.IGNORE:
                     locations.append(mountpoint)
-            return locations
+            return sorted(locations)
 
         @classmethod
         def parse(cls, disk_usage):
