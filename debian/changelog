@@ -1,4 +1,4 @@
-pov-server-page (1.5) UNRELEASED; urgency=medium
+pov-server-page (1.5) trusty; urgency=medium
 
   * disk-inventory 1.4:
     - show space available in each LVM physical volume,
@@ -7,7 +7,7 @@ pov-server-page (1.5) UNRELEASED; urgency=medium
     slow parts, i.e. disk crawling (GH: #36).
   * The list of partitions in /du is now sorted (GH: #37).
 
- -- Marius Gedminas <marius@gedmin.as>  Thu, 27 Sep 2018 21:24:09 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 28 Sep 2018 12:51:34 +0300
 
 pov-server-page (1.4) trusty; urgency=medium
 
