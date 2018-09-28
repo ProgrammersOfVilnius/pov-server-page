@@ -21,8 +21,8 @@ from xml.etree import ElementTree as ET
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.4'
-__date__ = '2018-09-27'
+__version__ = '1.4.1'
+__date__ = '2018-09-28'
 
 
 FilesystemInfo = collections.namedtuple(
@@ -285,7 +285,7 @@ class LinuxDiskInfo(object):
                     # from reading these
                     continue
                 for source in t.findall('.//disk/source'):
-                    disk_file = source.get('file')
+                    disk_file = source.get('file') or source.get('dev')
                     if disk_file and disk_file.startswith('/dev/'):
                         dev = self._canonical_device_name(disk_file)
                         res.append(KVMInfo(name, dev))
