@@ -21,8 +21,8 @@ from .utils import ansi2html, mako_error_handler
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.8.0'
-__date__ = '2018-01-18'
+__version__ = '0.8.1'
+__date__ = '2018-10-02'
 
 
 HOSTNAME = socket.gethostname()
@@ -260,7 +260,10 @@ def linkify(text):
 
 def highlight_text(what, text):
     what = cgi.escape(what, True)
-    return text.replace(what, '<mark>{}</mark>'.format(what))
+    return re.sub(
+        '(<[^>]*>)|(?:%s)' % re.escape(what),
+        lambda m: m.group(1) or '<mark>{}</mark>'.format(what),
+        text)
 
 
 #

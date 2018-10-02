@@ -353,6 +353,30 @@ class TestLinkify(TestCase):
         )
 
 
+class TestHighlightText(TestCase):
+
+    def test(self):
+        text = 'Hello world'
+        self.assertEqual(
+            c2h.highlight_text('lo', text),
+            'Hel<mark>lo</mark> world',
+        )
+
+    def test_markup(self):
+        text = 'Hello &amp; goodbye'
+        self.assertEqual(
+            c2h.highlight_text('lo & goo', text),
+            'Hel<mark>lo &amp; goo</mark>dbye',
+        )
+
+    def test_link(self):
+        text = '<a href="https://example.com/">https://example.com/'
+        self.assertEqual(
+            c2h.highlight_text('example', text),
+            '<a href="https://example.com/">https://<mark>example</mark>.com/',
+        )
+
+
 class TestGetChangelog(TestCase):
 
     def test(self):
