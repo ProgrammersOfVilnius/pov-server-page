@@ -3,7 +3,9 @@ pov-server-page (1.5.1) UNRELEASED; urgency=medium
   * disk-inventory 1.4.1:
     - better libvirtd XML file parsing (GH: #39).
   * changelog2html 0.8.1:
-    - fix search highlighting not to mangle URLs.
+    - fix search highlighting not to mangle URLs,
+    - fix search highlighting to be case-insentitive, because the search
+      itself is.
 
  -- Marius Gedminas <marius@gedmin.as>  Tue, 02 Oct 2018 20:08:26 +0300
 

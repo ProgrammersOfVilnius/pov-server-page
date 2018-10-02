@@ -362,6 +362,13 @@ class TestHighlightText(TestCase):
             'Hel<mark>lo</mark> world',
         )
 
+    def test_case_insensitive(self):
+        text = 'HelLo world'
+        self.assertEqual(
+            c2h.highlight_text('lo', text),
+            'Hel<mark>Lo</mark> world',
+        )
+
     def test_markup(self):
         text = 'Hello &amp; goodbye'
         self.assertEqual(

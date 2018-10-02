@@ -261,9 +261,10 @@ def linkify(text):
 def highlight_text(what, text):
     what = cgi.escape(what, True)
     return re.sub(
-        '(<[^>]*>)|(?:%s)' % re.escape(what),
-        lambda m: m.group(1) or '<mark>{}</mark>'.format(what),
-        text)
+        '(<[^>]*>)|(%s)' % re.escape(what),
+        lambda m: m.group(1) or '<mark>{}</mark>'.format(m.group(2)),
+        text,
+        flags=re.IGNORECASE)
 
 
 #
