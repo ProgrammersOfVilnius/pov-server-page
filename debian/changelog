@@ -1,4 +1,4 @@
-pov-server-page (1.5.1) UNRELEASED; urgency=medium
+pov-server-page (1.5.1) trusty; urgency=medium
 
   * disk-inventory 1.4.1:
     - better libvirtd XML file parsing (GH: #39).
@@ -7,7 +7,7 @@ pov-server-page (1.5.1) UNRELEASED; urgency=medium
     - fix search highlighting to be case-insentitive, because the search
       itself is.
 
- -- Marius Gedminas <marius@gedmin.as>  Tue, 02 Oct 2018 20:08:26 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 03 Oct 2018 13:29:52 +0300
 
 pov-server-page (1.5) trusty; urgency=medium
 
