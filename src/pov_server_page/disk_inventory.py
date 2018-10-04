@@ -457,6 +457,72 @@ def fmt_free_space(fsinfo, pvinfo, partition_size_bytes,
         return fmt_size(free_bytes) + ' free'
 
 
+class TextReport:
+
+    def __init__(self, verbose=1, fmt_size=fmt_size_decimal, print=print,
+                 name_width=8, usage_width=30, show_used_instead_of_free=False):
+        self.verbose = verbose
+        self.fmt_size = fmt_size
+        self.print = print
+        self.name_width = name_width
+        self.usage_width = usage_width
+        self.show_used_instead_of_free = show_used_instead_of_free
+
+    def start_disk(self, disk, model, disk_size_bytes, fwrev):
+        template = "{disk}: {model} ({size})"
+        if self.verbose >= 2:
+            template += ', firmware revision {fwrev}'
+        self.print(template.format(
+            disk=disk,
+            model=model,
+            size=self.fmt_size(disk_size_bytes),
+            fwrev=fwrev,
+        ))
+
+    def end_disk(self, unallocated, free_space_at_end):
+        if free_space_at_end and (self.verbose >= 2 or free_space_at_end > 100*1000**2): # megs
+            self.print("  {spacing:{nw}} {size:>10} (unused)".format(
+                spacing='', nw=self.name_width,
+                size=self.fmt_size(free_space_at_end),
+            ))
+            unallocated -= free_space_at_end
+        if unallocated and self.verbose >= 2:
+            self.print("  {spacing:{nw}} {size:>10} (metadata/internal fragmentation)".format(
+                spacing='', nw=self.name_width,
+                size=self.fmt_size(unallocated),
+            ))
+
+    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo):
+        self.print("  {name:{nw}} {size:>10}  {usage:{uw}}  {free_space:>15}".format(
+            name=name + ':', nw=self.name_width,
+            usage=usage, uw=self.usage_width,
+            size=self.fmt_size(partition_size_bytes),
+            free_space=fmt_free_space(
+                fsinfo=fsinfo, pvinfo=pvinfo,
+                partition_size_bytes=partition_size_bytes,
+                fmt_size=self.fmt_size,
+                show_used_instead_of_free=self.show_used_instead_of_free,
+            ),
+        ).rstrip())
+
+    def start_vg(self, vgroup):
+        template = "{vgroup}: LVM ({size})"
+        self.print(template.format(
+            vgroup=vgroup.name,
+            size=self.fmt_size(vgroup.size_kb * 1024),
+        ))
+
+    def end_vg(self, vgroup):
+        if vgroup.free_kb >= 1024 or self.verbose >= 2:
+            self.print("  {name:{nw}} {size:>10}".format(
+                name='free:', nw=self.name_width,
+                size=self.fmt_size(vgroup.free_kb * 1024),
+            ))
+
+    def lv(self, lv, usage, fsinfo):
+        self.partition(lv.name, lv.size_sectors * 512, usage, fsinfo, pvinfo=None)
+
+
 def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size_decimal,
            print=print, warn=None, show_used_instead_of_free=False):
     if info is None:
@@ -471,17 +537,14 @@ def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size
         for lv in info.list_lvm_logical_volumes():
             name_width = max(name_width, len(lv.name) + 1)
             usage_width = max(usage_width, len(info.get_partition_usage(lv.device)))
+    reporter = TextReport(verbose=verbose, fmt_size=fmt_size, print=print,
+                          name_width=name_width, usage_width=usage_width,
+                          show_used_instead_of_free=show_used_instead_of_free)
     for disk in info.list_physical_disks():
         disk_size_bytes = info.get_disk_size_bytes(disk)
-        template = "{disk}: {model} ({size})"
-        if verbose >= 2:
-            template += ', firmware revision {fwrev}'
-        print(template.format(
-            disk=disk,
-            model=info.get_disk_model(disk),
-            size=fmt_size(disk_size_bytes),
-            fwrev=info.get_disk_firmware_rev(disk),
-        ))
+        model = info.get_disk_model(disk)
+        fwrev = info.get_disk_firmware_rev(disk)
+        reporter.start_disk(disk, model, disk_size_bytes, fwrev)
         unallocated = disk_size_bytes
         partition = None
         last_partition_end = 0
@@ -495,59 +558,22 @@ def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size
             usage = info.get_partition_usage(partition)
             fsinfo = info.get_partition_fsinfo(partition)
             pvinfo = info.get_partition_lvm_pv(partition)
-            print("  {name:{nw}} {size:>10}  {usage:{uw}}  {free_space:>15}".format(
-                name=partition + ':', nw=name_width,
-                usage=usage, uw=usage_width,
-                size=fmt_size(partition_size_bytes),
-                free_space=fmt_free_space(
-                    fsinfo=fsinfo, pvinfo=pvinfo,
-                    partition_size_bytes=partition_size_bytes, fmt_size=fmt_size,
-                    show_used_instead_of_free=show_used_instead_of_free,
-                ),
-            ).rstrip())
+            reporter.partition(partition, partition_size_bytes, usage=usage, fsinfo=fsinfo, pvinfo=pvinfo)
             unallocated -= partition_size_bytes
             partition_start = info.get_partition_offset_bytes(partition)
             partition_end = partition_start + partition_size_bytes
             last_partition_end = max(last_partition_end, partition_end)
         free_space_at_end = disk_size_bytes - last_partition_end
-        if free_space_at_end and (verbose >= 2 or free_space_at_end > 100*1000**2): # megs
-            print("  {spacing:{nw}} {size:>10} (unused)".format(
-                spacing='', nw=name_width,
-                size=fmt_size(free_space_at_end),
-            ))
-            unallocated -= free_space_at_end
-        if unallocated and verbose >= 2:
-            print("  {spacing:{nw}} {size:>10} (metadata/internal fragmentation)".format(
-                spacing='', nw=name_width,
-                size=fmt_size(unallocated),
-            ))
+        reporter.end_disk(unallocated, free_space_at_end)
     for vgroup in info.list_lvm_volume_groups():
-        template = "{vgroup}: LVM ({size})"
-        print(template.format(
-            vgroup=vgroup.name,
-            size=fmt_size(vgroup.size_kb * 1024),
-        ))
+        reporter.start_vg(vgroup)
         for lv in info.list_lvm_logical_volumes():
             if lv.vgname != vgroup.name:
                 continue
             usage = info.get_partition_usage(lv.device)
             fsinfo = info.get_partition_fsinfo(lv.device)
-            print("  {name:{nw}} {size:>10}  {usage:{uw}}  {free_space:>15}".format(
-                name=lv.name+':', nw=name_width,
-                usage=usage, uw=usage_width,
-                size=fmt_size(lv.size_sectors * 512),
-                free_space=fmt_free_space(
-                    fsinfo=fsinfo, pvinfo=None,
-                    partition_size_bytes=lv.size_sectors * 512,
-                    fmt_size=fmt_size,
-                    show_used_instead_of_free=show_used_instead_of_free,
-                ),
-            ).rstrip())
-        if vgroup.free_kb >= 1024 or verbose >= 2:
-            print("  {name:{nw}} {size:>10}".format(
-                name='free:', nw=name_width,
-                size=fmt_size(vgroup.free_kb * 1024),
-            ))
+            reporter.lv(lv, usage, fsinfo)
+        reporter.end_vg(vgroup)
 
 
 def report_text(**kw):
