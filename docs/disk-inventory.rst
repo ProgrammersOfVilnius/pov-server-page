@@ -7,15 +7,19 @@ print an overview of your disks and partitions
 ----------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2018-10-03
-:Version: 1.4.1
+:Date: 2018-10-04
+:Version: 1.5.0
 :Manual section: 8
 
 
 SYNOPSIS
 ========
 
-**disk-inventory**
+**disk-inventory** [**-v** | **--verbose**] [**--decimal** | **--si**] [**--used**] [**--html**]
+
+**disk-inventory** **-h** | **--help**
+
+**disk-inventory** **--version**
 
 
 DESCRIPTION
@@ -30,6 +34,18 @@ Produce a disk inventory for a system:
 - how much space is used and how much is free
 
 Needs root access to figure out details about LVM.
+
+
+OPTIONS
+=======
+
+--version      show program's version number and exit
+-h, --help     show this help message and exit
+-v, --verbose
+--decimal      use decimal units (1 KB = 1000 B)
+--si           use SI units (1 KiB = 1024 B)
+--used         show used space instead of free space
+--html         produce HTML output
 
 
 BUGS
