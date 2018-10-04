@@ -56,9 +56,9 @@
 
     <h4>Disk usage details</h4>
     <% import pov_server_page.disk_inventory as di %>
-    <% report = di.report_text() %>
+    <% report = di.report_html() %>
 % if report:
-    <pre class="disk-inventory">${report}</pre>
+    ${report}
 % else:
     <p class="not-available">Not available.</p>
 % endif

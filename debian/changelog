@@ -1,3 +1,10 @@
+pov-server-page (1.6.0) UNRELEASED; urgency=medium
+
+  * disk-inventory 1.5.0:
+    - option to output HTML.
+
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 04 Oct 2018 15:17:23 +0300
+
 pov-server-page (1.5.1) trusty; urgency=medium
 
   * disk-inventory 1.4.1:

@@ -17,12 +17,13 @@ import collections
 import optparse
 import os
 import sys
+from cgi import escape
 from xml.etree import ElementTree as ET
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.4.1'
-__date__ = '2018-09-28'
+__version__ = '1.5.0'
+__date__ = '2018-10-04'
 
 
 FilesystemInfo = collections.namedtuple(
@@ -457,7 +458,7 @@ def fmt_free_space(fsinfo, pvinfo, partition_size_bytes,
         return fmt_size(free_bytes) + ' free'
 
 
-class TextReport:
+class Reporter:
 
     def __init__(self, verbose=1, fmt_size=fmt_size_decimal, print=print,
                  name_width=8, usage_width=30, show_used_instead_of_free=False):
@@ -467,6 +468,33 @@ class TextReport:
         self.name_width = name_width
         self.usage_width = usage_width
         self.show_used_instead_of_free = show_used_instead_of_free
+
+    def start_report(self):
+        pass
+
+    def end_report(self):
+        pass
+
+    def start_disk(self, disk, model, disk_size_bytes, fwrev):
+        pass
+
+    def end_disk(self, unallocated, free_space_at_end):
+        pass
+
+    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo):
+        pass
+
+    def start_vg(self, vgroup):
+        pass
+
+    def end_vg(self, vgroup):
+        pass
+
+    def lv(self, lv, usage, fsinfo):
+        pass
+
+
+class TextReporter(Reporter):
 
     def start_disk(self, disk, model, disk_size_bytes, fwrev):
         template = "{disk}: {model} ({size})"
@@ -523,8 +551,76 @@ class TextReport:
         self.partition(lv.name, lv.size_sectors * 512, usage, fsinfo, pvinfo=None)
 
 
-def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size_decimal,
-           print=print, warn=None, show_used_instead_of_free=False):
+class HtmlReporter(Reporter):
+
+    def start_report(self):
+        self.print('<table class="disk-inventory table table-hover">')
+
+    def end_report(self):
+        self.print('</table>')
+
+    def _heading_row(self, text):
+        self.print('<tr>')
+        self.print('  <th colspan="4">')
+        self.print('    {text}'.format(text=escape(text)))
+        self.print('  </th>')
+        self.print('</tr>')
+
+    def _row(self, name, size, usage, free_space):
+        self.print('<tr>')
+        self.print('  <td>{name}</td>'.format(name=escape(name)))
+        self.print('  <td class="text-right">{size}</td>'.format(size=escape(size)))
+        self.print('  <td>{usage}</td>'.format(usage=escape(usage)))
+        self.print('  <td class="text-right">{free_space}</td>'.format(free_space=escape(free_space)))
+        self.print('</tr>')
+
+    def start_disk(self, disk, model, disk_size_bytes, fwrev):
+        self._heading_row(
+            '{disk}: {model} ({size}), firmware revision {fwrev}'.format(
+                disk=disk,
+                model=model,
+                size=self.fmt_size(disk_size_bytes),
+                fwrev=fwrev,
+            ))
+
+    def end_disk(self, unallocated, free_space_at_end):
+        if free_space_at_end and (self.verbose >= 2 or free_space_at_end > 100*1000**2): # megs
+            self._row('', self.fmt_size(free_space_at_end), '(unused)', '')
+            unallocated -= free_space_at_end
+        if unallocated and self.verbose >= 2:
+            self._row('', self.fmt_size(unallocated), '(metadata/internal fragmentation)', '')
+
+    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo):
+        self._row(
+            name + ':',
+            self.fmt_size(partition_size_bytes),
+            usage,
+            fmt_free_space(
+                fsinfo=fsinfo, pvinfo=pvinfo,
+                partition_size_bytes=partition_size_bytes,
+                fmt_size=self.fmt_size,
+                show_used_instead_of_free=self.show_used_instead_of_free,
+            ))
+
+    def start_vg(self, vgroup):
+        self._heading_row(
+            '{vgroup}: LVM ({size})'.format(
+                vgroup=vgroup.name,
+                size=self.fmt_size(vgroup.size_kb * 1024),
+            ))
+
+    def end_vg(self, vgroup):
+        if vgroup.free_kb >= 1024 or self.verbose >= 2:
+            self._row('free:', self.fmt_size(vgroup.free_kb * 1024), '', '')
+
+    def lv(self, lv, usage, fsinfo):
+        self.partition(lv.name, lv.size_sectors * 512, usage, fsinfo, pvinfo=None)
+
+
+
+def report(info=None, verbose=1, name_width=8, usage_width=30,
+           fmt_size=fmt_size_decimal, print=print, warn=None,
+           show_used_instead_of_free=False, reporter_class=TextReporter):
     if info is None:
         info = LinuxDiskInfo()
     if warn is not None:
@@ -537,9 +633,11 @@ def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size
         for lv in info.list_lvm_logical_volumes():
             name_width = max(name_width, len(lv.name) + 1)
             usage_width = max(usage_width, len(info.get_partition_usage(lv.device)))
-    reporter = TextReport(verbose=verbose, fmt_size=fmt_size, print=print,
-                          name_width=name_width, usage_width=usage_width,
-                          show_used_instead_of_free=show_used_instead_of_free)
+    reporter = reporter_class(
+        verbose=verbose, fmt_size=fmt_size, print=print,
+        name_width=name_width, usage_width=usage_width,
+        show_used_instead_of_free=show_used_instead_of_free)
+    reporter.start_report()
     for disk in info.list_physical_disks():
         disk_size_bytes = info.get_disk_size_bytes(disk)
         model = info.get_disk_model(disk)
@@ -574,12 +672,25 @@ def report(info=None, verbose=1, name_width=8, usage_width=30, fmt_size=fmt_size
             fsinfo = info.get_partition_fsinfo(lv.device)
             reporter.lv(lv, usage, fsinfo)
         reporter.end_vg(vgroup)
+    reporter.end_report()
 
 
 def report_text(**kw):
     text = []
     report(print=text.append, warn=text.append, **kw)
     return '\n'.join(text)
+
+
+def report_html(**kw):
+    from markupsafe import Markup
+    text = []
+    warnings = []
+    report(print=text.append, warn=warnings.append,
+           reporter_class=HtmlReporter, **kw)
+    return Markup('\n'.join(text) + '\n'.join(
+        '<p class="warning">{}</p>'.format(escape(warning))
+        for warning in warnings
+    ))
 
 
 def main():
@@ -594,11 +705,14 @@ def main():
                       const=fmt_size_si)
     parser.add_option('--used', help='show used space instead of free space',
                       action='store_true')
+    parser.add_option('--html', help='produce HTML output',
+                      action='store_true')
     parser.set_defaults(fmt_size=fmt_size_decimal)
     opts, args = parser.parse_args()
     report(
         verbose=opts.verbose, fmt_size=opts.fmt_size,
         show_used_instead_of_free=opts.used,
+        reporter_class=HtmlReporter if opts.html else TextReporter,
     )
 
 

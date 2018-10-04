@@ -630,6 +630,8 @@ class TestReport(TestCase):
               swap_1:      8.5 GB
               free:         0.0 B
         '''))
+        # Smoke test, I'm not going to compare the HTML unless I find a regression
+        di.report_html(verbose=2)
 
     def test_multiple_lvm_vgs(self):
         self.patch_files({
@@ -796,6 +798,8 @@ class TestReport(TestCase):
               openerp-xenial:    22.5 GB
               free:             845.4 GB
         '''))
+        # Smoke test, I'm not going to compare the HTML unless I find a regression
+        di.report_html(verbose=2)
 
 
 class TestMain(TestCase):
@@ -813,3 +817,13 @@ class TestMain(TestCase):
             'vgdisplay -c 2>/dev/null': '',
         })
         self.run_main()
+
+    def test_main_html(self):
+        self.patch('sys.stdout', NativeStringIO())
+        self.patch_files({
+            '/sys/block': Directory(),
+        })
+        self.patch_commands({
+            'vgdisplay -c 2>/dev/null': '',
+        })
+        self.run_main('--html')

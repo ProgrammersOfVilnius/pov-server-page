@@ -9,3 +9,4 @@ exclude_lines =
     except NameError:
     if debian_package:
     if __name__ == '__main__':
+    pass
