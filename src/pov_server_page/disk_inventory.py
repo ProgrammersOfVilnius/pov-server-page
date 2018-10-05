@@ -23,7 +23,7 @@ from xml.etree import ElementTree as ET
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.6.0'
+__version__ = '1.6.1'
 __date__ = '2018-10-05'
 
 
@@ -34,7 +34,7 @@ PVInfo = collections.namedtuple('PVInfo', 'device vgname free_kb')
 
 VGInfo = collections.namedtuple('VGInfo', 'name size_kb used_kb free_kb')
 
-LVInfo = collections.namedtuple('LVInfo', 'name vgname size_bytes device role located_on')
+LVInfo = collections.namedtuple('LVInfo', 'name vgname size_bytes device role located_on is_open')
 
 DMInfo = collections.namedtuple('LVInfo', 'name major minor')
 
@@ -255,15 +255,15 @@ class LinuxDiskInfo(object):
     @cache
     def list_lvm_all_logical_volumes(self):
         res = []
-        columns = 'lv_name,vg_name,lv_size,lv_dm_path,lv_role,devices,metadata_devices'
+        columns = 'lv_name,vg_name,lv_size,lv_dm_path,lv_role,devices,metadata_devices,lv_device_open'
         with os.popen('lvs --separator=: --units=b --nosuffix --noheadings -o {} --all 2>/dev/null'.format(columns)) as f:
             for line in f:
                 (lvname, vgname, lv_size_bytes, lv_dm_path, lv_role, devices,
-                 meta_devices) = line.strip().split(':')
+                 meta_devices, device_open) = line.strip().split(':')
                 assert lv_dm_path.startswith('/dev/mapper/')
                 device = lv_dm_path[len('/dev/'):]
                 located_on = {d.partition('(')[0] for d in devices.split(',') + meta_devices.split(',') if d}
-                res.append(LVInfo(lvname, vgname, int(lv_size_bytes), device, lv_role, located_on))
+                res.append(LVInfo(lvname, vgname, int(lv_size_bytes), device, lv_role, located_on, bool(device_open)))
         return res
 
     @cache
@@ -436,6 +436,13 @@ class LinuxDiskInfo(object):
             users.append(fsinfo.mountpoint)
         return ' '.join(users)
 
+    def is_partition_used(self, partition_name):
+        pv = self.get_partition_lvm_pv(partition_name)
+        vm = self.get_partition_kvm_vm(partition_name)
+        swap = partition_name in self._swap_devices
+        fsinfo = self.get_partition_fsinfo(partition_name)
+        return bool(pv or vm or swap or fsinfo)
+
     def get_disks_of_lv(self, lv):
         disks = set()
         for device in lv.located_on:
@@ -507,7 +514,7 @@ class Reporter:
     def end_disk(self, unallocated, free_space_at_end):
         pass
 
-    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo):
+    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo, is_used):
         pass
 
     def start_vg(self, vgroup):
@@ -548,7 +555,7 @@ class TextReporter(Reporter):
                 size=self.fmt_size(unallocated),
             ))
 
-    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo,
+    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo, is_used,
                   is_ssd=False):
         if is_ssd and self.verbose >= 2:
             usage += ' [SSD]'
@@ -580,7 +587,7 @@ class TextReporter(Reporter):
 
     def lv(self, lv, usage, fsinfo, is_ssd):
         self.partition(lv.name, lv.size_bytes, usage, fsinfo, pvinfo=None,
-                       is_ssd=is_ssd)
+                       is_used=lv.is_open, is_ssd=is_ssd)
 
 
 class HtmlReporter(Reporter):
@@ -599,8 +606,8 @@ class HtmlReporter(Reporter):
         self.print('  </th>')
         self.print('</tr>')
 
-    def _row(self, name, size, usage, free_space, badges=()):
-        self.print('<tr>')
+    def _row(self, name, size, usage, free_space, tr_class=None, badges=()):
+        self._elem('tr', tr_class, indent=0)
         self._cell(name, badges=badges)
         self._cell(size, css_class='text-right')
         self._cell(usage)
@@ -608,10 +615,15 @@ class HtmlReporter(Reporter):
         self.print('</tr>')
 
     def _cell(self, text, css_class=None, badges=()):
-        self.print('  <td>' if css_class is None else '  <td class={}>'.format(css_class))
-        self.print('    {}'.format(escape(text)))
+        self._elem('td', css_class)
+        if text:
+            self.print('    {}'.format(escape(text)))
         self._badges(badges)
         self.print('  </td>')
+
+    def _elem(self, name, css_class=None, indent=1):
+        template = ('<{name} class="{css_class}">' if css_class else '<{name}>')
+        self.print('  ' * indent + template.format(name=name, css_class=css_class))
 
     def _badges(self, badges):
         for badge in badges:
@@ -630,12 +642,19 @@ class HtmlReporter(Reporter):
 
     def end_disk(self, unallocated, free_space_at_end):
         if free_space_at_end and (self.verbose >= 2 or free_space_at_end > 100*1000**2): # megs
-            self._row('', self.fmt_size(free_space_at_end), '(unused)', '')
+            self._row('', self.fmt_size(free_space_at_end), '(unused)', '',
+                      tr_class='text-muted')
             unallocated -= free_space_at_end
         if unallocated and self.verbose >= 2:
-            self._row('', self.fmt_size(unallocated), '(metadata/internal fragmentation)', '')
+            self._row('', self.fmt_size(unallocated), '(metadata/internal fragmentation)', '',
+                      tr_class='text-muted')
 
-    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo, badges=()):
+    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo, is_used, is_ssd=False):
+        if not is_used:
+            if not usage:
+                usage = '(unused)'
+            elif usage.startswith('md'):
+                usage += ' (unused)'
         self._row(
             name,
             self.fmt_size(partition_size_bytes),
@@ -645,7 +664,10 @@ class HtmlReporter(Reporter):
                 partition_size_bytes=partition_size_bytes,
                 fmt_size=self.fmt_size,
                 show_used_instead_of_free=self.show_used_instead_of_free,
-            ), badges=badges)
+            ),
+            tr_class='' if is_used else 'text-muted',
+            badges=['SSD'] if is_ssd else [],
+        )
 
     def start_vg(self, vgroup):
         self._heading_row(
@@ -656,11 +678,12 @@ class HtmlReporter(Reporter):
 
     def end_vg(self, vgroup):
         if vgroup.free_kb >= 1024 or self.verbose >= 2:
-            self._row('free:', self.fmt_size(vgroup.free_kb * 1024), '', '')
+            self._row('free', self.fmt_size(vgroup.free_kb * 1024), '', '',
+                      tr_class='text-muted')
 
     def lv(self, lv, usage, fsinfo, is_ssd):
         self.partition(lv.name, lv.size_bytes, usage, fsinfo, pvinfo=None,
-                       badges=['SSD'] if is_ssd else [])
+                       is_used=lv.is_open, is_ssd=is_ssd)
 
 
 
@@ -703,7 +726,8 @@ def report(info=None, verbose=1, name_width=8, usage_width=30,
             usage = info.get_partition_usage(partition)
             fsinfo = info.get_partition_fsinfo(partition)
             pvinfo = info.get_partition_lvm_pv(partition)
-            reporter.partition(partition, partition_size_bytes, usage=usage, fsinfo=fsinfo, pvinfo=pvinfo)
+            is_used = info.is_partition_used(partition)
+            reporter.partition(partition, partition_size_bytes, usage=usage, fsinfo=fsinfo, pvinfo=pvinfo, is_used=is_used)
             unallocated -= partition_size_bytes
             partition_start = info.get_partition_offset_bytes(partition)
             partition_end = partition_start + partition_size_bytes
