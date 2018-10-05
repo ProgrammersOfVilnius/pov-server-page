@@ -14,6 +14,7 @@ Written by Marius Gedminas <marius@pov.lt>
 from __future__ import print_function
 
 import collections
+import functools
 import optparse
 import os
 import sys
@@ -42,62 +43,59 @@ DMName = collections.namedtuple('LVInfo', 'name number')
 KVMInfo = collections.namedtuple('KVMInfo', 'name device')
 
 
+class once(object):
+    """Property that is computed once, on 1st access, and then cached."""
+
+    def __init__(self, fn):
+        self.fn = fn
+        self.name = fn.__name__
+
+    def __get__(self, instance, owner):
+        value = self.fn(instance)
+        setattr(instance, self.name, value)
+        return value
+
+
+def cache(fn):
+    """Decorator that caches a function's return value on first run."""
+    @functools.wraps(fn)
+    def wrapper(self):
+        if not hasattr(self, cache_name):
+            setattr(self, cache_name, fn(self))
+        return getattr(self, cache_name)
+    cache_name = '_{}_cache'.format(fn.__name__)
+    return wrapper
+
+
 class LinuxDiskInfo(object):
 
-    _swap_devices_cache = None
-    _filesystems_cache = None
-    _filesystems_by_device_cache = None
-    _lvm_pvs_cache = None
-    _kvm_vm_cache = None
-    _dm_cache = None
-    _dm_name_cache = None
-
-    @property
+    @once
     def _swap_devices(self):
-        if self._swap_devices_cache is None:
-            self._swap_devices_cache = self.list_swap_devices()
-        return self._swap_devices_cache
+        return self.list_swap_devices()
 
-    @property
+    @once
     def _filesystems(self):
-        if self._filesystems_cache is None:
-            self._filesystems_cache = self.list_filesystems()
-        return self._filesystems_cache
+        return self.list_filesystems()
 
-    @property
+    @once
     def _filesystems_by_device(self):
-        if self._filesystems_by_device_cache is None:
-            self._filesystems_by_device_cache = dict(
-                (r.device, r) for r in self._filesystems)
-        return self._filesystems_by_device_cache
+        return {r.device: r for r in self._filesystems}
 
-    @property
+    @once
     def _lvm_pvs(self):
-        if self._lvm_pvs_cache is None:
-            self._lvm_pvs_cache = dict(
-                (pv.device, pv) for pv in self.list_lvm_physical_volumes())
-        return self._lvm_pvs_cache
+        return {pv.device: pv for pv in self.list_lvm_physical_volumes()}
 
-    @property
+    @once
     def _kvm_vms(self):
-        if self._kvm_vm_cache is None:
-            self._kvm_vm_cache = dict(
-                (vm.device, vm) for vm in self.list_kvm_vms())
-        return self._kvm_vm_cache
+        return {vm.device: vm for vm in self.list_kvm_vms()}
 
-    @property
+    @once
     def _dms(self):
-        if self._dm_cache is None:
-            self._dm_cache = dict(
-                (dm.name, dm) for dm in self.list_device_mapper())
-        return self._dm_cache
+        return {dm.name: dm for dm in self.list_device_mapper()}
 
     @property
     def _dm_names(self):
-        if self._dm_name_cache is None:
-            self._dm_name_cache = dict(
-                (dm.number, dm.name) for dm in self.list_device_mapper_names())
-        return self._dm_name_cache
+        return {dm.number: dm.name for dm in self.list_device_mapper_names()}
 
     def _read_string(self, filename):
         with open(filename) as f:
@@ -123,6 +121,7 @@ class LinuxDiskInfo(object):
     def warn(self, message):
         print(message, file=sys.stderr)
 
+    @cache
     def list_swap_devices(self):
         """Return short device names such as ['sda1']"""
         res = []
@@ -135,6 +134,7 @@ class LinuxDiskInfo(object):
                     res.append(name)
         return res
 
+    @cache
     def list_filesystems(self):
         """Return a list of FilesystemInfo tuples."""
         res = []
@@ -147,6 +147,7 @@ class LinuxDiskInfo(object):
                     res.append(FilesystemInfo(name, mountpoint, fstype, int(size_kb), int(used_kb), int(avail_kb)))
         return res
 
+    @cache
     def list_physical_disks(self):
         """Return physical disk names such as ['sda', 'sdb'].
 
@@ -164,6 +165,7 @@ class LinuxDiskInfo(object):
             self.warn("disk-inventory: cannot discover block devices: /sys/block is missing")
             return []
 
+    @cache
     def list_device_mapper(self):
         """Return a list of DMInfo tuples."""
         res = []
@@ -174,6 +176,7 @@ class LinuxDiskInfo(object):
                 res.append(DMInfo(name, int(major), int(minor)))
         return res
 
+    @cache
     def list_device_mapper_names(self):
         """Return a list of DMName tuples."""
         # XXX: I could construct this from self._dms, using self.get_dm_for()
@@ -188,6 +191,7 @@ class LinuxDiskInfo(object):
             pass
         return res
 
+    @cache
     def list_lvm_volume_groups(self):
         """Return volume groups names."""
         res = []
@@ -219,6 +223,7 @@ class LinuxDiskInfo(object):
                                   int(free_extents) * int(extent_size_kb)))
         return res
 
+    @cache
     def list_lvm_physical_volumes(self):
         """Return a list of PVInfo tuples."""
         res = []
@@ -243,8 +248,13 @@ class LinuxDiskInfo(object):
                                           free_extents * extent_size_kb))
         return res
 
+    @cache
     def list_lvm_logical_volumes(self):
         res = []
+        # TODO: switch to
+        # lvs --units=b --nosuffix --noheadings -o lv_name,vg_name,lv_size,lv_dm_path
+        # ? or even
+        # lvs --units=b --nosuffix --noheadings -o lv_name,vg_name,lv_size,lv_dm_path,lv_role,devices,metadata_devices --all
         with os.popen('lvdisplay -c 2>/dev/null') as f:
             for line in f:
                 # columns:
@@ -271,6 +281,7 @@ class LinuxDiskInfo(object):
                 res.append(LVInfo(lvname, vgname, int(size_sectors), device))
         return res
 
+    @cache
     def list_kvm_vms(self):
         libvirt_dir = '/etc/libvirt/qemu'
         if not os.path.exists(libvirt_dir):

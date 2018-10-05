@@ -20,6 +20,40 @@ def parametrize(args, values):
     return decorator
 
 
+def test_once_decorator():
+    class Foo(object):
+        @di.once
+        def compute(self):
+            computations.append(1)
+            return 42
+    computations = []
+    foo = Foo()
+    assert foo.compute == 42
+    assert foo.compute == 42
+    assert len(computations) == 1
+    bar = Foo()
+    assert bar.compute == 42
+    assert bar.compute == 42
+    assert len(computations) == 2
+
+
+def test_cache_decorator():
+    class Foo(object):
+        @di.cache
+        def compute(self):
+            computations.append(1)
+            return 42
+    computations = []
+    foo = Foo()
+    assert foo.compute() == 42
+    assert foo.compute() == 42
+    assert len(computations) == 1
+    bar = Foo()
+    assert bar.compute() == 42
+    assert bar.compute() == 42
+    assert len(computations) == 2
+
+
 def test_fmt_size_decimal():
     assert di.fmt_size_decimal(0) == '0.0 B'
     assert di.fmt_size_decimal(1) == '1.0 B'
