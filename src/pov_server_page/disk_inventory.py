@@ -22,8 +22,8 @@ from xml.etree import ElementTree as ET
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.5.0'
-__date__ = '2018-10-04'
+__version__ = '1.6.0'
+__date__ = '2018-10-05'
 
 
 FilesystemInfo = collections.namedtuple(
@@ -320,6 +320,10 @@ class LinuxDiskInfo(object):
             return 'N/A'
         return self._read_string('/sys/block/%s/device/rev' % disk_name)
 
+    def is_disk_an_ssd(self, disk_name):
+        rot = self._read_string('/sys/block/%s/queue/rotational' % disk_name)
+        return rot.strip() == '0'
+
     def list_partitions(self, disk_name):
         """Return partition names such as ['sda1', ...].
 
@@ -475,7 +479,7 @@ class Reporter:
     def end_report(self):
         pass
 
-    def start_disk(self, disk, model, disk_size_bytes, fwrev):
+    def start_disk(self, disk, model, disk_size_bytes, fwrev, is_ssd):
         pass
 
     def end_disk(self, unallocated, free_space_at_end):
@@ -496,10 +500,12 @@ class Reporter:
 
 class TextReporter(Reporter):
 
-    def start_disk(self, disk, model, disk_size_bytes, fwrev):
+    def start_disk(self, disk, model, disk_size_bytes, fwrev, is_ssd):
         template = "{disk}: {model} ({size})"
         if self.verbose >= 2:
             template += ', firmware revision {fwrev}'
+        if is_ssd and 'SSD' not in model:
+            template += ' [SSD]'
         self.print(template.format(
             disk=disk,
             model=model,
@@ -559,10 +565,14 @@ class HtmlReporter(Reporter):
     def end_report(self):
         self.print('</table>')
 
-    def _heading_row(self, text):
+    def _heading_row(self, text, badges=()):
         self.print('<tr>')
         self.print('  <th colspan="4">')
         self.print('    {text}'.format(text=escape(text)))
+        for badge in badges:
+            self.print(
+                '    <span class="label label-info">{badge}</span>'.format(
+                    badge=escape(badge)))
         self.print('  </th>')
         self.print('</tr>')
 
@@ -574,14 +584,14 @@ class HtmlReporter(Reporter):
         self.print('  <td class="text-right">{free_space}</td>'.format(free_space=escape(free_space)))
         self.print('</tr>')
 
-    def start_disk(self, disk, model, disk_size_bytes, fwrev):
+    def start_disk(self, disk, model, disk_size_bytes, fwrev, is_ssd):
         self._heading_row(
             '{disk}: {model} ({size}), firmware revision {fwrev}'.format(
                 disk=disk,
                 model=model,
                 size=self.fmt_size(disk_size_bytes),
                 fwrev=fwrev,
-            ))
+            ), badges=['SSD'] if is_ssd else [])
 
     def end_disk(self, unallocated, free_space_at_end):
         if free_space_at_end and (self.verbose >= 2 or free_space_at_end > 100*1000**2): # megs
@@ -642,7 +652,8 @@ def report(info=None, verbose=1, name_width=8, usage_width=30,
         disk_size_bytes = info.get_disk_size_bytes(disk)
         model = info.get_disk_model(disk)
         fwrev = info.get_disk_firmware_rev(disk)
-        reporter.start_disk(disk, model, disk_size_bytes, fwrev)
+        is_ssd = info.is_disk_an_ssd(disk)
+        reporter.start_disk(disk, model, disk_size_bytes, fwrev, is_ssd)
         unallocated = disk_size_bytes
         partition = None
         last_partition_end = 0

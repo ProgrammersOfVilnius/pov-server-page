@@ -1,3 +1,10 @@
+pov-server-page (1.7.0) UNRELEASED; urgency=medium
+
+  * disk-inventory 1.6.0:
+    - indicate which disks are SSDs (GH: #38).
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 05 Oct 2018 13:45:36 +0300
+
 pov-server-page (1.6.0) trusty; urgency=medium
 
   * disk-inventory 1.5.0:

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import functools
 import os
 import textwrap
@@ -576,12 +578,44 @@ class TestPartitions(TestCase):
                          'swap')
 
 
+class TestTextReporter(TestCase):
+
+    def test_ssd_label(self):
+        result = []
+        reporter = di.TextReporter(print=result.append)
+        reporter.start_disk(
+            disk='sda', model='Weird solid state disk', fwrev='FW42',
+            disk_size_bytes=40*1000**3, is_ssd=True)
+        self.assertEqual(result, [
+            'sda: Weird solid state disk (40.0 GB) [SSD]',
+        ])
+
+
+class TestHtmlReporter(TestCase):
+
+    def test_ssd_label(self):
+        result = []
+        reporter = di.HtmlReporter(print=result.append)
+        reporter.start_disk(
+            disk='sda', model='My good SSD', fwrev='FW42',
+            disk_size_bytes=40*1000**3, is_ssd=True)
+        self.assertMultiLineEqual('\n'.join(result), textwrap.dedent('''\
+            <tr>
+              <th colspan="4">
+                sda: My good SSD (40.0 GB), firmware revision FW42
+                <span class="label label-info">SSD</span>
+              </th>
+            </tr>
+        ''').rstrip())
+
+
 class TestReport(TestCase):
 
     def test_lvm(self):
         self.patch_files({
             '/proc/swaps': '',
             '/sys/block/sda/size': '976773168\n',
+            '/sys/block/sda/queue/rotational': '0\n',
             '/sys/block/sda/device/model': 'Samsung SSD 850\n',
             '/sys/block/sda/device/rev': '2B6Q\n',
             '/sys/block/sda/sda1/size': '997376\n',
@@ -662,6 +696,7 @@ class TestReport(TestCase):
             '/sys/block/sde/size': '976773168\n',
             '/sys/block/sde/device/model': 'Samsung SSD 850\n',
             '/sys/block/sde/device/rev': '2B6Q\n',
+            '/sys/block/sde/queue/rotational': '0\n',
             '/sys/block/sde/sde1/size': '997376\n',
             '/sys/block/sde/sde1/start': '2048\n',
             '/sys/block/sde/sde1/holders': Directory(),
