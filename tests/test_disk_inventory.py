@@ -346,6 +346,10 @@ class TestDiskInfo(TestCase):
         self.assertEqual(self.info.get_disk_firmware_rev('vda'), 'N/A')
         self.assertEqual(self.info.get_disk_firmware_rev('vdb'), 'N/A')
 
+    def test_is_disk_an_ssd_simfs(self):
+        self.patch_files({})
+        self.assertFalse(self.info.is_disk_an_ssd('simfs'))
+
 
 class TestPartitions(TestCase):
 

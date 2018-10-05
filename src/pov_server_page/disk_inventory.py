@@ -332,7 +332,7 @@ class LinuxDiskInfo(object):
         return self._read_string('/sys/block/%s/device/rev' % disk_name)
 
     def is_disk_an_ssd(self, disk_name):
-        if disk_name.startswith('simfs'):
+        if disk_name == 'simfs':
             return False
         rot = self._read_string('/sys/block/%s/queue/rotational' % disk_name)
         return rot.strip() == '0'
