@@ -5,3 +5,6 @@ pre.motd {
     border: none;
     background: inherit;
 }
+.disk-inventory.table td:first-child {
+    padding-left: 3ex;
+}

@@ -601,14 +601,17 @@ class HtmlReporter(Reporter):
 
     def _row(self, name, size, usage, free_space, badges=()):
         self.print('<tr>')
-        self.print('  <td>{name}</td>'.format(name=escape(name)))
-        self.print('  <td class="text-right">{size}</td>'.format(size=escape(size)))
-        self.print('  <td>')
-        self.print('    {usage}'.format(usage=escape(usage)))
+        self._cell(name, badges=badges)
+        self._cell(size, css_class='text-right')
+        self._cell(usage)
+        self._cell(free_space, css_class='text-right')
+        self.print('</tr>')
+
+    def _cell(self, text, css_class=None, badges=()):
+        self.print('  <td>' if css_class is None else '  <td class={}>'.format(css_class))
+        self.print('    {}'.format(escape(text)))
         self._badges(badges)
         self.print('  </td>')
-        self.print('  <td class="text-right">{free_space}</td>'.format(free_space=escape(free_space)))
-        self.print('</tr>')
 
     def _badges(self, badges):
         for badge in badges:
@@ -634,7 +637,7 @@ class HtmlReporter(Reporter):
 
     def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo, badges=()):
         self._row(
-            name + ':',
+            name,
             self.fmt_size(partition_size_bytes),
             usage,
             fmt_free_space(
