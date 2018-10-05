@@ -34,7 +34,7 @@ PVInfo = collections.namedtuple('PVInfo', 'device vgname free_kb')
 
 VGInfo = collections.namedtuple('VGInfo', 'name size_kb used_kb free_kb')
 
-LVInfo = collections.namedtuple('LVInfo', 'name vgname size_sectors device')
+LVInfo = collections.namedtuple('LVInfo', 'name vgname size_bytes device role located_on')
 
 DMInfo = collections.namedtuple('LVInfo', 'name major minor')
 
@@ -84,6 +84,10 @@ class LinuxDiskInfo(object):
     @once
     def _lvm_pvs(self):
         return {pv.device: pv for pv in self.list_lvm_physical_volumes()}
+
+    @once
+    def _lvm_lvs(self):
+        return {(lv.vgname, lv.name): lv for lv in self.list_lvm_all_logical_volumes()}
 
     @once
     def _kvm_vms(self):
@@ -249,37 +253,23 @@ class LinuxDiskInfo(object):
         return res
 
     @cache
-    def list_lvm_logical_volumes(self):
+    def list_lvm_all_logical_volumes(self):
         res = []
-        # TODO: switch to
-        # lvs --units=b --nosuffix --noheadings -o lv_name,vg_name,lv_size,lv_dm_path
-        # ? or even
-        # lvs --units=b --nosuffix --noheadings -o lv_name,vg_name,lv_size,lv_dm_path,lv_role,devices,metadata_devices --all
-        with os.popen('lvdisplay -c 2>/dev/null') as f:
+        columns = 'lv_name,vg_name,lv_size,lv_dm_path,lv_role,devices,metadata_devices'
+        with os.popen('lvs --separator=: --units=b --nosuffix --noheadings -o {} --all 2>/dev/null'.format(columns)) as f:
             for line in f:
-                # columns:
-                # - logical volume name
-                # - volume group name
-                # - logical volume access
-                # - logical volume status
-                # - internal logical volume number
-                # - open count of logical volume
-                # - logical volume size in sectors
-                # - current logical extents associated to logical volume
-                # - allocated logical extents of logical volume
-                # - allocation policy of logical volume
-                # - read ahead sectors of logical volume
-                # - major device number of logical volume
-                # - minor device number of logical volume
-                (name, vgname, _, _, _, _, size_sectors, cur_extents,
-                 alloc_extents, _, _, _, _) = line.strip().split(':')
-                lvname = name.rpartition('/')[-1] # /dev/{vgname}/{lvname}
-                device = 'mapper/{vgname}-{lvname}'.format(
-                    vgname=vgname.replace('-', '--'),
-                    lvname=lvname.replace('-', '--'),
-                )
-                res.append(LVInfo(lvname, vgname, int(size_sectors), device))
+                (lvname, vgname, lv_size_bytes, lv_dm_path, lv_role, devices,
+                 meta_devices) = line.strip().split(':')
+                assert lv_dm_path.startswith('/dev/mapper/')
+                device = lv_dm_path[len('/dev/'):]
+                located_on = {d.partition('(')[0] for d in devices.split(',') + meta_devices.split(',') if d}
+                res.append(LVInfo(lvname, vgname, int(lv_size_bytes), device, lv_role, located_on))
         return res
+
+    @cache
+    def list_lvm_logical_volumes(self):
+        return [lv for lv in self.list_lvm_all_logical_volumes()
+                if lv.role == 'public']
 
     @cache
     def list_kvm_vms(self):
@@ -567,7 +557,7 @@ class TextReporter(Reporter):
             ))
 
     def lv(self, lv, usage, fsinfo):
-        self.partition(lv.name, lv.size_sectors * 512, usage, fsinfo, pvinfo=None)
+        self.partition(lv.name, lv.size_bytes, usage, fsinfo, pvinfo=None)
 
 
 class HtmlReporter(Reporter):
@@ -637,7 +627,7 @@ class HtmlReporter(Reporter):
             self._row('free:', self.fmt_size(vgroup.free_kb * 1024), '', '')
 
     def lv(self, lv, usage, fsinfo):
-        self.partition(lv.name, lv.size_sectors * 512, usage, fsinfo, pvinfo=None)
+        self.partition(lv.name, lv.size_bytes, usage, fsinfo, pvinfo=None)
 
 
 

@@ -242,14 +242,14 @@ class TestLVM(TestCase):
 
     def test_list_lvm_logical_volumes(self):
         self.patch_commands({
-            'lvdisplay -c 2>/dev/null': (
-                '  /dev/platonas/root:platonas:3:1:-1:1:959217664:117092:-1:0:-1:253:1\n'
-                '  /dev/platonas/swap_1:platonas:3:1:-1:2:16539648:2019:-1:0:-1:253:2\n'
+            'lvs --separator=: --units=b --nosuffix --noheadings -o lv_name,vg_name,lv_size,lv_dm_path,lv_role,devices,metadata_devices --all 2>/dev/null': (
+                '  root:platonas:491119443968:/dev/mapper/platonas-root:public:/dev/mapper/sda5_crypt(0):\n'
+                '  swap_1:platonas:8468299776:/dev/mapper/platonas-swap_1:public:/dev/mapper/sda5_crypt(117092):\n'
             ),
         })
         self.assertEqual(self.info.list_lvm_logical_volumes(), [
-            ('root', 'platonas', 959217664, 'mapper/platonas-root'),
-            ('swap_1', 'platonas', 16539648, 'mapper/platonas-swap_1'),
+            ('root', 'platonas', 491119443968, 'mapper/platonas-root', 'public', {'/dev/mapper/sda5_crypt'}),
+            ('swap_1', 'platonas', 8468299776, 'mapper/platonas-swap_1', 'public', {'/dev/mapper/sda5_crypt'}),
         ])
 
 
@@ -675,9 +675,9 @@ class TestReport(TestCase):
             'vgdisplay -c 2>/dev/null': (
                 '  platonas:r/w:772:-1:0:2:2:-1:0:1:1:487878656:4096:119111:119111:0:jzd3VL-RR7v-44tD-O8zO-9sSI-qFEs-hpmnPE\n'
             ),
-            'lvdisplay -c 2>/dev/null': (
-                '  /dev/platonas/root:platonas:3:1:-1:1:959217664:117092:-1:0:-1:253:1\n'
-                '  /dev/platonas/swap_1:platonas:3:1:-1:2:16539648:2019:-1:0:-1:253:2\n'
+            'lvs --separator=: --units=b --nosuffix --noheadings -o lv_name,vg_name,lv_size,lv_dm_path,lv_role,devices,metadata_devices --all 2>/dev/null': (
+                '  root:platonas:491119443968:/dev/mapper/platonas-root:public:/dev/mapper/sda5_crypt(0):\n'
+                '  swap_1:platonas:8468299776:/dev/mapper/platonas-swap_1:public:/dev/mapper/sda5_crypt(117092):\n'
             ),
             'dmsetup -c --noheadings info': textwrap.dedent('''\
                 platonas-swap_1:253:2:L--w:2:1:0:LVM-blahblah
@@ -731,6 +731,7 @@ class TestReport(TestCase):
             '/sys/block/dm-54/holders': Directory(),
             '/sys/block/dm-59/holders': Directory(),
             '/sys/block/dm-64/holders': Directory(),
+            '/sys/block/dm-69/holders': Directory(),
             '/sys/block/sde/size': '976773168\n',
             '/sys/block/sde/device/model': 'Samsung SSD 850\n',
             '/sys/block/sde/device/rev': '2B6Q\n',
@@ -757,22 +758,79 @@ class TestReport(TestCase):
                 '  platonas:r/w:772:-1:0:2:2:-1:0:1:1:487878656:4096:119111:119111:0:jzd3VL-RR7v-44tD-O8zO-9sSI-qFEs-hpmnPE\n'
                 '  fridge:r/w:772:-1:0:13:10:-1:0:4:4:1463189504:4096:357224:155674:201550:vdq2Ht-m5RN-rD0v-lTEf-oqtN-LGm4-UGZDn2\n'
             ),
-            'lvdisplay -c 2>/dev/null': (
-                '  /dev/platonas/root:platonas:3:1:-1:1:959217664:117092:-1:0:-1:253:1\n'
-                '  /dev/platonas/swap_1:platonas:3:1:-1:2:16539648:2019:-1:0:-1:253:2\n'
-                '  /dev/fridge/tmp:fridge:3:1:-1:1:41943040:5120:-1:0:-1:252:9\n'
-                '  /dev/fridge/jenkins:fridge:3:1:-1:1:41943040:5120:-1:0:-1:252:14\n'
-                '  /dev/fridge/cache:fridge:3:1:-1:1:20971520:2560:-1:0:-1:252:19\n'
-                '  /dev/fridge/www:fridge:3:1:-1:1:20971520:2560:-1:0:-1:252:24\n'
-                '  /dev/fridge/mailman:fridge:3:1:-1:1:20971520:2560:-1:0:-1:252:29\n'
-                '  /dev/fridge/openerp:fridge:3:1:-1:0:44040192:5376:-1:0:-1:252:34\n'
-                '  /dev/fridge/trusty64:fridge:3:1:-1:0:44040192:5376:-1:0:-1:252:39\n'
-                '  /dev/fridge/precise64:fridge:3:1:-1:0:44040192:5376:-1:0:-1:252:44\n'
-                '  /dev/fridge/apache-logs:fridge:3:1:-1:1:41943040:5120:-1:0:-1:252:49\n'
-                '  /dev/fridge/root:fridge:3:1:-1:1:41943040:5120:-1:0:-1:252:4\n'
-                '  /dev/fridge/supybot:fridge:3:1:-1:1:20971520:2560:-1:0:-1:252:54\n'
-                '  /dev/fridge/home-ssd:fridge:3:1:-1:1:209715200:25600:-1:0:-1:252:59\n'
-                '  /dev/fridge/openerp-xenial:fridge:3:1:-1:1:44040192:5376:-1:0:-1:252:64\n'
+            'lvs --separator=: --units=b --nosuffix --noheadings -o lv_name,vg_name,lv_size,lv_dm_path,lv_role,devices,metadata_devices --all 2>/dev/null': (
+                '  root:platonas:491119443968:/dev/mapper/platonas-root:public:/dev/mapper/sda5_crypt(0):\n'
+                '  swap_1:platonas:8468299776:/dev/mapper/platonas-swap_1:public:/dev/mapper/sda5_crypt(117092):\n'
+                '  apache-logs:fridge:21474836480:/dev/mapper/fridge-apache--logs:public:apache-logs_rimage_0(0),apache-logs_rimage_1(0):apache-logs_rmeta_0(0),apache-logs_rmeta_1(0)\n'
+                '  [apache-logs_rimage_0]:fridge:21474836480:/dev/mapper/fridge-apache--logs_rimage_0:private,raid,image:/dev/sdc9(10249):\n'
+                '  [apache-logs_rimage_1]:fridge:21474836480:/dev/mapper/fridge-apache--logs_rimage_1:private,raid,image:/dev/sdd9(34058):\n'
+                '  [apache-logs_rmeta_0]:fridge:4194304:/dev/mapper/fridge-apache--logs_rmeta_0:private,raid,metadata:/dev/sdc9(10248):\n'
+                '  [apache-logs_rmeta_1]:fridge:4194304:/dev/mapper/fridge-apache--logs_rmeta_1:private,raid,metadata:/dev/sdd9(34057):\n'
+                '  cache:fridge:10737418240:/dev/mapper/fridge-cache:public:cache_rimage_0(0),cache_rimage_1(0):cache_rmeta_0(0),cache_rmeta_1(0)\n'
+                '  [cache_rimage_0]:fridge:10737418240:/dev/mapper/fridge-cache_rimage_0:private,raid,image:/dev/sdc9(20480):\n'
+                '  [cache_rimage_1]:fridge:10737418240:/dev/mapper/fridge-cache_rimage_1:private,raid,image:/dev/sdd9(15366):\n'
+                '  [cache_rmeta_0]:fridge:4194304:/dev/mapper/fridge-cache_rmeta_0:private,raid,metadata:/dev/sdc9(10244):\n'
+                '  [cache_rmeta_1]:fridge:4194304:/dev/mapper/fridge-cache_rmeta_1:private,raid,metadata:/dev/sdd9(15365):\n'
+                '  home-ssd:fridge:107374182400:/dev/mapper/fridge-home--ssd:public:home-ssd_rimage_0(0),home-ssd_rimage_1(0):home-ssd_rmeta_0(0),home-ssd_rmeta_1(0)\n'
+                '  [home-ssd_rimage_0]:fridge:107374182400:/dev/mapper/fridge-home--ssd_rimage_0:private,raid,image:/dev/sda2(1):\n'
+                '  [home-ssd_rimage_1]:fridge:107374182400:/dev/mapper/fridge-home--ssd_rimage_1:private,raid,image:/dev/sdb2(1):\n'
+                '  [home-ssd_rmeta_0]:fridge:4194304:/dev/mapper/fridge-home--ssd_rmeta_0:private,raid,metadata:/dev/sda2(0):\n'
+                '  [home-ssd_rmeta_1]:fridge:4194304:/dev/mapper/fridge-home--ssd_rmeta_1:private,raid,metadata:/dev/sdb2(0):\n'
+                '  jenkins:fridge:21474836480:/dev/mapper/fridge-jenkins:public:jenkins_rimage_0(0),jenkins_rimage_1(0):jenkins_rmeta_0(0),jenkins_rmeta_1(0)\n'
+                '  [jenkins_rimage_0]:fridge:21474836480:/dev/mapper/fridge-jenkins_rimage_0:private,raid,image:/dev/sdc9(5120):\n'
+                '  [jenkins_rimage_1]:fridge:21474836480:/dev/mapper/fridge-jenkins_rimage_1:private,raid,image:/dev/sdd9(10245):\n'
+                '  [jenkins_rmeta_0]:fridge:4194304:/dev/mapper/fridge-jenkins_rmeta_0:private,raid,metadata:/dev/sdc9(10243):\n'
+                '  [jenkins_rmeta_1]:fridge:4194304:/dev/mapper/fridge-jenkins_rmeta_1:private,raid,metadata:/dev/sdd9(10244):\n'
+                '  mailman:fridge:10737418240:/dev/mapper/fridge-mailman:public:mailman_rimage_0(0),mailman_rimage_1(0):mailman_rmeta_0(0),mailman_rmeta_1(0)\n'
+                '  [mailman_rimage_0]:fridge:10737418240:/dev/mapper/fridge-mailman_rimage_0:private,raid,image:/dev/sdc9(25600):\n'
+                '  [mailman_rimage_1]:fridge:10737418240:/dev/mapper/fridge-mailman_rimage_1:private,raid,image:/dev/sdd9(5123):\n'
+                '  [mailman_rmeta_0]:fridge:4194304:/dev/mapper/fridge-mailman_rmeta_0:private,raid,metadata:/dev/sdc9(10241):\n'
+                '  [mailman_rmeta_1]:fridge:4194304:/dev/mapper/fridge-mailman_rmeta_1:private,raid,metadata:/dev/sdd9(5122):\n'
+                '  openerp:fridge:22548578304:/dev/mapper/fridge-openerp:public:openerp_rimage_0(0),openerp_rimage_1(0):openerp_rmeta_0(0),openerp_rmeta_1(0)\n'
+                '  openerp-xenial:fridge:22548578304:/dev/mapper/fridge-openerp--xenial:public:openerp-xenial_rimage_0(0),openerp-xenial_rimage_1(0):openerp-xenial_rmeta_0(0),openerp-xenial_rmeta_1(0)\n'
+                '  [openerp-xenial_rimage_0]:fridge:22548578304:/dev/mapper/fridge-openerp--xenial_rimage_0:private,raid,image:/dev/sda2(25601):\n'
+                '  [openerp-xenial_rimage_1]:fridge:22548578304:/dev/mapper/fridge-openerp--xenial_rimage_1:private,raid,image:/dev/sdb2(25601):\n'
+                '  [openerp-xenial_rmeta_0]:fridge:4194304:/dev/mapper/fridge-openerp--xenial_rmeta_0:private,raid,metadata:/dev/sda2(30977):\n'
+                '  [openerp-xenial_rmeta_1]:fridge:4194304:/dev/mapper/fridge-openerp--xenial_rmeta_1:private,raid,metadata:/dev/sdb2(30977):\n'
+                '  [openerp_rimage_0]:fridge:22548578304:/dev/mapper/fridge-openerp_rimage_0:private,raid,image:/dev/sdc9(28160):\n'
+                '  [openerp_rimage_1]:fridge:22548578304:/dev/mapper/fridge-openerp_rimage_1:private,raid,image:/dev/sdd9(17927):\n'
+                '  [openerp_rmeta_0]:fridge:4194304:/dev/mapper/fridge-openerp_rmeta_0:private,raid,metadata:/dev/sdc9(10245):\n'
+                '  [openerp_rmeta_1]:fridge:4194304:/dev/mapper/fridge-openerp_rmeta_1:private,raid,metadata:/dev/sdd9(17926):\n'
+                '  precise64:fridge:22548578304:/dev/mapper/fridge-precise64:public:precise64_rimage_0(0),precise64_rimage_1(0):precise64_rmeta_0(0),precise64_rmeta_1(0)\n'
+                '  [precise64_rimage_0]:fridge:22548578304:/dev/mapper/fridge-precise64_rimage_0:private,raid,image:/dev/sdc9(38912):\n'
+                '  [precise64_rimage_1]:fridge:22548578304:/dev/mapper/fridge-precise64_rimage_1:private,raid,image:/dev/sdd9(28681):\n'
+                '  [precise64_rmeta_0]:fridge:4194304:/dev/mapper/fridge-precise64_rmeta_0:private,raid,metadata:/dev/sdc9(10247):\n'
+                '  [precise64_rmeta_1]:fridge:4194304:/dev/mapper/fridge-precise64_rmeta_1:private,raid,metadata:/dev/sdd9(28680):\n'
+                '  root:fridge:21474836480:/dev/mapper/fridge-root:public:root_rimage_0(0),root_rimage_1(0):root_rmeta_0(0),root_rmeta_1(0)\n'
+                '  [root_rimage_0]:fridge:21474836480:/dev/mapper/fridge-root_rimage_0:private,raid,image:/dev/sda2(30979):\n'
+                '  [root_rimage_1]:fridge:21474836480:/dev/mapper/fridge-root_rimage_1:private,raid,image:/dev/sdb2(30979):\n'
+                '  [root_rmeta_0]:fridge:4194304:/dev/mapper/fridge-root_rmeta_0:private,raid,metadata:/dev/sda2(30978):\n'
+                '  [root_rmeta_1]:fridge:4194304:/dev/mapper/fridge-root_rmeta_1:private,raid,metadata:/dev/sdb2(30978):\n'
+                '  supybot:fridge:10737418240:/dev/mapper/fridge-supybot:public:supybot_rimage_0(0),supybot_rimage_1(0):supybot_rmeta_0(0),supybot_rmeta_1(0)\n'
+                '  [supybot_rimage_0]:fridge:10737418240:/dev/mapper/fridge-supybot_rimage_0:private,raid,image:/dev/sda2(36099):\n'
+                '  [supybot_rimage_1]:fridge:10737418240:/dev/mapper/fridge-supybot_rimage_1:private,raid,image:/dev/sdb2(36099):\n'
+                '  [supybot_rmeta_0]:fridge:4194304:/dev/mapper/fridge-supybot_rmeta_0:private,raid,metadata:/dev/sda2(38659):\n'
+                '  [supybot_rmeta_1]:fridge:4194304:/dev/mapper/fridge-supybot_rmeta_1:private,raid,metadata:/dev/sdb2(38659):\n'
+                '  tmp:fridge:21474836480:/dev/mapper/fridge-tmp:public:tmp_rimage_0(0),tmp_rimage_1(0):tmp_rmeta_0(0),tmp_rmeta_1(0)\n'
+                '  [tmp_rimage_0]:fridge:21474836480:/dev/mapper/fridge-tmp_rimage_0:private,raid,image:/dev/sdc9(0):\n'
+                '  [tmp_rimage_1]:fridge:21474836480:/dev/mapper/fridge-tmp_rimage_1:private,raid,image:/dev/sdd9(0):\n'
+                '  [tmp_rmeta_0]:fridge:4194304:/dev/mapper/fridge-tmp_rmeta_0:private,raid,metadata:/dev/sdc9(10240):\n'
+                '  [tmp_rmeta_1]:fridge:4194304:/dev/mapper/fridge-tmp_rmeta_1:private,raid,metadata:/dev/sdd9(5121):\n'
+                '  trusty64:fridge:22548578304:/dev/mapper/fridge-trusty64:public:trusty64_rimage_0(0),trusty64_rimage_1(0):trusty64_rmeta_0(0),trusty64_rmeta_1(0)\n'
+                '  [trusty64_rimage_0]:fridge:22548578304:/dev/mapper/fridge-trusty64_rimage_0:private,raid,image:/dev/sdc9(33536):\n'
+                '  [trusty64_rimage_1]:fridge:22548578304:/dev/mapper/fridge-trusty64_rimage_1:private,raid,image:/dev/sdd9(23304):\n'
+                '  [trusty64_rmeta_0]:fridge:4194304:/dev/mapper/fridge-trusty64_rmeta_0:private,raid,metadata:/dev/sdc9(10246):\n'
+                '  [trusty64_rmeta_1]:fridge:4194304:/dev/mapper/fridge-trusty64_rmeta_1:private,raid,metadata:/dev/sdd9(23303):\n'
+                '  www:fridge:10737418240:/dev/mapper/fridge-www:public:www_rimage_0(0),www_rimage_1(0):www_rmeta_0(0),www_rmeta_1(0)\n'
+                '  [www_rimage_0]:fridge:10737418240:/dev/mapper/fridge-www_rimage_0:private,raid,image:/dev/sda2(38661):\n'
+                '  [www_rimage_1]:fridge:10737418240:/dev/mapper/fridge-www_rimage_1:private,raid,image:/dev/sdb2(38661):\n'
+                '  [www_rmeta_0]:fridge:4194304:/dev/mapper/fridge-www_rmeta_0:private,raid,metadata:/dev/sda2(38660):\n'
+                '  [www_rmeta_1]:fridge:4194304:/dev/mapper/fridge-www_rmeta_1:private,raid,metadata:/dev/sdb2(38660):\n'
+                '  xenial64:fridge:22548578304:/dev/mapper/fridge-xenial64:public:xenial64_rimage_0(0),xenial64_rimage_1(0):xenial64_rmeta_0(0),xenial64_rmeta_1(0)\n'
+                '  [xenial64_rimage_0]:fridge:22548578304:/dev/mapper/fridge-xenial64_rimage_0:private,raid,image:/dev/sdc9(44289):\n'
+                '  [xenial64_rimage_1]:fridge:22548578304:/dev/mapper/fridge-xenial64_rimage_1:private,raid,image:/dev/sdd9(39179):\n'
+                '  [xenial64_rmeta_0]:fridge:4194304:/dev/mapper/fridge-xenial64_rmeta_0:private,raid,metadata:/dev/sdc9(44288):\n'
+                '  [xenial64_rmeta_1]:fridge:4194304:/dev/mapper/fridge-xenial64_rmeta_1:private,raid,metadata:/dev/sdd9(39178):\n'
             ),
             'dmsetup -c --noheadings info': textwrap.dedent('''\
                 platonas-swap_1:253:2:L--w:2:1:0:LVM-blahblah
@@ -782,24 +840,29 @@ class TestReport(TestCase):
                 fridge-trusty64_rimage_1:252:38:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2jRwdcCkzuzRnzZstcBFueIM0JPdg6TwZ
                 fridge-apache--logs_rimage_1:252:48:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2LL0Rw3wiVRURGAivNdA4pcMQ8IjZzzyJ
                 fridge-tmp_rmeta_0:252:5:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2Hfc33iWdSn9N06Q0xPyzNDvz9prbZKuE
-                fridge-trusty64:252:39:L--w:0:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2sD2oxRES8SmvHA0gc0HD5gF7mA54Lok7
+                fridge-xenial64_rmeta_1:252:67:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2luNaFdQPqonUV0QWi9f901GtpJXauiYt
+                fridge-trusty64:252:39:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2sD2oxRES8SmvHA0gc0HD5gF7mA54Lok7
                 fridge-precise64_rmeta_0:252:40:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn20MBeyN6uOzF2Nqw5F2in2K2g1SoSZlpR
                 fridge-trusty64_rimage_0:252:36:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2f7iHwVlPoby3DqTAoyoZ88sJLUkzSqQV
                 fridge-openerp_rimage_1:252:33:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2xMjyUUhS8GSQvnw8d7TgQvbEYIffzihX
                 fridge-apache--logs_rimage_0:252:46:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2ulQdkpl3Ke9SwaDyLB7gbdGNXKdkBVVH
+                fridge-xenial64_rmeta_0:252:65:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2YmFOfmqNJr1cxYQKmdO5nPuHl8K30VXL
                 fridge-openerp--xenial_rimage_1:252:63:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2OO5qr7x4Fn8ior8J6QdjhJzLXdXgTwNn
                 fridge-openerp_rimage_0:252:31:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2ksxmomSjYZM3NJnWGwapZXVxBoM6IL2n
                 fridge-mailman:252:29:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2IMafMeWyxqcEVeurfqMeeZX6AvDQJg1I
                 fridge-cache:252:19:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2OAo093QsrETFEbGXO5HxerdYQOBmpxST
                 fridge-openerp--xenial_rimage_0:252:61:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2ypFN8dlIqGn1ir5FVo5QjyRi3ViTjIfl
                 fridge-www_rimage_1:252:23:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn20aAVwKKKO3vOVvYq7oHm5rCnQ3gQTcFh
+                fridge-xenial64_rimage_1:252:68:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2tsCDyRirdO7r0SXeL033Fhk5qO3K2ss1
                 fridge-apache--logs_rmeta_1:252:47:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2s7T0Tk56t7bhZW0jWtieR7shXpMycaUX
                 fridge-tmp:252:9:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2m3LMrLqpX33hpCNreoBDNfk2aqaKuDxg
                 fridge-www_rimage_0:252:21:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn21VGsjYOmJgJrtJPAdWkqpTZ6qr7LZ64W
                 fridge-precise64:252:44:L--w:0:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2cw0trvk4Bgq3kyOxQveXYs7gGuVI8oSr
+                fridge-xenial64_rimage_0:252:66:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2N3q1qN0gxmq5clIBb4ZwnVEGI2IeEAiV
                 fridge-cache_rmeta_1:252:17:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2M0g2fnzl0U4Yy2AAf0l6j0fgpwsH45wl
                 fridge-mailman_rimage_1:252:28:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn26cyRAraeD07BFMTPEL7w2Q81fV32uaWs
                 fridge-apache--logs_rmeta_0:252:45:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2d62bEVHkjzwBzpi2JJY1Tq7cImPyYB4D
+                fridge-xenial64:252:69:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2E0gHem31V535f3Zu2jOOO8w9fpT3elmI
                 fridge-supybot:252:54:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2qVxudNxbBorSjvC1DqRZ57CMIB7z17Fq
                 fridge-cache_rmeta_0:252:15:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn29tlHmFFR3yp1FTRk7YTAqXuIsfnzOjlm
                 fridge-mailman_rimage_0:252:26:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2BKcuJlb2ffpZ7fsmkoR6kNwZpixBnfT7
@@ -843,6 +906,10 @@ class TestReport(TestCase):
                 fridge-mailman_rmeta_0:252:25:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2WS6zkzjs7e6Xjz5CYF7DoWOWZ003ps6a
                 fridge-openerp--xenial_rmeta_0:252:60:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2QuTJWBrTe3dKqKRl28T2TiDORlGATe9S
                 fridge-tmp_rmeta_1:252:7:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2qmBiBIWDAUTV09fMpC0xGKebam9pluqd
+                fridge-precise64_rmeta_1:252:42:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2wVDxoyO1ey0Nl94FSk7WSpC5j0H1ZzQI
+                fridge-trusty64_rimage_1:252:38:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2jRwdcCkzuzRnzZstcBFueIM0JPdg6TwZ
+                fridge-apache--logs_rimage_1:252:48:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2LL0Rw3wiVRURGAivNdA4pcMQ8IjZzzyJ
+                fridge-tmp_rmeta_0:252:5:L--w:1:1:0:LVM-vdq2Htm5RNrD0vlTEfoqtNLGm4UGZDn2Hfc33iWdSn9N06Q0xPyzNDvz9prbZKuE
             '''),
             'df -P --local --print-type -x debugfs': textwrap.dedent('''\
                 Filesystem                Type     1024-blocks      Used Available Capacity Mounted on
@@ -856,19 +923,20 @@ class TestReport(TestCase):
               root:             491.1 GB
               swap_1:             8.5 GB  swap
             fridge: LVM (1.5 TB)
-              tmp:               21.5 GB
-              jenkins:           21.5 GB
+              apache-logs:       21.5 GB
               cache:             10.7 GB
-              www:               10.7 GB
+              home-ssd:         107.4 GB
+              jenkins:           21.5 GB
               mailman:           10.7 GB
               openerp:           22.5 GB
-              trusty64:          22.5 GB
+              openerp-xenial:    22.5 GB
               precise64:         22.5 GB
-              apache-logs:       21.5 GB
               root:              21.5 GB
               supybot:           10.7 GB
-              home-ssd:         107.4 GB
-              openerp-xenial:    22.5 GB
+              tmp:               21.5 GB
+              trusty64:          22.5 GB
+              www:               10.7 GB
+              xenial64:          22.5 GB
               free:             845.4 GB
         '''))
         # Smoke test, I'm not going to compare the HTML unless I find a regression
