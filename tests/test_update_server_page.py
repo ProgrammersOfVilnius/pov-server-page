@@ -336,7 +336,8 @@ class TestDiskUsageBuilderHelpers(unittest.TestCase):
 
     def test_get_all_locations_real_df(self):
         locations = self.builder.get_all_locations()
-        self.assertTrue('/' in locations, locations)
+        df_output = os.popen("df -PT --local -x debugfs").read()
+        self.assertTrue('/' in locations, df_output)
 
     @mock.patch('os.popen')
     def test_get_all_locations_filtering(self, mock_popen):
