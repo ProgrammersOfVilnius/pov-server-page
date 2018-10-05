@@ -646,6 +646,33 @@ class TestHtmlReporter(TestCase):
             </tr>
         ''').rstrip())
 
+    def test_unused_md_device(self):
+        result = []
+        reporter = di.HtmlReporter(print=result.append)
+        reporter.partition(
+            name='sda6',
+            partition_size_bytes=10*1000**3,
+            usage='md3:',
+            fsinfo=None,
+            pvinfo=None,
+            is_used=False
+        )
+        self.assertMultiLineEqual('\n'.join(result), textwrap.dedent('''\
+            <tr class="text-muted">
+              <td>
+                sda6
+              </td>
+              <td class="text-right">
+                10.0 GB
+              </td>
+              <td>
+                md3: (unused)
+              </td>
+              <td class="text-right">
+              </td>
+            </tr>
+        ''').rstrip())
+
 
 class TestReport(TestCase):
 
