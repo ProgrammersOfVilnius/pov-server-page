@@ -732,6 +732,14 @@ class TestReport(TestCase):
             '/sys/block/dm-59/holders': Directory(),
             '/sys/block/dm-64/holders': Directory(),
             '/sys/block/dm-69/holders': Directory(),
+            '/sys/block/sda/size': '488397168\n',
+            '/sys/block/sda/device/model': 'Samsung SSD 850\n',
+            '/sys/block/sda/device/rev': '2B6Q\n',
+            '/sys/block/sda/queue/rotational': '0\n',
+            '/sys/block/sdb/size': '488397168\n',
+            '/sys/block/sdb/device/model': 'Samsung SSD 850\n',
+            '/sys/block/sdb/device/rev': '2B6Q\n',
+            '/sys/block/sdb/queue/rotational': '0\n',
             '/sys/block/sde/size': '976773168\n',
             '/sys/block/sde/device/model': 'Samsung SSD 850\n',
             '/sys/block/sde/device/rev': '2B6Q\n',
@@ -916,6 +924,10 @@ class TestReport(TestCase):
             '''),
         })
         self.assertMultiLineEqual(di.report_text() + '\n', textwrap.dedent('''\
+            sda: Samsung SSD 850 (250.1 GB)
+                                250.1 GB (unused)
+            sdb: Samsung SSD 850 (250.1 GB)
+                                250.1 GB (unused)
             sde: Samsung SSD 850 (500.1 GB)
               sde1:             510.7 MB
               sde5:             499.6 GB  LVM: platonas                        0.0 B free
@@ -939,6 +951,8 @@ class TestReport(TestCase):
               xenial64:          22.5 GB
               free:             845.4 GB
         '''))
+        # Smoke test
+        di.report_text(verbose=2)
         # Smoke test, I'm not going to compare the HTML unless I find a regression
         di.report_html(verbose=2)
 

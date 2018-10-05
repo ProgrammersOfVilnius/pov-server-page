@@ -324,7 +324,11 @@ class LinuxDiskInfo(object):
     def is_disk_an_ssd(self, disk_name):
         if disk_name == 'simfs':
             return False
-        rot = self._read_string('/sys/block/%s/queue/rotational' % disk_name)
+        try:
+            rot = self._read_string('/sys/block/%s/queue/rotational' % disk_name)
+        except IOError:
+            # could be a devmapper thing, e.g. dm-crypt
+            return False
         return rot.strip() == '0'
 
     def list_partitions(self, disk_name):
@@ -432,6 +436,21 @@ class LinuxDiskInfo(object):
             users.append(fsinfo.mountpoint)
         return ' '.join(users)
 
+    def get_disks_of_lv(self, lv):
+        disks = set()
+        for device in lv.located_on:
+            if device.startswith('/dev/'):
+                partition_name = device[len('/dev/'):]
+                disk_name = partition_name.rstrip('0123456789')
+                disks.add(disk_name)
+                continue
+            nested = self._lvm_lvs.get((lv.vgname, '[{}]'.format(device)))
+            if nested:
+                disks.update(self.get_disks_of_lv(nested))
+                continue
+            disks.add(device)  # nocover: shrug, shouldn't happen probably
+        return disks
+
 
 def fmt_size_si(bytes):
     size, units = bytes, 'B'
@@ -497,7 +516,7 @@ class Reporter:
     def end_vg(self, vgroup):
         pass
 
-    def lv(self, lv, usage, fsinfo):
+    def lv(self, lv, usage, fsinfo, is_ssd):
         pass
 
 
@@ -529,7 +548,10 @@ class TextReporter(Reporter):
                 size=self.fmt_size(unallocated),
             ))
 
-    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo):
+    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo,
+                  is_ssd=False):
+        if is_ssd and self.verbose >= 2:
+            usage += ' [SSD]'
         self.print("  {name:{nw}} {size:>10}  {usage:{uw}}  {free_space:>15}".format(
             name=name + ':', nw=self.name_width,
             usage=usage, uw=self.usage_width,
@@ -556,8 +578,9 @@ class TextReporter(Reporter):
                 size=self.fmt_size(vgroup.free_kb * 1024),
             ))
 
-    def lv(self, lv, usage, fsinfo):
-        self.partition(lv.name, lv.size_bytes, usage, fsinfo, pvinfo=None)
+    def lv(self, lv, usage, fsinfo, is_ssd):
+        self.partition(lv.name, lv.size_bytes, usage, fsinfo, pvinfo=None,
+                       is_ssd=is_ssd)
 
 
 class HtmlReporter(Reporter):
@@ -572,20 +595,26 @@ class HtmlReporter(Reporter):
         self.print('<tr>')
         self.print('  <th colspan="4">')
         self.print('    {text}'.format(text=escape(text)))
+        self._badges(badges)
+        self.print('  </th>')
+        self.print('</tr>')
+
+    def _row(self, name, size, usage, free_space, badges=()):
+        self.print('<tr>')
+        self.print('  <td>{name}</td>'.format(name=escape(name)))
+        self.print('  <td class="text-right">{size}</td>'.format(size=escape(size)))
+        self.print('  <td>')
+        self.print('    {usage}'.format(usage=escape(usage)))
+        self._badges(badges)
+        self.print('  </td>')
+        self.print('  <td class="text-right">{free_space}</td>'.format(free_space=escape(free_space)))
+        self.print('</tr>')
+
+    def _badges(self, badges):
         for badge in badges:
             self.print(
                 '    <span class="label label-info">{badge}</span>'.format(
                     badge=escape(badge)))
-        self.print('  </th>')
-        self.print('</tr>')
-
-    def _row(self, name, size, usage, free_space):
-        self.print('<tr>')
-        self.print('  <td>{name}</td>'.format(name=escape(name)))
-        self.print('  <td class="text-right">{size}</td>'.format(size=escape(size)))
-        self.print('  <td>{usage}</td>'.format(usage=escape(usage)))
-        self.print('  <td class="text-right">{free_space}</td>'.format(free_space=escape(free_space)))
-        self.print('</tr>')
 
     def start_disk(self, disk, model, disk_size_bytes, fwrev, is_ssd):
         self._heading_row(
@@ -603,7 +632,7 @@ class HtmlReporter(Reporter):
         if unallocated and self.verbose >= 2:
             self._row('', self.fmt_size(unallocated), '(metadata/internal fragmentation)', '')
 
-    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo):
+    def partition(self, name, partition_size_bytes, usage, fsinfo, pvinfo, badges=()):
         self._row(
             name + ':',
             self.fmt_size(partition_size_bytes),
@@ -613,7 +642,7 @@ class HtmlReporter(Reporter):
                 partition_size_bytes=partition_size_bytes,
                 fmt_size=self.fmt_size,
                 show_used_instead_of_free=self.show_used_instead_of_free,
-            ))
+            ), badges=badges)
 
     def start_vg(self, vgroup):
         self._heading_row(
@@ -626,8 +655,9 @@ class HtmlReporter(Reporter):
         if vgroup.free_kb >= 1024 or self.verbose >= 2:
             self._row('free:', self.fmt_size(vgroup.free_kb * 1024), '', '')
 
-    def lv(self, lv, usage, fsinfo):
-        self.partition(lv.name, lv.size_bytes, usage, fsinfo, pvinfo=None)
+    def lv(self, lv, usage, fsinfo, is_ssd):
+        self.partition(lv.name, lv.size_bytes, usage, fsinfo, pvinfo=None,
+                       badges=['SSD'] if is_ssd else [])
 
 
 
@@ -684,7 +714,9 @@ def report(info=None, verbose=1, name_width=8, usage_width=30,
                 continue
             usage = info.get_partition_usage(lv.device)
             fsinfo = info.get_partition_fsinfo(lv.device)
-            reporter.lv(lv, usage, fsinfo)
+            is_located_on_ssd = all(
+                info.is_disk_an_ssd(disk) for disk in info.get_disks_of_lv(lv))
+            reporter.lv(lv, usage, fsinfo, is_ssd=is_located_on_ssd)
         reporter.end_vg(vgroup)
     reporter.end_report()
 
