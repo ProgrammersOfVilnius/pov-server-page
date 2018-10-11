@@ -145,7 +145,7 @@ source-package: check check-target check-version clean-build-tree
 .PHONY: upload-to-ppa release
 release upload-to-ppa: source-package
 	dput ppa:pov/ppa pkgbuild/$(source)_$(version)_source.changes
-	git tag $(version)
+	git tag -s $(version) -m "Release $(version)"
 	git push
 	git push --tags
 

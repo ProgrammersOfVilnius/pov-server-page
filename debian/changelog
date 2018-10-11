@@ -1,9 +1,9 @@
-pov-server-page (1.7.1) UNRELEASED; urgency=medium
+pov-server-page (1.7.1) trusty; urgency=medium
 
   * disk-inventory 1.6.1:
     - indicate which partitions are unused.
 
- -- Marius Gedminas <marius@gedmin.as>  Fri, 05 Oct 2018 18:29:48 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 11 Oct 2018 17:05:40 +0300
 
 pov-server-page (1.7.0) trusty; urgency=medium
 
