@@ -314,7 +314,10 @@ class TestAnsiColors(TestCase):
         # closest match in xterm's palette for the given RGB Pr/Pg/Pb.
         #   Pm = 4 8 ; 5 ; Ps -> Set background color to the second Ps.
         #       -- http://invisible-island.net/xterm/ctlseqs/ctlseqs.html
-        self.assertEqual(c2h.ansi2html('\033[38;2;255:255:255m*'), '*')
+        self.assertEqual(c2h.ansi2html('\033[38;2;255;255;255m*'),
+                         '<span style="color: #ffffff">*</span>')
+        self.assertEqual(c2h.ansi2html('\033[38;2;255:255:255m*'),
+                         '<span style="color: #ffffff">*</span>')
 
 
 class TestLinkify(TestCase):

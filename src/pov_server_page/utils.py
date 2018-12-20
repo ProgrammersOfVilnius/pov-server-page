@@ -61,6 +61,11 @@ def ansi2html(text):
         parts.append(u'<span style="color: %s">' % COLORS[color_index])
         pending[:] = u'</span>'
 
+    def fg_rgb(r, g, b):
+        parts.extend(pending)
+        parts.append(u'<span style="color: #%02x%02x%02x">' % (r, g, b))
+        pending[:] = u'</span>'
+
     for bit in re.split(ANSI_RX, escape(text)):
         if not bit.startswith(u'\033'):
             parts.append(bit)
@@ -69,6 +74,9 @@ def ansi2html(text):
             # this handles just a subset of the allowed color sequences; e.g.
             # it would ignore ESC [ 35;48 m which tries to set fg and bg colors
             # in one go
+            if len(numbers) == 5 and numbers[:2] == [38, 2]:
+                # 24-bit colors!
+                fg_rgb(*numbers[2:])
             if len(numbers) == 3 and numbers[:2] == [38, 5] and 0 <= numbers[2] <= 255:
                 # 256-color code for foreground
                 fg(numbers[2])
