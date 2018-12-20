@@ -21,8 +21,8 @@ from .utils import ansi2html, mako_error_handler
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.8.1'
-__date__ = '2018-10-02'
+__version__ = '0.8.2'
+__date__ = '2018-12-20'
 
 
 HOSTNAME = socket.gethostname()
@@ -124,7 +124,7 @@ class Entry(TextObject):
 
 class ToDoItem(TextObject):
 
-    _todo_rx = re.compile('^(?P<prefix>.*)- \[ ] (?P<title>.*)')
+    _todo_rx = re.compile(r'^(?P<prefix>.*)- \[ ] (?P<title>.*)')
 
     def __init__(self, entry=None, prefix=None, title=None):
         TextObject.__init__(self)
@@ -250,9 +250,9 @@ def linkify(text):
         g = match.groupdict()
         g['text'] = match.group(0)
         if g['url']:
-            return '<a href="{url}">{url}</a>'.format(**g)
+            return u'<a href="{url}">{url}</a>'.format(**g)
         elif g['lp']:
-            return '<a href="https://pad.lv/{lp}">{text}</a>'.format(**g)
+            return u'<a href="https://pad.lv/{lp}">{text}</a>'.format(**g)
         else: # nocover:
             return g['text']
     return LINK_RX.sub(_replace, cgi.escape(text, True))
@@ -262,7 +262,7 @@ def highlight_text(what, text):
     what = cgi.escape(what, True)
     return re.sub(
         '(<[^>]*>)|(%s)' % re.escape(what),
-        lambda m: m.group(1) or '<mark>{}</mark>'.format(m.group(2)),
+        lambda m: m.group(1) or u'<mark>{}</mark>'.format(m.group(2)),
         text,
         flags=re.IGNORECASE)
 

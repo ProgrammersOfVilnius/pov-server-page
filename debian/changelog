@@ -1,3 +1,10 @@
+pov-server-page (1.7.1ubuntu1) UNRELEASED; urgency=medium
+
+  * pov-server-page 0.8.2:
+    - fix bugs in Unicode handling on Python 2 (GH: #42).
+
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 20 Dec 2018 18:32:09 +0200
+
 pov-server-page (1.7.1) trusty; urgency=medium
 
   * disk-inventory 1.6.1:

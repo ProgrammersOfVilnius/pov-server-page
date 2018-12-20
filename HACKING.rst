@@ -24,7 +24,7 @@ Testing changelog2html manually
 
 Run ::
 
-    PYTHONPATH=src python -m pov_server_page.changelog2html
+    PYTHONPATH=src python -m pov_server_page.changelog2html /root/Changelog
 
 then browse http://localhost:8080.
 

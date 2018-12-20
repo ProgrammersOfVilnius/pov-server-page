@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import datetime
 import functools
 import os
@@ -143,6 +144,10 @@ class TestToDoItem(TestCase):
         self.assertEqual(
             item.as_html(),
             '<li>Laundry &amp; stuff (Preamble)</li>')
+
+    def test_as_html_unicode(self):
+        item = c2h.ToDoItem(c2h.Preamble(), title=u'Løündri')
+        self.assertEqual(item.as_html(), u'<li>Løündri (Preamble)</li>')
 
 
 class TestChangelog(TestCase):
@@ -352,6 +357,13 @@ class TestLinkify(TestCase):
             '# <a href="https://pad.lv/12345">LP: #12345</a>',
         )
 
+    def test_link_unicode(self):
+        self.assertEqual(
+            c2h.linkify(u'see http://example.com/?q=ünicøde for more'),
+            u'see <a href="http://example.com/?q=ünicøde">'
+            u'http://example.com/?q=ünicøde</a> for more',
+        )
+
 
 class TestHighlightText(TestCase):
 
@@ -381,6 +393,13 @@ class TestHighlightText(TestCase):
         self.assertEqual(
             c2h.highlight_text('example', text),
             '<a href="https://example.com/">https://<mark>example</mark>.com/',
+        )
+
+    def test_unicode(self):
+        text = u'Hellø world'
+        self.assertEqual(
+            c2h.highlight_text(u'lø', text),
+            u'Hel<mark>lø</mark> world',
         )
 
 
