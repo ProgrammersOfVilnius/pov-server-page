@@ -336,7 +336,13 @@ class TestDiskUsageBuilderHelpers(unittest.TestCase):
 
     def test_get_all_locations_real_df(self):
         locations = self.builder.get_all_locations()
-        self.assertTrue('/' in locations, locations)
+        if '/' not in locations:
+            # dear pytest please show this to me on failures:
+            df_output = os.popen("df -PT --local -x debugfs").readlines()
+            print(''.join(df_output))
+            if len(df_output) == 2 and df_output[1].startswith('tmpfs'):
+                self.skipTest('no filesystems mounted in chroot')
+        self.assertIn('/', locations)
 
     @mock.patch('os.popen')
     def test_get_all_locations_filtering(self, mock_popen):
@@ -364,7 +370,9 @@ class TestDiskUsageBuilderHelpers(unittest.TestCase):
         parse = Builder.DiskUsage.parse
         self.assertEqual(parse('/ /srv /var/log'), ['/', '/srv', '/var/log'])
 
-    def test_parse_all(self):
+    @mock.patch.object(Builder.DiskUsage, 'get_all_locations',
+                       return_value=['/', '/var'])
+    def test_parse_all(self, *mocks):
         parse = Builder.DiskUsage.parse
         locations = parse('all')
         self.assertTrue('/' in locations, locations)
