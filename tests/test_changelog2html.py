@@ -296,7 +296,6 @@ class TestAnsiColors(TestCase):
         self.assertEqual(c2h.ansi2html('\033[31m*\033[m.'),
                          '<span style="color: #cc0000">*</span>.')
 
-    @pytest.mark.skip("Not implemented yet")
     def test_ansi2html_alt_syntax(self):
         # Xterm maintains a color palette whose entries are identified
         # by an index beginning with zero.  If 88- or 256-color support

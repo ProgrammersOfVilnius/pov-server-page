@@ -18,7 +18,7 @@ from markupsafe import Markup
 # CSI: starts with ESC [, followed optionally by a ?, followed by up to 16
 # decimal parameters separated by semicolons, followed by a single character
 # (usually a lowercase or uppercase letter, but could be @ or `).
-ANSI_RX = re.compile(r'(\033\[\??(?:\d+(?:;\d+)*)?.)')
+ANSI_RX = re.compile(r'(\033\[\??(?:\d+(?:[;:]\d+)*)?.)')
 
 
 COLORS = [
@@ -65,7 +65,7 @@ def ansi2html(text):
         if not bit.startswith(u'\033'):
             parts.append(bit)
         elif bit.endswith(u'm'):
-            numbers = [int(n) for n in bit.strip(u'\033[?m').split(';') if n]
+            numbers = [int(n) for n in bit.strip(u'\033[?m').replace(':', ';').split(';') if n]
             # this handles just a subset of the allowed color sequences; e.g.
             # it would ignore ESC [ 35;48 m which tries to set fg and bg colors
             # in one go
