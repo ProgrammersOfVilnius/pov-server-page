@@ -10,3 +10,8 @@ exclude_lines =
     if debian_package:
     if __name__ == '__main__':
     pass
+
+[paths]
+source =
+    src/pov_server_page/
+    .tox/*/lib/python*/site-packages/pov_server_page/
