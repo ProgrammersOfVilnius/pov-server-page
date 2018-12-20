@@ -1,23 +1,13 @@
 from __future__ import print_function
 
-import functools
 import os
 import textwrap
 import unittest
 
+import pytest
+
 import pov_server_page.disk_inventory as di
 from . import PatchMixin, Symlink, Directory, NativeStringIO
-
-
-# TODO: switch from nose to pytest and replace with @pytest.mark.parametrize
-def parametrize(args, values):
-    def decorator(fn):
-        @functools.wraps(fn)
-        def wrapper():
-            for testcase in values:
-                fn(**dict(zip(args, testcase)))
-        return wrapper
-    return decorator
 
 
 def test_once_decorator():
@@ -78,7 +68,7 @@ def test_fmt_size_si():
     assert di.fmt_size_si(1200*1024**4) == '1.2 PiB'
 
 
-@parametrize(
+@pytest.mark.parametrize(
     ['fs_avail_kb', 'pv_free_kb', 'total_kb', 'used', 'expected'],
     [
         (1200, None, 3000, False, '1.2 MB free'),

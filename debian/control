@@ -3,8 +3,8 @@ Section: admin
 Priority: optional
 Maintainer: Marius Gedminas <marius@gedmin.as>
 Build-Depends: debhelper (>=9), dh-python, python-docutils,
- python-all, python-setuptools, python-nose, python-mako, python-mock,
- python3-all, python3-setuptools, python3-nose, python3-mako, python3-mock
+ python-all, python-setuptools, python-pytest, python-mako, python-mock,
+ python3-all, python3-setuptools, python3-pytest, python3-mako, python3-mock
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.4
 Standards-Version: 3.9.6
