@@ -21,7 +21,7 @@ except ImportError:
     from cgi import escape
 
 
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -244,14 +244,17 @@ def is_loopback_ip(ip):
 
 def parse_services(filename='/etc/services'):
     services = {}
-    with open(filename) as f:
-        for line in f:
-            parts = line.partition('#')[0].split()
-            if len(parts) >= 2:
-                key = parts[1]
-                primary = parts[0]
-                aliases = parts[2:]
-                services[key] = [primary] + aliases
+    try:
+        with open(filename) as f:
+            for line in f:
+                parts = line.partition('#')[0].split()
+                if len(parts) >= 2:
+                    key = parts[1]
+                    primary = parts[0]
+                    aliases = parts[2:]
+                    services[key] = [primary] + aliases
+    except IOError:
+        pass
     return services
 
 

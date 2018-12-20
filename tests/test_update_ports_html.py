@@ -4,6 +4,7 @@ import sys
 import textwrap
 import unittest
 from io import BytesIO, TextIOWrapper
+from contextlib import closing
 
 try:
     from cStringIO import StringIO
@@ -14,7 +15,7 @@ import mock
 
 from pov_server_page.update_ports_html import (
     main, get_owner, username, get_argv, format_arg, get_program,
-    get_html_cmdline, render_row, NetStatTuple,
+    get_html_cmdline, parse_services, render_row, NetStatTuple,
 )
 
 
@@ -115,6 +116,14 @@ RPCINFO_SAMPLE = b"""\
 """
 
 
+SERVICES = """\
+# Network services, Internet style
+
+http\t\t80/tcp\t\twww\t\t# WorldWideWeb HTTP
+https\t\t443/tcp\t\t\t\t# http protocol over TLS/SSL
+"""
+
+
 class FakePopen(object):
     def __init__(self, command, stdout=None, stderr=None):
         if isinstance(command, tuple):
@@ -137,6 +146,8 @@ def fake_open(filename, mode='r'):
         if bytes is not str and mode != 'rb':
             f = TextIOWrapper(f, encoding='UTF-8')
         return f
+    elif filename == '/etc/services':
+        return closing(StringIO(SERVICES))
     else:
         return open(filename, mode)
 
@@ -171,6 +182,14 @@ class TestFormattingHelpers(unittest.TestCase):
         self.assertEqual(format_arg("\033"), "'\\x1b'")
         self.assertEqual(format_arg("\a"), "'\\x07'")
         self.assertEqual(format_arg("\b"), "'\\x08'")
+
+
+class TestParseServices(unittest.TestCase):
+
+    def test_etc_services_missing(self):
+        with mock.patch('pov_server_page.update_ports_html.open',
+                        side_effect=IOError(2, "No such file")):
+            self.assertEqual(parse_services(), {})
 
 
 class TestWithFakeEnvironment(unittest.TestCase):
