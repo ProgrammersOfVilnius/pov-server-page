@@ -18,8 +18,12 @@ import functools
 import optparse
 import os
 import sys
-from cgi import escape
 from xml.etree import ElementTree as ET
+
+try:
+    from html import escape
+except ImportError:
+    from cgi import escape
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'

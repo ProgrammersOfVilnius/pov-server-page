@@ -12,9 +12,13 @@ import socket
 import string
 import subprocess
 import time
-from cgi import escape
 from collections import namedtuple, defaultdict
 from contextlib import contextmanager
+
+try:
+    from html import escape
+except ImportError:
+    from cgi import escape
 
 
 __version__ = '0.9.0'

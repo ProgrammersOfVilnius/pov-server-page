@@ -4,7 +4,6 @@ WSGI application that renders /root/Changelog
 """
 
 import calendar
-import cgi
 import datetime
 import io
 import os
@@ -13,6 +12,15 @@ import socket
 import textwrap
 from functools import partial
 from mimetypes import guess_type
+
+try:
+    from html import escape
+except ImportError:
+    from cgi import escape
+try:
+    from urllib.parse import parse_qs
+except ImportError:
+    from urlparse import parse_qs
 
 import mako.template
 import mako.lookup
@@ -117,7 +125,7 @@ class Entry(TextObject):
             u'<h3>{title}</h3>\n'
             u'{text}'
         ).format(
-            title=cgi.escape(self.title()),
+            title=escape(self.title()),
             text=self.pre(slice(1, None)), # skip self.text[0] because it's the header
         )
 
@@ -136,8 +144,8 @@ class ToDoItem(TextObject):
         return (
             u'<li>{title} ({entry})</li>'
         ).format(
-            title=cgi.escape(self.title.strip()),
-            entry=cgi.escape(self.entry.title()),
+            title=escape(self.title.strip()),
+            entry=escape(self.entry.title()),
         )
 
 
@@ -255,11 +263,11 @@ def linkify(text):
             return u'<a href="https://pad.lv/{lp}">{text}</a>'.format(**g)
         else: # nocover:
             return g['text']
-    return LINK_RX.sub(_replace, cgi.escape(text, True))
+    return LINK_RX.sub(_replace, escape(text, True))
 
 
 def highlight_text(what, text):
-    what = cgi.escape(what, True)
+    what = escape(what, True)
     return re.sub(
         '(<[^>]*>)|(%s)' % re.escape(what),
         lambda m: m.group(1) or u'<mark>{}</mark>'.format(m.group(2)),
@@ -885,7 +893,7 @@ search_template = Template(textwrap.dedent('''
 @path(r'/search')
 def search_page(environ):
     prefix = get_prefix(environ)
-    form = cgi.parse_qs(environ.get('QUERY_STRING', ''))
+    form = parse_qs(environ.get('QUERY_STRING', ''))
     query = form.get('q', [''])[0]
     if isinstance(query, bytes):
         query = query.decode('UTF-8')

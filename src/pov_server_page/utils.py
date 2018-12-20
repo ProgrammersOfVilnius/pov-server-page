@@ -1,7 +1,11 @@
 import linecache
 import re
 import sys
-import cgi
+
+try:
+    from html import escape
+except ImportError:
+    from cgi import escape
 
 import mako.exceptions
 from markupsafe import Markup
@@ -57,7 +61,7 @@ def ansi2html(text):
         parts.append(u'<span style="color: %s">' % COLORS[color_index])
         pending[:] = u'</span>'
 
-    for bit in re.split(ANSI_RX, cgi.escape(text)):
+    for bit in re.split(ANSI_RX, escape(text)):
         if not bit.startswith(u'\033'):
             parts.append(bit)
         elif bit.endswith(u'm'):
