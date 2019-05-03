@@ -16,6 +16,7 @@ import mock
 from pov_server_page.update_ports_html import (
     main, get_owner, username, get_argv, format_arg, get_program,
     get_html_cmdline, parse_services, render_row, NetStatTuple,
+    systemctl_list_sockets, get_port_mapping,
 )
 
 
@@ -54,6 +55,7 @@ tcp        0      0 127.0.0.1:6379          0.0.0.0:*               LISTEN      
 tcp        0      0 127.0.0.1:11211         0.0.0.0:*               LISTEN      821/memcached
 tcp        0      0 0.0.0.0:60076           0.0.0.0:*               LISTEN      849/rpc.mountd
 tcp        0      0 127.0.0.1:7777          10.20.30.40:40626       ESTABLISHED 22591/ssh
+tcp        0      0 127.0.0.1:8000          0.0.0.0:*               LISTEN      1/systemd
 tcp6       0      0 :::111                  :::*                    LISTEN      540/rpcbind
 tcp6       0      0 :::80                   :::*                    LISTEN      1643/apache2
 tcp6       0      0 :::22                   :::*                    LISTEN      824/sshd
@@ -116,6 +118,26 @@ RPCINFO_SAMPLE = b"""\
 """
 
 
+SYSTEMCTL_LIST_SOCKETS_SAMPLE = b"""\
+LISTEN                          TYPE             UNIT                            ACTIVATES
+/run/apport.socket              Stream           apport-forward.socket
+/run/spinta/socket              Stream           spinta.socket                   spinta.service
+/run/systemd/initctl/fifo       FIFO             systemd-initctl.socket          systemd-initctl.service
+/run/systemd/journal/dev-log    Datagram         systemd-journald-dev-log.socket systemd-journald.service
+/run/systemd/journal/socket     Datagram         systemd-journald.socket         systemd-journald.service
+/run/systemd/journal/stdout     Stream           systemd-journald.socket         systemd-journald.service
+/run/systemd/journal/syslog     Datagram         syslog.socket                   rsyslog.service
+/run/udev/control               SequentialPacket systemd-udevd-control.socket    systemd-udevd.service
+/run/uuidd/request              Stream           uuidd.socket                    uuidd.service
+/var/run/dbus/system_bus_socket Stream           dbus.socket                     dbus.service
+127.0.0.1:8000                  Stream           spinta.socket                   spinta.service
+kobject-uevent 1                Netlink          systemd-udevd-kernel.socket     systemd-udevd.service
+
+12 sockets listed.
+Pass --all to see loaded but inactive sockets, too.
+"""  # NB: there should be trailins spaces on the apport.socket line, but I don't care
+
+
 SERVICES = """\
 # Network services, Internet style
 
@@ -132,6 +154,8 @@ class FakePopen(object):
             self.stdout = BytesIO(NETSTAT_SAMPLE)
         elif command == ['rpcinfo', '-p']:
             self.stdout = BytesIO(RPCINFO_SAMPLE)
+        elif command == ['systemctl', 'list-sockets', '--show-types']:
+            self.stdout = BytesIO(SYSTEMCTL_LIST_SOCKETS_SAMPLE)
         else:
             raise AssertionError('unexpected command: %s' % command)
 
@@ -150,6 +174,26 @@ def fake_open(filename, mode='r'):
         return closing(StringIO(SERVICES))
     else:
         return open(filename, mode)
+
+
+class MockMixin:
+
+    def patch(self, what, with_what):
+        patcher = mock.patch(what, with_what)
+        retval = patcher.start()
+        self.addCleanup(patcher.stop)
+        return retval
+
+
+class TestSystemctl(MockMixin, unittest.TestCase):
+
+    def setUp(self):
+        self.patch('subprocess.Popen', FakePopen)
+
+    def test_systemctl_list_sockets(self):
+        self.assertEqual(list(systemctl_list_sockets()), [
+            NetStatTuple('tcp', '127.0.0.1', 8000, None, 'spinta.socket'),
+        ])
 
 
 class TestProcHelpers(unittest.TestCase):
@@ -184,6 +228,20 @@ class TestFormattingHelpers(unittest.TestCase):
         self.assertEqual(format_arg("\b"), "'\\x08'")
 
 
+class TestGetPortMapping(MockMixin, unittest.TestCase):
+
+    def setUp(self):
+        self.patch('subprocess.Popen', FakePopen)
+        self.patch('pov_server_page.update_ports_html.open', fake_open)
+
+    def test_systemd_integration(self):
+        mapping = get_port_mapping()
+        self.assertEqual(mapping['tcp', 8000], [
+            NetStatTuple('tcp', '127.0.0.1', 8000, 1, 'systemd'),
+            NetStatTuple('tcp', '127.0.0.1', 8000, None, 'spinta.socket'),
+        ])
+
+
 class TestParseServices(unittest.TestCase):
 
     def test_etc_services_missing(self):
@@ -192,18 +250,12 @@ class TestParseServices(unittest.TestCase):
             self.assertEqual(parse_services(), {})
 
 
-class TestWithFakeEnvironment(unittest.TestCase):
+class TestWithFakeEnvironment(MockMixin, unittest.TestCase):
 
     def setUp(self):
         self.patch('subprocess.Popen', FakePopen)
         self.patch('pov_server_page.update_ports_html.open', fake_open)
         self.stderr = self.patch('sys.stderr', StringIO())
-
-    def patch(self, what, with_what):
-        patcher = mock.patch(what, with_what)
-        retval = patcher.start()
-        self.addCleanup(patcher.stop)
-        return retval
 
     def run_main(self, *args):
         orig_sys_argv = sys.argv

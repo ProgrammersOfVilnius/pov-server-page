@@ -1,9 +1,16 @@
+pov-server-page (1.8.0) UNRELEASED; urgency=medium
+
+  * update-ports 0.10.0:
+    - show systemd socket units (GH: #44).
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 03 May 2019 16:53:01 +0300
+
 pov-server-page (1.7.2) trusty; urgency=medium
 
   * pov-server-page 0.8.2:
     - fix bugs in Unicode handling on Python 2 (GH: #42),
     - support 24-bit ANSI color escapes.
-  * update-ports 0.8.1:
+  * update-ports 0.9.1:
     - cope with /etc/services not existing.
   * Replace python-nose with python-pytest.
 
@@ -111,6 +118,8 @@ pov-server-page (1.0) trusty; urgency=medium
     - can serve plaintext diffs if you add .txt to the URL,
     - fixes internal server error due to non-ASCII filenames (GH: #26).
   * changelog2html 0.8:
+    - no functional changes, just refactorings.
+  * update-ports 0.9.0:
     - no functional changes, just refactorings.
 
  -- Marius Gedminas <marius@gedmin.as>  Thu, 18 Jan 2018 12:38:34 +0200

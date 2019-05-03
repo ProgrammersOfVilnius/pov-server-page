@@ -21,7 +21,7 @@ except ImportError:
     from cgi import escape
 
 
-__version__ = '0.9.1'
+__version__ = '0.10.0'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -133,10 +133,28 @@ def rpcinfo_dump():
             yield NetStatTuple(proto, None, int(port), None, program)
 
 
-def merge_portmap_data(mapping, pmap_list, open_ports_only=True):
+def merge_portmap_data(mapping, pmap_list, open_ports_only=False):
     for data in pmap_list:
         if (data.proto, data.port) in mapping or not open_ports_only:
             mapping[data.proto, data.port].append(data)
+
+
+def systemctl_list_sockets():
+    with pipe('systemctl', 'list-sockets', '--show-types') as f:
+        header = next(f)
+        cols = [0] + [m.start() + 1 for m in re.finditer(r' [^ ]', header)] + [None]
+        cols = [slice(cols[i], cols[i + 1]) for i in range(len(cols) - 1)]
+        for line in f:
+            line = line.rstrip()
+            if not line:
+                break
+            parts = [line[col].rstrip() for col in cols]
+            listen, type_, unit, activates = parts
+            proto = {'Stream': 'tcp', 'Datagram': 'udp'}.get(type_)
+            if not proto or ':' not in listen:
+                continue
+            ip, port = listen.rsplit(':', 1)
+            yield NetStatTuple(proto, ip, int(port), None, unit)
 
 
 def get_owner(pid):
@@ -234,7 +252,11 @@ def get_port_mapping():
     mapping = parse_port_mapping(netstat())
     if ('tcp', 111) in mapping: # portmap is used
         portmap_data = list(rpcinfo_dump())
-        merge_portmap_data(mapping, portmap_data, open_ports_only=False)
+        merge_portmap_data(mapping, portmap_data)
+    if any(data.pid == 1 and data.program == 'systemd'
+           for plist in mapping.values() for data in plist):
+        systemd_sockets = list(systemctl_list_sockets())
+        merge_portmap_data(mapping, systemd_sockets)
     return mapping
 
 
