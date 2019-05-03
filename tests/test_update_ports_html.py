@@ -21,6 +21,7 @@ from pov_server_page.update_ports_html import (
 
 
 CMDLINES = {
+    1: b"/lib/systemd/systemd\0--system\0--deserialize\00023\0",
     540: b"/sbin/rpcbind\0-w\0",
     821: b"/usr/bin/memcached\0-m\064\0-p\011211\0-u\0memcache\0-l\0127.0.0.1\0",
     824: b"/usr/sbin/sshd\0-D\0",
@@ -308,5 +309,19 @@ class TestWithFakeEnvironment(MockMixin, unittest.TestCase):
               <td class="text-nowrap">-</td>
               <td class="text-nowrap public" title="">apache2</td>
               <td><b>apache2</b></td>
+            </tr>
+          '''))
+
+    def test_render_row_systemd_socket(self):
+        self.assertEqual(textwrap.dedent(render_row([
+            NetStatTuple('tcp', '127.0.0.1', 8000, 1, 'systemd'),
+            NetStatTuple('tcp', '127.0.0.1', 8000, None, 'spinta.socket'),
+        ])), textwrap.dedent('''\
+            <tr class="user user8">
+              <td class="local" title="127.0.0.1">tcp</td>
+              <td class="local" title="">8000</td>
+              <td class="text-nowrap">root</td>
+              <td class="text-nowrap local" title="pid 1">spinta.socket<p>systemd</td>
+              <td>/lib/systemd/<b>systemd</b> --system --deserialize 23</td>
             </tr>
           '''))
