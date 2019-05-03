@@ -45,7 +45,7 @@ from . import update_ports_html, machine_summary, disk_inventory
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.8.0'
+__version__ = '1.8.1'
 __date__ = '2019-05-03'
 
 
