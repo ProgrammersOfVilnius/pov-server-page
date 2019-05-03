@@ -1,11 +1,11 @@
-pov-server-page (1.8.0) UNRELEASED; urgency=medium
+pov-server-page (1.8.0) xenial; urgency=medium
 
   * pov-server-page 1.8.0:
     - wrap du invocations with nice -n 10 ionice -c3 (GH: #43).
   * update-ports 0.10.0:
     - show systemd socket units (GH: #44).
 
- -- Marius Gedminas <marius@gedmin.as>  Fri, 03 May 2019 16:53:01 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 03 May 2019 17:35:09 +0300
 
 pov-server-page (1.7.2) trusty; urgency=medium
 
