@@ -136,7 +136,10 @@ clean-build-tree:
 	(cd webtreemap-du && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap-du/ HEAD) | tar -xf -
 
 .PHONY: source-package
-source-package: check check-target check-version clean-build-tree
+source-package: check check-target check-version source-package-skipping-checks
+
+.PHONY: source-package-skipping-checks
+source-package-skipping-checks: clean-build-tree
 	cd pkgbuild/$(source) && debuild -S -i -k$(GPGKEY)
 	rm -rf pkgbuild/$(source)
 	@echo
@@ -163,7 +166,7 @@ vagrant-test-install: binary-package
 	ssh $(VAGRANT_SSH_ALIAS) 'sudo DEBIAN_FRONTEND=noninteractive dpkg -i /vagrant/$(source)_$(version)_all.deb; sudo apt-get install -f -y'
 
 .PHONY: pbuilder-test-build
-pbuilder-test-build: source-package
+pbuilder-test-build: source-package-skipping-checks
 	# NB: you need to periodically run pbuilder-dist $(TARGET_DISTRO) update
 	pbuilder-dist $(TARGET_DISTRO) build pkgbuild/$(source)_$(version).dsc
 	@echo

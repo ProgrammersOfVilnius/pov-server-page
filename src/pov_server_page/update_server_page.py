@@ -575,10 +575,12 @@ class Builder(object):
         except KeyError:
             gid = -1
         if not self.can_read(filename, uid, gid):
+            print("DEBUG: uid=%s gid=%s cannot read %s" % (uid, gid, filename))
             return False
         dirname = os.path.dirname(filename)
         while True:
             if not self.can_execute(dirname, uid, gid):
+                print("DEBUG: uid=%s gid=%s cannot execute %s" % (uid, gid, dirname))
                 return False
             pardir = os.path.dirname(dirname)
             if pardir == dirname:

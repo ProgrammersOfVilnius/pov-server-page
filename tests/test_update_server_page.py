@@ -340,7 +340,7 @@ class TestDiskUsageBuilderHelpers(unittest.TestCase):
             # dear pytest please show this to me on failures:
             df_output = os.popen("df -PT --local -x debugfs").readlines()
             print(''.join(df_output))
-            if len(df_output) == 2 and df_output[1].startswith('tmpfs'):
+            if len(df_output) == 2 and df_output[1].endswith('/dev/shm\n'):
                 self.skipTest('no filesystems mounted in chroot')
         self.assertIn('/', locations)
 
@@ -601,6 +601,10 @@ class TestBuilderFileReadability(unittest.TestCase):
 
     def test_file_readable_to(self):
         file_readable_to = Builder().file_readable_to
+        print('user: %s' % self.me)
+        print('group: %s' % self.mygroup)
+        print('file: %s' % __file__)
+        print('abspath(file): %s' % os.path.abspath(__file__))
         self.assertTrue(file_readable_to(__file__, self.me, self.mygroup))
 
     def test_file_readable_to_bad_user(self):
