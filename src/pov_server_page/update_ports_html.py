@@ -37,13 +37,13 @@ TEMPLATE = string.Template("""\
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>TCP port assignments on ${hostname}</title>
+  <title>Open TCP & UDP ports on ${hostname}</title>
   <link rel="stylesheet" href="../static/css/bootstrap.min.css">
   <link rel="stylesheet" href="../static/css/style.css">
   <link rel="stylesheet" href="../static/css/ports.css">
 </head>
 <body>
-<h1>TCP & UDP port assignments on ${hostname}</h1>
+<h1>Open TCP & UDP ports on ${hostname}</h1>
 
 <table class="ports table table-hover">
 <thead>
