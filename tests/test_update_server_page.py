@@ -489,6 +489,23 @@ class TestDiskUsageBuilder(BuilderTests):
         )
         self.assertEqual(mock_pipeline.call_count, 2)
 
+    @mock.patch('time.strftime', lambda fmt: '2015-11-01')
+    @mock.patch('pov_server_page.update_server_page.pipeline')
+    @mock.patch('os.path.exists', lambda what: what == '/usr/bin/ionice')
+    def test_build_fresh_ionice(self, mock_pipeline):
+        self.builder.vars['DISK_USAGE_LIST'] = ['/frog']
+        self.builder.vars['DISK_USAGE_DELETE_OLD'] = False
+        Builder.DiskUsage().build(os.path.join(self.tmpdir, 'du'), self.builder)
+        self.assertEqual(
+            self.stdout.getvalue().replace(self.tmpdir, '/var/www/frog.example.com'),
+            "Created /var/www/frog.example.com/du/index.html\n"
+            "Created /var/www/frog.example.com/du/webtreemap\n"
+            "Creating /var/www/frog.example.com/du/frog/du-2015-11-01.gz\n"
+            "Creating /var/www/frog.example.com/du/frog/du.js\n"
+            "Created /var/www/frog.example.com/du/frog/index.html\n"
+        )
+        self.assertEqual(mock_pipeline.call_count, 2)
+
     @mock.patch('os.unlink')
     @mock.patch('glob.glob')
     def test_delete_old_files(self, mock_glob, mock_unlink):

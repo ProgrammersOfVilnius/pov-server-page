@@ -45,8 +45,8 @@ from . import update_ports_html, machine_summary, disk_inventory
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.7.2'
-__date__ = '2018-12-20'
+__version__ = '1.8.0'
+__date__ = '2019-05-03'
 
 
 debian_package = (
@@ -393,7 +393,13 @@ class Builder(object):
                     mkdir_with_parents(datadir)
                     started = time.time()
                     with open(du_file + ".tmp", 'wb') as f:
-                        pipeline(['du', '-x', location], ['gzip'], stdout=f)
+                        nice = ['nice', '-n', '10']
+                        if os.path.exists('/usr/bin/ionice'):
+                            ionice = ['ionice', '-c3']
+                        else:
+                            ionice = []
+                        pipeline(nice + ionice + ['du', '-x', location],
+                                 ['gzip'], stdout=f)
                     os.rename(du_file + '.tmp', du_file)
                     duration = time.time() - started
                     need_build = True

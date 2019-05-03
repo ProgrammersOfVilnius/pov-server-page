@@ -1,5 +1,7 @@
 pov-server-page (1.8.0) UNRELEASED; urgency=medium
 
+  * pov-server-page 1.8.0:
+    - wrap du invocations with nice -n 10 ionice -c3 (GH: #43).
   * update-ports 0.10.0:
     - show systemd socket units (GH: #44).
 
