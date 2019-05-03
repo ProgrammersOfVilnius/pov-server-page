@@ -17,7 +17,6 @@ except ImportError:
     from io import StringIO
 
 import mock
-import pytest
 
 import pov_server_page.changelog2html as c2h
 
@@ -767,6 +766,10 @@ class TestSearchPage(PageTestCase):
         response = c2h.search_page(self.environ(QUERY_STRING='q=thing'))
         self.assertIn('<title>thing -', response)
         self.assertIn("1 results for 'thing'", response)
+
+    def test_unicode(self):
+        response = c2h.search_page(self.environ(QUERY_STRING='q=%C4%85'))
+        self.assertIn(u'<title>ą -', response)
 
 
 class TestWsgiApp(PageTestCase):

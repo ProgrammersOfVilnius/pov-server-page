@@ -895,7 +895,9 @@ def search_page(environ):
     prefix = get_prefix(environ)
     form = parse_qs(environ.get('QUERY_STRING', ''))
     query = form.get('q', [''])[0]
-    if isinstance(query, bytes):
+    # NB: python 2 gives us str (aka bytes) with UTF-8 in it;
+    # python 3 gives us str with decoded unicode characters in it
+    if isinstance(query, bytes):  # pragma: PY2
         query = query.decode('UTF-8')
     hostname = get_hostname(environ)
     changelog = get_changelog(get_changelog_filename(environ))
