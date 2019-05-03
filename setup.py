@@ -9,7 +9,7 @@ with io.open(os.path.join(here, 'README.rst'), encoding='UTF-8') as f:
 
 setup(
     name='pov-server-page',
-    version='1.8.1',
+    version='1.8.2',
     author='Marius Gedminas',
     author_email='marius@pov.lt',
     url='https://github.com/ProgrammersOfVilnius/pov-server-page',
