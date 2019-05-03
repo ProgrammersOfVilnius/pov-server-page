@@ -600,19 +600,24 @@ class TestBuilderFileReadability(unittest.TestCase):
     mygroup = grp.getgrgid(os.getgid()).gr_name
 
     def test_file_readable_to(self):
-        file_readable_to = Builder().file_readable_to
-        print('user: %s' % self.me)
-        print('group: %s' % self.mygroup)
-        print('file: %s' % __file__)
-        print('abspath(file): %s' % os.path.abspath(__file__))
+        builder = Builder()
+        builder.can_read = lambda fn, u, g: True
+        builder.can_execute = lambda fn, u, g: True
+        file_readable_to = builder.file_readable_to
         self.assertTrue(file_readable_to(__file__, self.me, self.mygroup))
 
     def test_file_readable_to_bad_user(self):
-        file_readable_to = Builder().file_readable_to
+        builder = Builder()
+        builder.can_read = lambda fn, u, g: True
+        builder.can_execute = lambda fn, u, g: True
+        file_readable_to = builder.file_readable_to
         self.assertTrue(file_readable_to(__file__, 'no-such-user', self.mygroup))
 
     def test_file_readable_to_bad_group(self):
-        file_readable_to = Builder().file_readable_to
+        builder = Builder()
+        builder.can_read = lambda fn, u, g: True
+        builder.can_execute = lambda fn, u, g: True
+        file_readable_to = builder.file_readable_to
         self.assertTrue(file_readable_to(__file__, self.me, 'no-such-group'))
 
     def test_file_readable_when_not_readable(self):
@@ -664,6 +669,14 @@ class TestBuilderFileReadability(unittest.TestCase):
         mock_stat.side_effect = OSError("nope")
         can_read = Builder().can_read
         self.assertFalse(can_read('/root/Changelog', 1000, 100))
+
+    @mock.patch('os.stat')
+    def test_can_execute_user_allows(self, mock_stat):
+        mock_stat.return_value.st_uid = 1000
+        mock_stat.return_value.st_gid = 0
+        mock_stat.return_value.st_mode = 0o040755
+        can_execute = Builder().can_execute
+        self.assertTrue(can_execute('/root', 1000, 100))
 
     @mock.patch('os.stat')
     def test_can_execute_group_allows(self, mock_stat):
