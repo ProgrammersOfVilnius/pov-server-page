@@ -33,7 +33,7 @@ all: $(manpages) webtreemap webtreemap-du
 %.8: %.rst
 	rst2man $< > $@
 
-webtreemap webtreemap-du:
+webtreemap/.git webtreemap-du/.git:
 	git submodule update --init
 
 .PHONY: test
