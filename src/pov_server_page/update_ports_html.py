@@ -253,6 +253,9 @@ def get_port_mapping():
     if ('tcp', 111) in mapping: # portmap is used
         portmap_data = list(rpcinfo_dump())
         merge_portmap_data(mapping, portmap_data)
+    # XXX: if I switch from netstat to ss, then data.progam is no longer
+    # available and this check will fail.  Maybe I should just unconditionally
+    # run systemctl_list_sockets()?
     if any(data.pid == 1 and data.program == 'systemd'
            for plist in mapping.values() for data in plist):
         systemd_sockets = list(systemctl_list_sockets())

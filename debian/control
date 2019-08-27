@@ -14,7 +14,7 @@ Package: pov-server-page
 Architecture: all
 Depends: apache2, libapache2-mod-wsgi-py3 | libapache2-mod-wsgi, collectd-core,
  ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
- ${python:Depends}, ${python3:Depends}, ${misc:Depends}
+ ${python:Depends}, ${python3:Depends}, ${misc:Depends}, net-tools
 Recommends: apache2-utils
 Suggests: collectd
 Breaks: pov-admin-tools (<< 0.16)
