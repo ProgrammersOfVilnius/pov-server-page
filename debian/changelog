@@ -1,6 +1,7 @@
 pov-server-page (1.8.4) UNRELEASED; urgency=medium
 
   * Add net-tools to Depends: because we want /bin/netstat.
+  * Replace Build-Depends: python-docutils with python3-docutils.
   * disk-inventory 1.6.2:
     - describe the --verbose option in --help output.
 
