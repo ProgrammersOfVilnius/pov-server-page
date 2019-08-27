@@ -7,8 +7,8 @@ print an overview of your disks and partitions
 ----------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2018-10-11
-:Version: 1.6.1
+:Date: 2019-08-27
+:Version: 1.6.2
 :Manual section: 8
 
 
@@ -41,7 +41,7 @@ OPTIONS
 
 --version      show program's version number and exit
 -h, --help     show this help message and exit
--v, --verbose
+-v, --verbose  increase verbosity (can be repeated)
 --decimal      use decimal units (1 KB = 1000 B)
 --si           use SI units (1 KiB = 1024 B)
 --used         show used space instead of free space

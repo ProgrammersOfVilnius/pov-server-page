@@ -27,8 +27,8 @@ except ImportError:
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.6.1'
-__date__ = '2018-10-05'
+__version__ = '1.6.2'
+__date__ = '2019-08-27'
 
 
 FilesystemInfo = collections.namedtuple(
@@ -773,7 +773,7 @@ def report_html(**kw):
 def main():
     parser = optparse.OptionParser(usage='%prog [options]', version=__version__)
     parser.add_option('-v', '--verbose', action='count', dest='verbose',
-                      default=1)
+                      default=1, help='increase verbosity (can be repeated)')
     parser.add_option('--decimal', help='use decimal units (1 KB = 1000 B)',
                       action='store_const', dest='fmt_size',
                       const=fmt_size_decimal)

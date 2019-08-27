@@ -1,8 +1,10 @@
-pov-server-page (1.8.3) UNRELEASED; urgency=medium
+pov-server-page (1.8.4) UNRELEASED; urgency=medium
 
   * Add net-tools to Depends: because we want /bin/netstat.
+  * disk-inventory 1.6.2:
+    - describe the --verbose option in --help output.
 
- -- Marius Gedminas <marius@gedmin.as>  Tue, 27 Aug 2019 15:20:21 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Tue, 27 Aug 2019 16:04:10 +0300
 
 pov-server-page (1.8.2) xenial; urgency=medium
 
