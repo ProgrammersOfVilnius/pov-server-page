@@ -1,3 +1,11 @@
+pov-server-page (1.8.5) UNRELEASED; urgency=medium
+
+  * disk-inventory 1.6.3:
+    - warn when running as non-root,
+    - recognize NVME disks as disks.
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 30 Oct 2019 12:45:42 +0200
+
 pov-server-page (1.8.4) xenial; urgency=medium
 
   * Add net-tools to Depends: because we want /bin/netstat.

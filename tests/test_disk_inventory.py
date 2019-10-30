@@ -667,6 +667,7 @@ class TestHtmlReporter(TestCase):
 class TestReport(TestCase):
 
     def test_lvm(self):
+        self.patch('os.getuid', lambda: 0)
         self.patch_files({
             '/proc/swaps': '',
             '/sys/block/sda/size': '976773168\n',
@@ -723,6 +724,7 @@ class TestReport(TestCase):
         di.report_html(verbose=2)
 
     def test_multiple_lvm_vgs(self):
+        self.patch('os.getuid', lambda: 0)
         self.patch_files({
             '/dev/mapper/platonas-swap_1': Symlink('../dm-2'),
             '/dev/mapper/platonas-root': Symlink('../dm-1'),

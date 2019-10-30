@@ -27,8 +27,8 @@ except ImportError:
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.6.2'
-__date__ = '2019-08-27'
+__version__ = '1.6.3'
+__date__ = '2019-10-30'
 
 
 FilesystemInfo = collections.namedtuple(
@@ -163,9 +163,11 @@ class LinuxDiskInfo(object):
         """
         if os.path.exists('/sys/block'):
             return sorted(name for name in os.listdir('/sys/block')
-                          if name.startswith(('sd', 'cciss', 'xvd', 'vd')))
+                          if name.startswith(('sd', 'cciss', 'xvd', 'vd', 'nvme')))
             # XXX: maybe also list mmcblk in case somebody runs this on a
             # Raspberry Pi or something
+            # XXX: maybe I should filter out non-disk devices like loop and dm and md
+            # instead of recognizing actual drives
         elif os.path.exists('/dev/simfs'):
             # OpenVZ container
             return ['simfs']
@@ -203,6 +205,8 @@ class LinuxDiskInfo(object):
     def list_lvm_volume_groups(self):
         """Return volume groups names."""
         res = []
+        if os.getuid() != 0:
+            self.warn("disk-inventory: cannot list LVM devices: running as non-root")
         with os.popen('vgdisplay -c 2>/dev/null') as f:
             for line in f:
                 # columns:
@@ -306,9 +310,8 @@ class LinuxDiskInfo(object):
             r = os.statvfs('/')
             return r.f_blocks * r.f_bsize
         # Experiments show that the kernel always reports 512-byte sectors,
-        # even when the disk uses 4KiB sectors.
-        # XXX: I should probably read /sys/block/%s/queue/hw_sector_size
-        # instead of hardcoding
+        # even when the disk uses 4KiB sectors.  This is apparently by design,
+        # although it isn't currently documented.
         return self.get_disk_size_sectors(disk_name) * 512
 
     def get_disk_model(self, disk_name):
@@ -323,7 +326,10 @@ class LinuxDiskInfo(object):
     def get_disk_firmware_rev(self, disk_name):
         if disk_name.startswith(('xvd', 'vd', 'simfs')):
             return 'N/A'
-        return self._read_string('/sys/block/%s/device/rev' % disk_name)
+        filename = '/sys/block/%s/device/firmware_rev' % disk_name
+        if not os.path.exists(filename):
+            filename = '/sys/block/%s/device/rev' % disk_name
+        return self._read_string(filename)
 
     def is_disk_an_ssd(self, disk_name):
         if disk_name == 'simfs':
@@ -688,7 +694,6 @@ class HtmlReporter(Reporter):
     def lv(self, lv, usage, fsinfo, is_ssd):
         self.partition(lv.name, lv.size_bytes, usage, fsinfo, pvinfo=None,
                        is_used=lv.is_open, is_ssd=is_ssd)
-
 
 
 def report(info=None, verbose=1, name_width=8, usage_width=30,
