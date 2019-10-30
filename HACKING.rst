@@ -6,8 +6,12 @@ This is a collection of scripts:
 - changelog2html.py -- a WSGI script that renders the system changelog
 - collection.cgi -- a CGI script that renders collectd graphs
   (forked from collectd upstream)
+- disk_inventory.py -- a standalone script that prints a map of all the disks
+  and partitions
 - dudiff2html.py -- a WSGI script that renders disk usage difference
   pages
+- machine_summary.py -- a standalone script that prints the short summary of
+  the machine (hostname, CPU, RAM, storage, network, OS)
 - update_ports_html.py -- a standalone script that generates
   the list of open network ports (not CGI/WSGI because it runs as root
   to get all the desired information)
@@ -24,11 +28,19 @@ Testing changelog2html manually
 
 Run ::
 
-    PYTHONPATH=src python -m pov_server_page.changelog2html /root/Changelog
+    PYTHONPATH=src python3 -m pov_server_page.changelog2html /root/Changelog
 
 then browse http://localhost:8080.
 
 You can pass ``--help`` to see the options accepted by the script.
+
+
+Testing disk-inventory manually
+-------------------------------
+
+Run ::
+
+    sudo env PYTHONPATH=src python3 -m pov_server_page.disk_inventory
 
 
 Testing dudiff2html manually
@@ -43,7 +55,7 @@ Then you can ::
     wget https://example.com/du/backup/du-2016-02-16.gz
     wget https://example.com/du/backup/du-2016-03-14.gz
     cd ~/src/pov-server-page/
-    PYTHONPATH=src python -m pov_server_page.dudiff2html /tmp/du
+    PYTHONPATH=src python3 -m pov_server_page.dudiff2html /tmp/du
     # now open http://localhost:8080/backup/2016-02-16..2016-03-14
 
 Replace "example.com" with the real server name, and "backup" with the
@@ -58,12 +70,20 @@ page for a quick development loop.
 You can pass ``--help`` to see the options accepted by the script.
 
 
+Testing machine-summary manually
+--------------------------------
+
+Run ::
+
+    PYTHONPATH=src python3 -m pov_server_page.machine_summary
+
+
 Testing update_ports_html manually
 ----------------------------------
 
 Run ::
 
-    PYTHONPATH=src python -m pov_server_page.update_ports_html -o ports.html
+    PYTHONPATH=src python3 -m pov_server_page.update_ports_html -o ports.html
 
 
 Testing update_server_page manually
@@ -71,7 +91,7 @@ Testing update_server_page manually
 
 Run ::
 
-    PYTHONPATH=src python -m pov_server_page.update_server_page enabled=1 --destdir=/tmp/test/ -v
+    PYTHONPATH=src python3 -m pov_server_page.update_server_page enabled=1 --destdir=/tmp/test/ -v
 
 then look at the files in /tmp/test/.  They may look better if you also do ::
 
