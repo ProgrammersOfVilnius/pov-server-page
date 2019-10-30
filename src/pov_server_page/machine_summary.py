@@ -13,8 +13,8 @@ from collections import Counter
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.8.1'
-__date__ = '2018-01-20'
+__version__ = '0.8.2'
+__date__ = '2019-10-30'
 
 
 def fmt_with_units(size, units):
@@ -128,8 +128,10 @@ def enumerate_disks():
     # Some containers have an empty /sys/block
     has_sys_block = os.path.exists('/sys/block')
     if has_sys_block:
-        devices = sorted(name for name in os.listdir('/sys/block')
-                         if name.startswith(('sd', 'cciss', 'xvd', 'vd')))
+        devices = sorted(
+            name for name in os.listdir('/sys/block')
+            if name.startswith(('sd', 'cciss', 'xvd', 'vd', 'nvme'))
+        )
     else:
         devices = []
     if os.path.exists('/dev/simfs'):  # OpenVZ
