@@ -45,8 +45,8 @@ from . import update_ports_html, machine_summary, disk_inventory
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.8.4'
-__date__ = '2019-09-12'
+__version__ = '1.8.5'
+__date__ = '2019-10-30'
 
 
 debian_package = (

@@ -7,8 +7,8 @@ set up an administrative web page for your server
 -------------------------------------------------
 
 :Author: Marius Gedminas <marius@gedmin.as>
-:Date: 2019-09-12
-:Version: 1.8.4
+:Date: 2019-10-30
+:Version: 1.8.5
 :Manual section: 8
 
 

@@ -1,4 +1,4 @@
-pov-server-page (1.8.5) UNRELEASED; urgency=medium
+pov-server-page (1.8.5) xenial; urgency=medium
 
   * disk-inventory 1.6.3:
     - warn when running as non-root,
@@ -6,7 +6,7 @@ pov-server-page (1.8.5) UNRELEASED; urgency=medium
   * machine-summary 0.8.2:
     - support NVME disks.
 
- -- Marius Gedminas <marius@gedmin.as>  Wed, 30 Oct 2019 12:45:42 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 30 Oct 2019 12:58:01 +0200
 
 pov-server-page (1.8.4) xenial; urgency=medium
 
