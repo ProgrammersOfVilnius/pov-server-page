@@ -15,7 +15,7 @@ Architecture: all
 Depends: apache2, pov-server-page-py3 | pov-server-page-py2,
  collectd-core, net-tools,
  ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
- ${misc:Depends}
+ ${misc:Depends}, ${python3:Depends}
 Recommends: apache2-utils
 Suggests: collectd
 Breaks: pov-admin-tools (<< 0.16)
