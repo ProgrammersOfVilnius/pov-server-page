@@ -162,6 +162,8 @@ binary-package: clean-build-tree
 	rm -rf pkgbuild/$(source)
 	@echo
 	@echo "Built pkgbuild/$(source)_$(version)_all.deb"
+	@echo "      pkgbuild/$(source)-py2_$(version)_all.deb"
+	@echo "      pkgbuild/$(source)-py3_$(version)_all.deb"
 
 .PHONY: vagrant-test-install
 vagrant-test-install: binary-package
@@ -175,3 +177,5 @@ pbuilder-test-build: source-package-skipping-checks
 	pbuilder-dist $(TARGET_DISTRO) build pkgbuild/$(source)_$(version).dsc
 	@echo
 	@echo "Built ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_all.deb"
+	@echo "      ~/pbuilder/$(TARGET_DISTRO)_result/$(source)-py2_$(version)_all.deb"
+	@echo "      ~/pbuilder/$(TARGET_DISTRO)_result/$(source)-py3_$(version)_all.deb"

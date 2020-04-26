@@ -12,9 +12,10 @@ Homepage: https://github.com/ProgrammersOfVilnius/pov-server-page
 
 Package: pov-server-page
 Architecture: all
-Depends: apache2, libapache2-mod-wsgi-py3 | libapache2-mod-wsgi, collectd-core,
+Depends: apache2, pov-server-page-py3 | pov-server-page-py2,
+ collectd-core, net-tools,
  ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
- ${python:Depends}, ${python3:Depends}, ${misc:Depends}, net-tools
+ ${misc:Depends}
 Recommends: apache2-utils
 Suggests: collectd
 Breaks: pov-admin-tools (<< 0.16)
@@ -31,3 +32,21 @@ Description: password-protected Apache virtual host with server information
    - disk usage treemaps (if configured)
  .
  Some manual setup is required: see /usr/share/doc/pov-server-page/README.rst.
+
+Package: pov-server-page-py2
+Architecture: all
+Depends: libapache2-mod-wsgi, ${python:Depends}
+Description: password-protected Apache virtual host with server information
+ * This is an unofficial package.
+ .
+ This is an empty package that ensures all the dependencies needed to use
+ pov-server-page with Python 2 are installed.
+
+Package: pov-server-page-py3
+Architecture: all
+Depends: libapache2-mod-wsgi-py3, ${python3:Depends}
+Description: password-protected Apache virtual host with server information
+ * This is an unofficial package.
+ .
+ This is an empty package that ensures all the dependencies needed to use
+ pov-server-page with Python 3 are installed.
