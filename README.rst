@@ -1,6 +1,9 @@
 PoV server page
 ===============
 
+.. image:: https://travis-ci.org/ProgrammersOfVilnius/pov-server-page.svg?branch=master
+    :target: https://travis-ci.org/ProgrammersOfVilnius/pov-server-page
+
 This script sets up a web page for your server, listing the following
 information:
 
