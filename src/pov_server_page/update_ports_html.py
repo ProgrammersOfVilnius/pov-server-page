@@ -4,6 +4,7 @@ Update TCP & UDP port assignments page in /var/www/HOSTNAME/ports/index.html.
 """
 
 import io
+import logging
 import optparse
 import os
 import pwd
@@ -23,6 +24,9 @@ except ImportError:
 
 __version__ = '0.10.1'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
+
+
+log = logging.getLogger(__name__)
 
 
 HOSTNAME = socket.getfqdn()
@@ -95,19 +99,27 @@ def pipe(*command):
 
 def netstat():
     with pipe('netstat', '-tunlvp') as f:
+        header = []
         for line in f:
             if line.rstrip() == 'Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name':
                 break
+            header.append(line)
+        else:
+            log.warning('Failed to find expected netstat header in\n%s' % ''.join(header))
+            return
         for line in f:
-            parts = line.split()
+            columns = 7 if line.startswith('tcp') else 6
+            parts = line.split(None, columns - 1)
+            if len(parts) != columns:
+                log.warning('Unexpected number of columns in netstat output:\n%s' % line)
+                continue
             proto = parts[0]
             local_addr = parts[3]
             if proto in ('tcp', 'tcp6'):
                 state = parts[5]
-                pid_program = parts[6]
             else:
                 state = None
-                pid_program = parts[5]
+            pid_program = parts[-1].rstrip()
             if proto in ('tcp', 'tcp6') and state != 'LISTEN':
                 continue
             ip, port = local_addr.rsplit(':', 1)
@@ -122,10 +134,14 @@ def netstat():
 
 def rpcinfo_dump():
     with pipe('rpcinfo', '-p') as f:
+        next(f)  # skip header
         for line in f:
             # line is 'program vers proto port service'
             parts = line.split()
-            if not parts or parts[0] == 'program':
+            if not parts:
+                continue
+            if len(parts) not in (4, 5):
+                log.warning('Unexpected number of columns in rpcinfo output:\n%s' % line)
                 continue
             proto = parts[2]
             port = parts[3]
@@ -149,7 +165,11 @@ def systemctl_list_sockets():
             if not line:
                 break
             parts = [line[col].rstrip() for col in cols]
-            listen, type_, unit, activates = parts
+            try:
+                listen, type_, unit, activates = parts
+            except ValueError:
+                log.warning('Failed to parse systemctl list-sockets output:\n%s' % line)
+                continue
             proto = {'Stream': 'tcp', 'Datagram': 'udp'}.get(type_)
             if not proto or ':' not in listen:
                 continue
@@ -253,9 +273,10 @@ def get_port_mapping():
     if ('tcp', 111) in mapping: # portmap is used
         portmap_data = list(rpcinfo_dump())
         merge_portmap_data(mapping, portmap_data)
-    # XXX: if I switch from netstat to ss, then data.progam is no longer
+    # XXX: if I switch from netstat to ss, then data.program is no longer
     # available and this check will fail.  Maybe I should just unconditionally
-    # run systemctl_list_sockets()?
+    # run systemctl_list_sockets()?  or maybe I should check the existence
+    # of /run/systemd/system/
     if any(data.pid == 1 and data.program == 'systemd'
            for plist in mapping.values() for data in plist):
         systemd_sockets = list(systemctl_list_sockets())
@@ -336,7 +357,14 @@ def render_file(netstat_mapping, output, hostname=HOSTNAME):
         f.write(render_html(netstat_mapping, hostname=hostname))
 
 
+def init_logging():
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.addHandler(logging.StreamHandler())
+
+
 def main():
+    init_logging()
     parser = optparse.OptionParser(usage='usage: %prog [options]',
                                    version=__version__)
     parser.add_option('-H', '--hostname', default=HOSTNAME,
