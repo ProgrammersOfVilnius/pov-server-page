@@ -144,7 +144,12 @@ def mako_error_handler(context, error):
 # python-mako 0.9.1 from Ubuntu 14.04 LTS
 #
 
-text_type = unicode if str is bytes else str
+try:
+    # Python 2
+    text_type = unicode
+except NameError:
+    # Python 3
+    text_type = str
 
 
 def to_unicode(s):

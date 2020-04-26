@@ -41,7 +41,11 @@ test:
 	tox -e py27 --devel
 
 .PHONY: check
-check: test
+check: test flake8
+
+.PHONY: flake8
+flake8:
+	tox -e flake8
 
 .PHONY: coverage
 coverage:
