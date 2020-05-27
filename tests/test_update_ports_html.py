@@ -3,21 +3,33 @@ import os
 import sys
 import textwrap
 import unittest
-from io import BytesIO, TextIOWrapper
 from contextlib import closing
+from io import BytesIO, TextIOWrapper
+
+import mock
+
+from pov_server_page.update_ports_html import (
+    NetStatTuple,
+    format_arg,
+    get_argv,
+    get_html_cmdline,
+    get_owner,
+    get_port_mapping,
+    get_program,
+    main,
+    netstat,
+    parse_services,
+    render_row,
+    rpcinfo_dump,
+    systemctl_list_sockets,
+    username,
+)
+
 
 try:
     from cStringIO import StringIO
 except ImportError:
     from io import StringIO
-
-import mock
-
-from pov_server_page.update_ports_html import (
-    main, get_owner, username, get_argv, format_arg, get_program,
-    get_html_cmdline, parse_services, render_row, NetStatTuple,
-    systemctl_list_sockets, get_port_mapping,
-)
 
 
 CMDLINES = {
@@ -38,6 +50,7 @@ CMDLINES = {
     9003: b"nginx: master process /opt/gitlab/embedded/sbin/nginx -p /var/opt/gitlab/nginx",
 }
 
+NETSTAT_COMMAND = ('netstat', '-tunlvp')
 NETSTAT_SAMPLE = b"""\
 Active Internet connections (only servers)
 Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
@@ -87,6 +100,7 @@ udp6       0      0 ::1:123                 :::*                                
 udp6       0      0 :::123                  :::*                                -
 """
 
+RPCINFO_COMMAND = ('rpcinfo', '-p')
 RPCINFO_SAMPLE = b"""\
    program vers proto   port  service
     100000    4   tcp    111  portmapper
@@ -119,25 +133,32 @@ RPCINFO_SAMPLE = b"""\
     100021    4   tcp  43461  nlockmgr
 """
 
+SYSTEMCTL_LIST_SOCKETS_COMMAND = ('systemctl', 'list-sockets', '--show-types')
+SYSTEMCTL_LIST_SOCKETS_SAMPLE = (
+    # NB: the trailing spaces are important
+    b"LISTEN                          TYPE             UNITS                           ACTIVATES               \n"
+    b"/run/apport.socket              Stream           apport-forward.socket                                   \n"
+    b"/run/spinta/socket              Stream           spinta.socket                   spinta.service          \n"
+    b"/run/systemd/initctl/fifo       FIFO             systemd-initctl.socket          systemd-initctl.service \n"
+    b"/run/systemd/journal/dev-log    Datagram         systemd-journald-dev-log.socket systemd-journald.service\n"
+    b"/run/systemd/journal/socket     Datagram         systemd-journald.socket         systemd-journald.service\n"
+    b"/run/systemd/journal/stdout     Stream           systemd-journald.socket         systemd-journald.service\n"
+    b"/run/systemd/journal/syslog     Datagram         syslog.socket                   rsyslog.service         \n"
+    b"/run/udev/control               SequentialPacket systemd-udevd-control.socket    systemd-udevd.service   \n"
+    b"/run/uuidd/request              Stream           uuidd.socket                    uuidd.service           \n"
+    b"/var/run/dbus/system_bus_socket Stream           dbus.socket                     dbus.service            \n"
+    b"127.0.0.1:8000                  Stream           spinta.socket                   spinta.service          \n"
+    b"kobject-uevent 1                Netlink          systemd-udevd-kernel.socket     systemd-udevd.service   \n"
+    b"\n"
+    b"12 sockets listed.\n"
+    b"Pass --all to see loaded but inactive sockets, too.\n"
+)
 
-SYSTEMCTL_LIST_SOCKETS_SAMPLE = b"""\
-LISTEN                          TYPE             UNIT                            ACTIVATES
-/run/apport.socket              Stream           apport-forward.socket
-/run/spinta/socket              Stream           spinta.socket                   spinta.service
-/run/systemd/initctl/fifo       FIFO             systemd-initctl.socket          systemd-initctl.service
-/run/systemd/journal/dev-log    Datagram         systemd-journald-dev-log.socket systemd-journald.service
-/run/systemd/journal/socket     Datagram         systemd-journald.socket         systemd-journald.service
-/run/systemd/journal/stdout     Stream           systemd-journald.socket         systemd-journald.service
-/run/systemd/journal/syslog     Datagram         syslog.socket                   rsyslog.service
-/run/udev/control               SequentialPacket systemd-udevd-control.socket    systemd-udevd.service
-/run/uuidd/request              Stream           uuidd.socket                    uuidd.service
-/var/run/dbus/system_bus_socket Stream           dbus.socket                     dbus.service
-127.0.0.1:8000                  Stream           spinta.socket                   spinta.service
-kobject-uevent 1                Netlink          systemd-udevd-kernel.socket     systemd-udevd.service
-
-12 sockets listed.
-Pass --all to see loaded but inactive sockets, too.
-"""  # NB: there should be trailins spaces on the apport.socket line, but I don't care
+DEFAULT_COMMANDS = {
+    NETSTAT_COMMAND: NETSTAT_SAMPLE,
+    RPCINFO_COMMAND: RPCINFO_SAMPLE,
+    SYSTEMCTL_LIST_SOCKETS_COMMAND: SYSTEMCTL_LIST_SOCKETS_SAMPLE,
+}
 
 
 SERVICES = """\
@@ -149,17 +170,20 @@ https\t\t443/tcp\t\t\t\t# http protocol over TLS/SSL
 
 
 class FakePopen(object):
-    def __init__(self, command, stdout=None, stderr=None):
-        if isinstance(command, tuple):
-            command = list(command)
-        if command == ['netstat', '-tunlvp']:
-            self.stdout = BytesIO(NETSTAT_SAMPLE)
-        elif command == ['rpcinfo', '-p']:
-            self.stdout = BytesIO(RPCINFO_SAMPLE)
-        elif command == ['systemctl', 'list-sockets', '--show-types']:
-            self.stdout = BytesIO(SYSTEMCTL_LIST_SOCKETS_SAMPLE)
-        else:
-            raise AssertionError('unexpected command: %s' % command)
+
+    def __init__(self, commands=None):
+        self._commands = DEFAULT_COMMANDS if commands is None else commands
+
+    def __call__(self, command, stdout=None, stderr=None):
+        try:
+            return _FakePopen(self._commands[tuple(command)])
+        except KeyError:
+            raise AssertionError('unexpected command: %r' % list(command))
+
+
+class _FakePopen(object):
+    def __init__(self, stdout):
+        self.stdout = BytesIO(stdout)
 
 
 def fake_open(filename, mode='r'):
@@ -187,15 +211,59 @@ class MockMixin:
         return retval
 
 
+class TestNetstat(MockMixin, unittest.TestCase):
+
+    def test_netstat_failure_handling_no_header(self):
+        self.patch('subprocess.Popen', FakePopen({
+            NETSTAT_COMMAND: (
+                b"netstat: command not found\n"
+            ),
+        }))
+        self.assertEqual(list(netstat()), [])
+
+    def test_netstat_failure_handling(self):
+        self.patch('subprocess.Popen', FakePopen({
+            NETSTAT_COMMAND: (
+                b'Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name\n'
+                b'tcp        0      0 0.0.0.0:2049            0.0.0.0:*               LISTEN\n'
+                b'tcp        0      0 127.0.0.1               0.0.0.0:*               LISTEN      851/redis-server 12\n'
+                b'tcp6       0      0 :::80                   :::*                    LISTEN      xyzzy/apache2\n'
+            ),
+        }))
+        self.assertEqual(list(netstat()), [])
+
+
+class TestRpcinfo(MockMixin, unittest.TestCase):
+
+    def test_rpcinfo_dump_sockets_error_handling(self):
+        self.patch('subprocess.Popen', FakePopen({
+            # imagine a couple of columns are randomly missing (unlikely, but)
+            RPCINFO_COMMAND: (
+                b"   proto   port  service\n"
+                b"     tcp    111  portmapper\n"
+                b"\n"
+            ),
+        }))
+        self.assertEqual(list(rpcinfo_dump()), [])
+
+
 class TestSystemctl(MockMixin, unittest.TestCase):
 
-    def setUp(self):
-        self.patch('subprocess.Popen', FakePopen)
-
     def test_systemctl_list_sockets(self):
+        self.patch('subprocess.Popen', FakePopen())
         self.assertEqual(list(systemctl_list_sockets()), [
             NetStatTuple('tcp', '127.0.0.1', 8000, None, 'spinta.socket'),
         ])
+
+    def test_systemctl_list_sockets_error_handling(self):
+        self.patch('subprocess.Popen', FakePopen({
+            # imagine a column is randomly missing (unlikely, but)
+            SYSTEMCTL_LIST_SOCKETS_COMMAND: (
+                b"LISTEN             TYPE   UNITS                \n"
+                b"/run/apport.socket Stream apport-forward.socket\n"
+            ),
+        }))
+        self.assertEqual(list(systemctl_list_sockets()), [])
 
 
 class TestProcHelpers(unittest.TestCase):
@@ -233,7 +301,7 @@ class TestFormattingHelpers(unittest.TestCase):
 class TestGetPortMapping(MockMixin, unittest.TestCase):
 
     def setUp(self):
-        self.patch('subprocess.Popen', FakePopen)
+        self.patch('subprocess.Popen', FakePopen())
         self.patch('pov_server_page.update_ports_html.open', fake_open)
 
     def test_systemd_integration(self):
@@ -255,7 +323,7 @@ class TestParseServices(unittest.TestCase):
 class TestWithFakeEnvironment(MockMixin, unittest.TestCase):
 
     def setUp(self):
-        self.patch('subprocess.Popen', FakePopen)
+        self.patch('subprocess.Popen', FakePopen())
         self.patch('pov_server_page.update_ports_html.open', fake_open)
         self.stderr = self.patch('sys.stderr', StringIO())
 

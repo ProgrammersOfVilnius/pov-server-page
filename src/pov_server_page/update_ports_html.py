@@ -99,19 +99,22 @@ def pipe(*command):
 
 def netstat():
     with pipe('netstat', '-tunlvp') as f:
-        header = []
+        failures = []
         for line in f:
             if line.rstrip() == 'Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name':
                 break
-            header.append(line)
+            failures.append(line)
         else:
-            log.warning('Failed to find expected netstat header in\n%s' % ''.join(header))
+            log.warning('Failed to find expected netstat header in\n%s'
+                        % ''.join(failures))
             return
+        header = line
+        failures = []
         for line in f:
             columns = 7 if line.startswith('tcp') else 6
             parts = line.split(None, columns - 1)
             if len(parts) != columns:
-                log.warning('Unexpected number of columns in netstat output:\n%s' % line)
+                failures.append(line)
                 continue
             proto = parts[0]
             local_addr = parts[3]
@@ -122,31 +125,42 @@ def netstat():
             pid_program = parts[-1].rstrip()
             if proto in ('tcp', 'tcp6') and state != 'LISTEN':
                 continue
-            ip, port = local_addr.rsplit(':', 1)
-            if '/' in pid_program:
-                pid, program = pid_program.split('/', 1)
-                pid = int(pid)
-            else:
-                pid = None
-                program = pid_program
+            try:
+                ip, port = local_addr.rsplit(':', 1)
+                if '/' in pid_program:
+                    pid, program = pid_program.split('/', 1)
+                    pid = int(pid)
+                else:
+                    pid = None
+                    program = pid_program
+            except ValueError:
+                failures.append(line)
+                continue
             yield NetStatTuple(proto, ip, int(port), pid, program)
+    if failures:
+        log.warning('Failed to parse netstat output:\n%s'
+                    % ''.join([header] + failures))
 
 
 def rpcinfo_dump():
     with pipe('rpcinfo', '-p') as f:
-        next(f)  # skip header
+        header = next(f)  # skip header
+        failures = []
         for line in f:
             # line is 'program vers proto port service'
             parts = line.split()
             if not parts:
                 continue
             if len(parts) not in (4, 5):
-                log.warning('Unexpected number of columns in rpcinfo output:\n%s' % line)
+                failures.append(line)
                 continue
             proto = parts[2]
             port = parts[3]
             program = parts[4] if len(parts) > 4 else '-'
             yield NetStatTuple(proto, None, int(port), None, program)
+    if failures:
+        log.warning('Failed to parse rpcinfo output:\n%s'
+                    % ''.join([header] + failures))
 
 
 def merge_portmap_data(mapping, pmap_list, open_ports_only=False):
@@ -157,9 +171,10 @@ def merge_portmap_data(mapping, pmap_list, open_ports_only=False):
 
 def systemctl_list_sockets():
     with pipe('systemctl', 'list-sockets', '--show-types') as f:
-        header = next(f)
+        header = next(f).rstrip()
         cols = [0] + [m.start() + 1 for m in re.finditer(r' [^ ]', header)] + [None]
-        cols = [slice(cols[i], cols[i + 1]) for i in range(len(cols) - 1)]
+        cols = [slice(col, nextcol) for col, nextcol in zip(cols, cols[1:])]
+        failures = []
         for line in f:
             line = line.rstrip()
             if not line:
@@ -167,14 +182,17 @@ def systemctl_list_sockets():
             parts = [line[col].rstrip() for col in cols]
             try:
                 listen, type_, unit, activates = parts
+                proto = {'Stream': 'tcp', 'Datagram': 'udp'}.get(type_)
+                if not proto or ':' not in listen:
+                    continue
+                ip, port = listen.rsplit(':', 1)
             except ValueError:
-                log.warning('Failed to parse systemctl list-sockets output:\n%s' % line)
+                failures.append(line)
                 continue
-            proto = {'Stream': 'tcp', 'Datagram': 'udp'}.get(type_)
-            if not proto or ':' not in listen:
-                continue
-            ip, port = listen.rsplit(':', 1)
             yield NetStatTuple(proto, ip, int(port), None, unit)
+    if failures:
+        log.warning('Failed to parse systemctl list-sockets output:\n%s'
+                    % '\n'.join([header] + failures))
 
 
 def get_owner(pid):
