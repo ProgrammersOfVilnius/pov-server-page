@@ -20,9 +20,10 @@ file with htpasswd, enable the site with a2ensite and restart Apache::
 
 import datetime
 import errno
-import io
 import glob
 import grp
+import io
+import logging
 import optparse
 import os
 import pwd
@@ -658,7 +659,14 @@ class Builder(object):
             print("Please run service apache2 reload")
 
 
+def init_logging():
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.addHandler(logging.StreamHandler())
+
+
 def main():
+    init_logging()
     # Command-line options
     description = "Generate Apache configuration for a server page"
     parser = optparse.OptionParser('usage: %prog [options] [var=value ...]',

@@ -47,8 +47,8 @@ COLORS = [
     for b in [0] + list(range(95, 256, 40))
 ] + [
     # 24 greyscale levels
-    '#%02x%02x%02x' % (l, l, l)
-    for l in range(8, 248, 10)
+    '#%02x%02x%02x' % (i, i, i)
+    for i in range(8, 248, 10)
 ]
 
 
