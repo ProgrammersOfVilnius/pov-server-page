@@ -29,8 +29,8 @@ from .utils import ansi2html, mako_error_handler
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.8.2'
-__date__ = '2018-12-20'
+__version__ = '0.9.0'
+__date__ = '2020-05-27'
 
 
 HOSTNAME = socket.gethostname()
@@ -78,7 +78,7 @@ class Entry(TextObject):
 
     _header_rx = re.compile(
         r'^(?P<year>\d\d\d\d)-(?P<month>\d\d)-(?P<day>\d\d)'
-        r' (?P<hour>\d\d):(?P<minute>\d\d)(?: (?P<timezone>[-+]\d\d\d\d))?'
+        r'(?: (?P<hour>\d\d):(?P<minute>\d\d))?(?: (?P<timezone>[-+]\d\d\d\d))?'
         r'(?:: (?P<user>.*))?$')
 
     def __init__(self, id, year, month, day, hour, minute, timezone, user,
@@ -93,6 +93,20 @@ class Entry(TextObject):
         self.timezone = timezone
         self.user = user
 
+    @classmethod
+    def parse(cls, line, id, text=None):
+        m = cls._header_rx.match(line)
+        if m is not None:
+            return cls(id=id,
+                       year=int(m.group('year')),
+                       month=int(m.group('month')),
+                       day=int(m.group('day')),
+                       hour=int(m.group('hour')) if m.group('hour') else None,
+                       minute=int(m.group('minute')) if m.group('minute') else None,
+                       timezone=m.group('timezone'),
+                       user=m.group('user'),
+                       text=text)
+
     def search(self, query):
         return any(query in line.lower() for line in self.text)
 
@@ -100,7 +114,12 @@ class Entry(TextObject):
         return datetime.date(self.year, self.month, self.day)
 
     def timestamp(self):
-        return u'{year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d} {timezone}'.format(
+        template = u'{year:04d}-{month:02d}-{day:02d}'
+        if self.hour is not None:
+            template += u' {hour:02d}:{minute:02d}'
+        if self.timezone is not None:
+            template += u' {timezone}'
+        return template.format(
                 year=self.year, month=self.month, day=self.day,
                 hour=self.hour, minute=self.minute, timezone=self.timezone)
 
@@ -139,6 +158,14 @@ class ToDoItem(TextObject):
         self.entry = entry
         self.prefix = prefix
         self.title = title
+
+    @classmethod
+    def parse(cls, line, entry):
+        m = cls._todo_rx.match(line)
+        if m is not None:
+            return cls(entry=entry,
+                       prefix=m.group('prefix'),
+                       title=m.group('title'))
 
     def as_html(self):
         return (
@@ -180,23 +207,14 @@ class Changelog(object):
         entry = self.preamble
         todo = None
         for line in fp:
-            m = Entry._header_rx.match(line)
-            if m is not None:
-                entry = Entry(id=len(self.entries) + 1,
-                              year=int(m.group('year')),
-                              month=int(m.group('month')),
-                              day=int(m.group('day')),
-                              hour=int(m.group('hour')),
-                              minute=int(m.group('minute')),
-                              timezone=m.group('timezone'),
-                              user=m.group('user'))
+            new_entry = Entry.parse(line, id=len(self.entries) + 1)
+            if new_entry is not None:
+                entry = new_entry
                 self.entries.append(entry)
             entry.add_line(line)
-            m = ToDoItem._todo_rx.match(line)
-            if m is not None:
-                todo = ToDoItem(entry=entry,
-                                prefix=m.group('prefix'),
-                                title=m.group('title'))
+            maybe_todo = ToDoItem.parse(line, entry=entry)
+            if maybe_todo is not None:
+                todo = maybe_todo
                 todo.add_line(line)
                 self.todo.append(todo)
             elif todo is not None:

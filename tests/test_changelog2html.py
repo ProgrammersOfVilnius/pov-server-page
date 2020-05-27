@@ -87,17 +87,9 @@ class TestEntry(TestCase):
 
     def makeEntry(self, text=default_example, id=1):
         text = textwrap.dedent(text.lstrip('\n')).splitlines(True)
-        m = c2h.Entry._header_rx.match(text[0])
-        assert m, "bad header: %s" % repr(text[0])
-        return c2h.Entry(id=id,
-                         year=int(m.group('year')),
-                         month=int(m.group('month')),
-                         day=int(m.group('day')),
-                         hour=int(m.group('hour')),
-                         minute=int(m.group('minute')),
-                         timezone=m.group('timezone'),
-                         user=m.group('user'),
-                         text=text)
+        e = c2h.Entry.parse(text[0], id=id, text=text)
+        assert e, "bad header: %s" % repr(text[0])
+        return e
 
     def test_search(self):
         entry = self.makeEntry()
@@ -111,6 +103,13 @@ class TestEntry(TestCase):
     def test_timestamp(self):
         entry = self.makeEntry()
         self.assertTrue(entry.timestamp(), '2015-11-05 15:57 +0200')
+
+    def test_timestamp_no_hour_minute(self):
+        entry = self.makeEntry("""
+            2020-05-27: mg
+              # testing testing
+        """)
+        self.assertTrue(entry.timestamp(), '2015-11-05')
 
     def test_title(self):
         entry = self.makeEntry()
