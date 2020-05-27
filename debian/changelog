@@ -1,3 +1,12 @@
+pov-server-page (1.8.6) xenial; urgency=medium
+
+  * changelog2html 0.9.0:
+    - parse YYYY-MM-DD entries (without HH:MM) (GH: #50).
+  * update-ports 0.10.2:
+    - fix ValueError in systemd socket parsing code (GH: #48).
+
+ -- Marius Gedminas <marius@gedmin.as>  Wed, 27 May 2020 23:22:39 +0300
+
 pov-server-page (1.8.5) xenial; urgency=medium
 
   * disk-inventory 1.6.3:

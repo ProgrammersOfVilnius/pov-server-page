@@ -22,7 +22,7 @@ except ImportError:
     from cgi import escape
 
 
-__version__ = '0.10.1'
+__version__ = '0.10.2'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
