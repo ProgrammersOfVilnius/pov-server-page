@@ -1,0 +1,2 @@
+wrappers/du-diff                         usr/bin/
+wrappers/*                               usr/sbin/

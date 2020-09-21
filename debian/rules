@@ -25,7 +25,11 @@ export DESTDIR=debian/pov-server-page
 
 override_dh_install:
 	dh_install
-	rm $(DESTDIR)/usr/sbin/du-diff
+	rm debian/pov-server-page-py2/usr/sbin/du-diff
+	rm debian/pov-server-page-py3/usr/sbin/du-diff
+	sed -i -e '1s/python3/python2/' \
+	    debian/pov-server-page-py2/usr/bin/* \
+	    debian/pov-server-page-py2/usr/sbin/*
 	cd $(DESTDIR)/usr/lib/pov-server-page && \
 	    mv du2webtreemap.py du2webtreemap
 
