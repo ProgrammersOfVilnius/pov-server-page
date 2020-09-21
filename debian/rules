@@ -14,6 +14,8 @@ export PYBUILD_TEST_PYTEST=1
 export PYBUILD_TEST_ARGS=-ra
 export PYBUILD_AFTER_BUILD=make
 export PYBUILD_AFTER_INSTALL=rm -rf {destdir}/usr/bin {destdir}/{install_dir}/pov_server_page/static {destdir}/{install_dir}/pov_server_page/templates
+export PYBUILD_DESTDIR_python2=debian/pov-server-page-py2/
+export PYBUILD_DESTDIR_python3=debian/pov-server-page-py3/
 
 # not sure why this isn't set for me already
 export DESTDIR=debian/pov-server-page
