@@ -35,18 +35,16 @@ Description: password-protected Apache virtual host with server information
 
 Package: pov-server-page-py2
 Architecture: all
-Depends: libapache2-mod-wsgi, ${python:Depends}
+Depends: pov-server-page, libapache2-mod-wsgi, ${python:Depends}
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
  .
- This is an empty package that ensures all the dependencies needed to use
- pov-server-page with Python 2 are installed.
+ This empty contains all the scripts for Python 2.
 
 Package: pov-server-page-py3
 Architecture: all
-Depends: libapache2-mod-wsgi-py3, ${python3:Depends}
+Depends: pov-server-page, libapache2-mod-wsgi-py3, ${python3:Depends}
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
  .
- This is an empty package that ensures all the dependencies needed to use
- pov-server-page with Python 3 are installed.
+ This empty contains all the scripts for Python 3.
