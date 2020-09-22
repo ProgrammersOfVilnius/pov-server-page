@@ -183,12 +183,22 @@ pbuilder-test-build: source-package-skipping-checks
 .PHONY: autopkgtest-prepare-images
 autopkgtest-prepare-images:
 	autopkgtest-build-lxd images:ubuntu/xenial/amd64
+	autopkgtest-build-lxd images:ubuntu/bionic/amd64
+	autopkgtest-build-lxd images:ubuntu/focal/amd64
 
-.PHONY: autopkgtest-with-full-build
-autopkgtest-with-full-build:
+.PHONY: autopkgtest autopkgtest-with-full-build
+autopkgtest autopkgtest-with-full-build:
 	autopkgtest . -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e
 
 .PHONY: autopkgtest
-autopkgtest:
+autopkgtest-built-packages:
 	@test -e pkgbuild/$(source)_$(version)_amd64.changes || $(MAKE) binary-package
-	autopkgtest pkgbuild/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e
+	# Note: if you build on Ubuntu focal and test on Ubuntu xenial, expect failures
+	autopkgtest pkgbuild/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/focal/amd64 -- -e
+
+.PHONY: autopkgtest-pbuilder-packages
+autopkgtest-pbuilder-packages:
+	@test -e ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes || $(MAKE) pbuilder-test-build
+	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e
+	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/bionic/amd64 -- -e
+	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/focal/amd64 -- -e

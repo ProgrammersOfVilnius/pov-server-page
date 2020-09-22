@@ -1,7 +1,8 @@
 #!/bin/sh
 set -ex
+PYTHON=${1:-python}
 du-diff --version
 machine-summary --version
 disk-inventory --version
 pov-update-server-page --version
-python3 -m pytest tests
+$PYTHON -m pytest tests
