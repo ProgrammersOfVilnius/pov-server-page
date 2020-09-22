@@ -1,2 +1,4 @@
 wrappers/du-diff                         usr/bin/
 wrappers/*                               usr/sbin/
+scripts/*                                usr/lib/pov-server-page/
+webtreemap-du/du2webtreemap.py           usr/lib/pov-server-page/

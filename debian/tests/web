@@ -32,6 +32,7 @@ a2dissite 000-default
 a2query -s
 # NB: a2enmod cgid requires an apache restart
 service apache2 restart
+sleep 1
 service apache2 status
 url=http://test:testpwd@localhost
 set +x
@@ -41,6 +42,8 @@ check "$url"/changelog "This is the changelog"
 check "$url"/stats     "Server stats"
 check "$url"/ports     "Open TCP"
 check "$url"/du        "Disk Usage"
+set -x
 tail /var/log/apache2/error.log
+tail /var/log/apache2/"$hostname"/access.log
 tail /var/log/apache2/"$hostname"/error.log
 exit $rc
