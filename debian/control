@@ -8,14 +8,12 @@ Build-Depends: debhelper (>=9), dh-python, python3-docutils,
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.5
 Standards-Version: 3.9.6
-Testsuite: autopkgtest
 Homepage: https://github.com/ProgrammersOfVilnius/pov-server-page
 
 Package: pov-server-page
 Architecture: all
 Depends: apache2, pov-server-page-py3 | pov-server-page-py2,
  collectd-core, net-tools,
- ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
  ${misc:Depends}
 Recommends: apache2-utils
 Suggests: collectd
@@ -36,22 +34,26 @@ Description: password-protected Apache virtual host with server information
 
 Package: pov-server-page-py2
 Architecture: all
-Depends: pov-server-page, libapache2-mod-wsgi, ${python:Depends}, ${misc:Depends}
+Depends: pov-server-page, libapache2-mod-wsgi,
+ ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
+ ${python:Depends}, ${misc:Depends}
 Conflicts: pov-server-page-py3
 Breaks: pov-server-page (<< 2.0.0)
 Replaces: pov-server-page (<< 2.0.0)
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
  .
- This empty contains all the scripts for Python 2.
+ This package contains all the scripts for Python 2.
 
 Package: pov-server-page-py3
 Architecture: all
-Depends: pov-server-page, libapache2-mod-wsgi-py3, ${python3:Depends}, ${misc:Depends}
+Depends: pov-server-page, libapache2-mod-wsgi-py3,
+ ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
+ ${python3:Depends}, ${misc:Depends}
 Conflicts: pov-server-page-py2
 Breaks: pov-server-page (<< 2.0.0)
 Replaces: pov-server-page (<< 2.0.0)
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
  .
- This empty contains all the scripts for Python 3.
+ This package contains all the scripts for Python 3.
