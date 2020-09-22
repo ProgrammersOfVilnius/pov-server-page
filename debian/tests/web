@@ -6,7 +6,7 @@ check() {
     local url contains page
     url=$1
     contains=$2
-    page=$(curl -sSL "$url")
+    page=$(curl -u test:testpwd -sSL "$url")
     if printf "%s" "$page" | grep -q "$contains"; then
         printf '%s contains "%s", good!\n' "$url" "$contains"
     else
@@ -34,7 +34,7 @@ a2query -s
 service apache2 restart
 sleep 1
 service apache2 status
-url=http://test:testpwd@localhost
+url=http://localhost
 set +x
 check "$url"/          "This is the MOTD"
 check "$url"/info      "Last updated"
