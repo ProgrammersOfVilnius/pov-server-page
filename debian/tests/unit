@@ -1,0 +1,13 @@
+#!/bin/sh
+set -ex
+PYTHON=${1:-python}
+du-diff --version
+machine-summary --version
+disk-inventory --version
+pov-update-server-page --version
+$PYTHON -m pytest tests
+/usr/lib/pov-server-page/changelog2html --help
+/usr/lib/pov-server-page/collection.cgi  # no --help sadly
+/usr/lib/pov-server-page/du2webtreemap --help
+/usr/lib/pov-server-page/dudiff2html --help
+/usr/lib/pov-server-page/update-ports --help

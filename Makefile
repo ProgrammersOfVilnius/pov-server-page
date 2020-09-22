@@ -162,6 +162,8 @@ binary-package: clean-build-tree
 	rm -rf pkgbuild/$(source)
 	@echo
 	@echo "Built pkgbuild/$(source)_$(version)_all.deb"
+	@echo "      pkgbuild/$(source)-py2_$(version)_all.deb"
+	@echo "      pkgbuild/$(source)-py3_$(version)_all.deb"
 
 .PHONY: vagrant-test-install
 vagrant-test-install: binary-package
@@ -175,3 +177,34 @@ pbuilder-test-build: source-package-skipping-checks
 	pbuilder-dist $(TARGET_DISTRO) build pkgbuild/$(source)_$(version).dsc
 	@echo
 	@echo "Built ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_all.deb"
+	@echo "      ~/pbuilder/$(TARGET_DISTRO)_result/$(source)-py2_$(version)_all.deb"
+	@echo "      ~/pbuilder/$(TARGET_DISTRO)_result/$(source)-py3_$(version)_all.deb"
+
+.PHONY: autopkgtest-prepare-images
+autopkgtest-prepare-images:
+	autopkgtest-build-lxd images:ubuntu/xenial/amd64
+	autopkgtest-build-lxd images:ubuntu/bionic/amd64
+	autopkgtest-build-lxd images:ubuntu/focal/amd64
+
+.PHONY: autopkgtest autopkgtest-with-full-build
+autopkgtest autopkgtest-with-full-build:
+	autopkgtest . -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e
+
+.PHONY: autopkgtest
+autopkgtest-built-packages:
+	@test -e pkgbuild/$(source)_$(version)_amd64.changes || $(MAKE) binary-package
+	# Note: if you build on Ubuntu focal and test on Ubuntu xenial, expect failures
+	autopkgtest pkgbuild/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/focal/amd64 -- -e
+
+.PHONY: autopkgtest-pbuilder-packages
+autopkgtest-pbuilder-packages:
+	@test -e ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes || $(MAKE) pbuilder-test-build
+	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e
+	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/bionic/amd64 -- -e
+	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/focal/amd64 -- -e
+
+.PHONY: autopkgtest-upgrades
+autopkgtest-upgrades:
+	autopkgtest \
+	    --setup-commands='add-apt-repository -y ppa:pov && apt-get update && apt-get install -y pov-server-page' \
+	    . -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e

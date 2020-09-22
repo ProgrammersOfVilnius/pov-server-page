@@ -1,0 +1,49 @@
+#!/bin/bash
+set -e
+
+rc=0
+check() {
+    local url contains page
+    url=$1
+    contains=$2
+    page=$(curl -u test:testpwd -sSL "$url")
+    if printf "%s" "$page" | grep -q "$contains"; then
+        printf '%s contains "%s", good!\n' "$url" "$contains"
+    else
+        printf '%s did not contain "%s"!\n' "$url" "$contains" 1>&2
+        printf '======== %s\n' "$url"
+        printf '%s' "$page" | head -n 10
+        printf '\n--------\n'
+        rc=1
+    fi
+}
+
+set -x
+chmod +x /root
+echo "This is the changelog" > /root/Changelog
+echo "This is the MOTD" > /etc/motd
+pov-update-server-page -v enabled=1 loopback_only=1 canonical_redirect=0 disk_usage=all
+htpasswd -b -c /etc/pov/fridge.passwd test testpwd
+a2enmod ssl rewrite headers cgid
+a2query -s
+hostname=$(hostname -f)
+a2ensite "$hostname.conf"
+a2dissite 000-default
+a2query -s
+# NB: a2enmod cgid requires an apache restart
+service apache2 restart
+sleep 1
+service apache2 status
+url=http://localhost
+set +x
+check "$url"/          "This is the MOTD"
+check "$url"/info      "Last updated"
+check "$url"/changelog "This is the changelog"
+check "$url"/stats     "Server stats"
+check "$url"/ports     "Open TCP"
+check "$url"/du        "Disk Usage"
+set -x
+tail /var/log/apache2/error.log
+tail /var/log/apache2/"$hostname"/access.log
+tail /var/log/apache2/"$hostname"/error.log
+exit $rc

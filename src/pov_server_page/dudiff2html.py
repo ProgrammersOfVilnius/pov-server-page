@@ -18,6 +18,11 @@ __version__ = '0.5'
 __date__ = '2018-01-19'
 
 
+STATIC_ASSETS = os.path.join(os.path.dirname(__file__), 'static')
+if not os.path.exists(STATIC_ASSETS):  # nocover: testing installed package
+    STATIC_ASSETS = '/usr/share/pov-server-page/static'
+
+
 DATE_RANGE_RX = re.compile(r'^(\d\d\d\d-\d\d-\d\d)\.\.(\d\d\d\d-\d\d-\d\d)(\.txt)?$')
 
 
@@ -92,8 +97,7 @@ def stylesheet():
 
 
 def bootstrap_stylesheet():
-    here = os.path.dirname(__file__)
-    filename = os.path.join(here, 'static', 'css', 'bootstrap.min.css')
+    filename = os.path.join(STATIC_ASSETS, 'css', 'bootstrap.min.css')
     with open(filename, 'rb') as f:
         return Response(f.read(), content_type='text/css')
 

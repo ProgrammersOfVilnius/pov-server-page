@@ -38,6 +38,8 @@ CHANGELOG_FILE = '/root/Changelog'
 MOTD_FILE = '/etc/motd'
 
 STATIC_ASSETS = os.path.join(os.path.dirname(__file__), 'static')
+if not os.path.exists(STATIC_ASSETS):  # nocover: testing installed package
+    STATIC_ASSETS = '/usr/share/pov-server-page/static'
 
 
 #
