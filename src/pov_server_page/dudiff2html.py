@@ -97,7 +97,6 @@ def stylesheet():
 
 
 def bootstrap_stylesheet():
-    here = os.path.dirname(__file__)
     filename = os.path.join(STATIC_ASSETS, 'css', 'bootstrap.min.css')
     with open(filename, 'rb') as f:
         return Response(f.read(), content_type='text/css')
