@@ -38,6 +38,8 @@ Package: pov-server-page-py2
 Architecture: all
 Depends: pov-server-page, libapache2-mod-wsgi, ${python:Depends}, ${misc:Depends}
 Conflicts: pov-server-page-py3
+Breaks: pov-server-page (<< 2.0.0)
+Replaces: pov-server-page (<< 2.0.0)
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
  .
@@ -47,6 +49,8 @@ Package: pov-server-page-py3
 Architecture: all
 Depends: pov-server-page, libapache2-mod-wsgi-py3, ${python3:Depends}, ${misc:Depends}
 Conflicts: pov-server-page-py2
+Breaks: pov-server-page (<< 2.0.0)
+Replaces: pov-server-page (<< 2.0.0)
 Description: password-protected Apache virtual host with server information
  * This is an unofficial package.
  .
