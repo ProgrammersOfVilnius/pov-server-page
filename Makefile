@@ -202,3 +202,9 @@ autopkgtest-pbuilder-packages:
 	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e
 	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/bionic/amd64 -- -e
 	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/focal/amd64 -- -e
+
+.PHONY: autopkgtest-upgrades
+autopkgtest-upgrades:
+	autopkgtest \
+	    --setup-commands='add-apt-repository -y ppa:pov && apt-get update && apt-get install -y pov-server-page' \
+	    . -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e
