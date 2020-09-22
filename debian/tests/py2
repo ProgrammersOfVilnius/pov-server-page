@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -ex
 du-diff --version
 machine-summary --version
 disk-inventory --version
