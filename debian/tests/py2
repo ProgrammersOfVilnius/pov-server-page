@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+du-diff --version
+machine-summary --version
+disk-inventory --version
+pov-update-server-page --version
+python2 -m pytest tests

@@ -179,3 +179,16 @@ pbuilder-test-build: source-package-skipping-checks
 	@echo "Built ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_all.deb"
 	@echo "      ~/pbuilder/$(TARGET_DISTRO)_result/$(source)-py2_$(version)_all.deb"
 	@echo "      ~/pbuilder/$(TARGET_DISTRO)_result/$(source)-py3_$(version)_all.deb"
+
+.PHONY: autopkgtest-prepare-images
+autopkgtest-prepare-images:
+	autopkgtest-build-lxd images:ubuntu/xenial/amd64
+
+.PHONY: autopkgtest-with-full-build
+autopkgtest-with-full-build:
+	autopkgtest . -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e
+
+.PHONY: autopkgtest
+autopkgtest:
+	@test -e pkgbuild/$(source)_$(version)_amd64.changes || $(MAKE) binary-package
+	autopkgtest pkgbuild/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/xenial/amd64 -- -e

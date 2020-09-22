@@ -1,0 +1,5 @@
+Tests: py2
+Depends: pov-server-page-py2, python-pytest, python-mock
+
+Tests: py3
+Depends: pov-server-page-py3, python3-pytest, python3-mock
