@@ -1,11 +1,11 @@
-pov-server-page (2.0.0) UNRELEASED; urgency=medium
+pov-server-page (2.0.0) xenial; urgency=medium
 
   * debian/control:
     - introduce new packages pov-server-page-py2 and pov-server-page-py3
       to spearate dependencies so Python 2 can be removed from the system
       without removing pov-server-page (GH: #46).
 
- -- Marius Gedminas <marius@gedmin.as>  Sun, 26 Apr 2020 11:47:35 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Tue, 22 Sep 2020 13:38:37 +0300
 
 pov-server-page (1.8.6) xenial; urgency=medium
 
