@@ -1,6 +1,6 @@
 server-page.conf                         etc/pov/
-webtreemap/webtreemap.css                usr/share/pov-server-page/webtreemap/
-webtreemap/webtreemap.js                 usr/share/pov-server-page/webtreemap/
+webtreemap-du/webtreemap/webtreemap.css  usr/share/pov-server-page/webtreemap/
+webtreemap-du/webtreemap/webtreemap.js   usr/share/pov-server-page/webtreemap/
 src/pov_server_page/templates/*.in       usr/share/pov-server-page/
 src/pov_server_page/static/css/*.css     usr/share/pov-server-page/static/css/
 src/pov_server_page/static/css/*.map     usr/share/pov-server-page/static/css/

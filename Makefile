@@ -25,16 +25,13 @@ VAGRANT_SSH_ALIAS = vagrantbox
 
 
 .PHONY: all
-all: $(manpages) webtreemap webtreemap-du
+all: $(manpages)
 
 %.1: %.rst
 	rst2man $< > $@
 
 %.8: %.rst
 	rst2man $< > $@
-
-webtreemap/.git webtreemap-du/.git:
-	git submodule update --init
 
 .PHONY: test
 test:
@@ -136,8 +133,6 @@ clean-build-tree:
 	git pull -r
 	rm -rf pkgbuild/$(source)
 	git archive --format=tar --prefix=pkgbuild/$(source)/ HEAD | tar -xf -
-	(cd webtreemap && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap/ HEAD) | tar -xf -
-	(cd webtreemap-du && git archive --format=tar --prefix=pkgbuild/$(source)/webtreemap-du/ HEAD) | tar -xf -
 
 .PHONY: source-package
 source-package: check check-target check-version source-package-skipping-checks
