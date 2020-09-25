@@ -1,6 +1,0 @@
-[submodule "webtreemap-du"]
-	path = webtreemap-du
-	url = git://github.com/mgedmin/webtreemap-du.git
-[submodule "webtreemap"]
-	path = webtreemap
-	url = git://github.com/martine/webtreemap.git
