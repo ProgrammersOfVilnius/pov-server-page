@@ -56,6 +56,9 @@ diff-cover: coverage
 	coverage xml
 	diff-cover coverage.xml
 
+.PHONY: update-webtreemap-du
+update-webtreemap-du:
+	git subtree pull --prefix=webtreemap-du https://github.com/mgedmin/webtreemap-du master
 
 define check_version =
 	@grep -qF $1 $2 || { \
