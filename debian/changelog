@@ -1,9 +1,9 @@
-pov-server-page (2.0.1) UNRELEASED; urgency=medium
+pov-server-page (2.0.1) xenial; urgency=medium
 
   * du2webtreemap 2.0.1:
     - fix UnicodeDecodeError on Python 2 (GH: #51).
 
- -- Marius Gedminas <marius@gedmin.as>  Fri, 25 Sep 2020 10:00:13 +0300
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 25 Sep 2020 10:08:41 +0300
 
 pov-server-page (2.0.0) xenial; urgency=medium
 
