@@ -92,7 +92,7 @@ def pipe(*command):
     with open('/dev/null', 'wb') as devnull:
         with subprocess.Popen(command, stdout=subprocess.PIPE,
                               stderr=devnull).stdout as f:
-            if bytes is not str:  # Python 3
+            if bytes is not str:  # pragma: PY3
                 f = io.TextIOWrapper(f, encoding='UTF-8', errors='replace')
             yield f
 

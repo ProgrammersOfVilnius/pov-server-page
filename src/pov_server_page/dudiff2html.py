@@ -211,7 +211,7 @@ def wsgi_app(environ, start_response):
     start_response(response.status, sorted(response.headers.items()))
     body = response.body
     if not isinstance(body, bytes):
-        body = body.encode('UTF-8')
+        body = body.encode('UTF-8')  # pragma: PY3
     return [body]
 
 

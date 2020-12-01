@@ -63,6 +63,8 @@ jobs:
       matrix:
         toxenv:
           - flake8
+          - coverage2
+          - coverage3
 
     steps:
       - name: Git clone

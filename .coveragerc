@@ -1,6 +1,7 @@
 [run]
 source = pov_server_page
-cover_pylib = False
+plugins =
+    coverage_python_version
 
 [report]
 exclude_lines =
