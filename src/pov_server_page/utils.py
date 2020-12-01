@@ -156,5 +156,5 @@ def to_unicode(s):
     if isinstance(s, text_type):
         return s
     if isinstance(s, bytes):
-        return s.decode('UTF-8')
+        return s.decode('UTF-8')  # pragma: PY2
     return text_type(s)

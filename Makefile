@@ -46,10 +46,7 @@ flake8:
 
 .PHONY: coverage
 coverage:
-	coverage erase
-	tox -p auto -e coverage,coverage3
-	coverage combine
-	coverage report -m --fail-under=100
+	tox -e coverage2,coverage3
 
 .PHONY: diff-cover
 diff-cover: coverage

@@ -274,7 +274,7 @@ class Builder(object):
     class MachineSummary(object):
         def build(self, filename, builder):
             new_contents = machine_summary.report_text(title=False)
-            if not isinstance(new_contents, bytes):
+            if not isinstance(new_contents, bytes):  # pragma: PY3
                 new_contents = new_contents.encode('UTF-8')
             builder.replace_file(filename, NO_MARKER, new_contents)
 
