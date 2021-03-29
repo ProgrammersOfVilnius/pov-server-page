@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import errno
 import functools
 import os
 import shutil
@@ -614,6 +615,8 @@ class PageTestCase(TestCase):
         self.patch('pov_server_page.changelog2html.get_motd', self.get_motd)
 
     def get_changelog(self, filename):
+        if filename == 'nosuchfile':
+            raise OSError(errno.ENOENT)
         assert filename == 'testlog'
         changelog_text = textwrap.dedent(self.changelog_text.lstrip('\n'))
         changelog = c2h.Changelog()
@@ -637,6 +640,7 @@ class PageTestCase(TestCase):
 
 
 class TestMainPage(PageTestCase):
+
     def test(self):
         response = c2h.main_page(self.environ())
         self.assertResponse(response, """
@@ -688,6 +692,10 @@ class TestMainPage(PageTestCase):
         </html>
         """)
 
+    def test_not_found(self):
+        response = c2h.main_page(self.environ(CHANGELOG_FILE='nosuchfile'))
+        self.assertEqual(response.status, '404 Not Found')
+
 
 class TestRawPage(PageTestCase):
 
@@ -711,12 +719,20 @@ class TestRawPage(PageTestCase):
                     'attachment; filename="Changelog.example.com"',
             })
 
+    def test_not_found(self):
+        response = c2h.raw_page(self.environ(CHANGELOG_FILE='nosuchfile'))
+        self.assertEqual(response.status, '404 Not Found')
+
 
 class TestAllPage(PageTestCase):
 
     def test(self):
         response = c2h.all_page(self.environ())
         self.assertIn('All entries', response)
+
+    def test_not_found(self):
+        response = c2h.all_page(self.environ(CHANGELOG_FILE='nosuchfile'))
+        self.assertEqual(response.status, '404 Not Found')
 
 
 class TestYearPage(PageTestCase):
@@ -730,6 +746,11 @@ class TestYearPage(PageTestCase):
         self.assertIn('<title>2010', response)
         self.assertIn('No entries for this year', response)
 
+    def test_not_found(self):
+        response = c2h.year_page(self.environ(CHANGELOG_FILE='nosuchfile'),
+                                 '2021')
+        self.assertEqual(response.status, '404 Not Found')
+
 
 class TestMonthPage(PageTestCase):
 
@@ -741,6 +762,11 @@ class TestMonthPage(PageTestCase):
         response = c2h.month_page(self.environ(), '2014', '11')
         self.assertIn('<title>2014-11', response)
         self.assertIn('No entries for this month', response)
+
+    def test_not_found(self):
+        response = c2h.month_page(self.environ(CHANGELOG_FILE='nosuchfile'),
+                                  '2021', '03')
+        self.assertEqual(response.status, '404 Not Found')
 
 
 class TestDayPage(PageTestCase):
@@ -758,6 +784,11 @@ class TestDayPage(PageTestCase):
         response = c2h.day_page(self.environ(), '2014', '02', '29')
         self.assertEqual(response.status, '404 Not Found')
 
+    def test_not_found(self):
+        response = c2h.day_page(self.environ(CHANGELOG_FILE='nosuchfile'),
+                                '2021', '03', '29')
+        self.assertEqual(response.status, '404 Not Found')
+
 
 class TestSearchPage(PageTestCase):
 
@@ -769,6 +800,10 @@ class TestSearchPage(PageTestCase):
     def test_unicode(self):
         response = c2h.search_page(self.environ(QUERY_STRING='q=%C4%85'))
         self.assertIn(u'<title>ą -', response)
+
+    def test_not_found(self):
+        response = c2h.search_page(self.environ(CHANGELOG_FILE='nosuchfile'))
+        self.assertEqual(response.status, '404 Not Found')
 
 
 class TestWsgiApp(PageTestCase):

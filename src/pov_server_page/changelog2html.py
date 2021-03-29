@@ -29,8 +29,8 @@ from .utils import ansi2html, mako_error_handler
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '0.9.0'
-__date__ = '2020-05-27'
+__version__ = '0.9.1'
+__date__ = '2021-03-29'
 
 
 HOSTNAME = socket.gethostname()
@@ -577,7 +577,11 @@ main_template = Template(uri="main.html", text=textwrap.dedent('''
 def main_page(environ):
     prefix = get_prefix(environ)
     hostname = get_hostname(environ)
-    changelog = get_changelog(get_changelog_filename(environ))
+    try:
+        changelog = get_changelog(get_changelog_filename(environ))
+    except OSError:
+        # It would be nice to distinguish ENOENT from other errors like EPERM
+        return not_found(environ)
     motd = get_motd(get_motd_filename(environ))
     return main_template.render_unicode(
         hostname=hostname, motd=motd, changelog=changelog, prefix=prefix)
@@ -587,8 +591,11 @@ def main_page(environ):
 @path('/download', content_disposition='attachment')
 def raw_page(environ, content_disposition='inline'):
     filename = get_changelog_filename(environ)
-    with open(filename, 'rb') as f:
-        raw = f.read()
+    try:
+        with open(filename, 'rb') as f:
+            raw = f.read()
+    except IOError:
+        return not_found(environ)
     hostname = get_hostname(environ)
     outfilename = 'Changelog.{hostname}'.format(hostname=hostname)
     headers = {
@@ -626,7 +633,10 @@ all_template = Template(uri="all.html", text=textwrap.dedent('''
 def all_page(environ):
     prefix = get_prefix(environ)
     hostname = get_hostname(environ)
-    changelog = get_changelog(get_changelog_filename(environ))
+    try:
+        changelog = get_changelog(get_changelog_filename(environ))
+    except OSError:
+        return not_found(environ)
     return all_template.render_unicode(
         hostname=hostname, changelog=changelog, prefix=prefix)
 
@@ -672,7 +682,10 @@ year_template = Template(uri="year.html", text=textwrap.dedent('''
 def year_page(environ, year):
     prefix = get_prefix(environ)
     hostname = get_hostname(environ)
-    changelog = get_changelog(get_changelog_filename(environ))
+    try:
+        changelog = get_changelog(get_changelog_filename(environ))
+    except OSError:
+        return not_found(environ)
     entries = changelog.filter(year=int(year))
     year_1st = datetime.date(int(year), 1, 1)
     year_last = datetime.date(int(year), 12, 31)
@@ -766,7 +779,10 @@ month_template = Template(uri="month.html", text=textwrap.dedent('''
 def month_page(environ, year, month):
     prefix = get_prefix(environ)
     hostname = get_hostname(environ)
-    changelog = get_changelog(get_changelog_filename(environ))
+    try:
+        changelog = get_changelog(get_changelog_filename(environ))
+    except OSError:
+        return not_found(environ)
     entries = changelog.filter(year=int(year), month=int(month))
     month_1st = datetime.date(int(year), int(month), 1)
     month_last = (month_1st + datetime.timedelta(31)).replace(day=1) - datetime.timedelta(1)
@@ -877,7 +893,10 @@ def day_page(environ, year, month, day):
     except ValueError:
         return not_found(environ)
     hostname = get_hostname(environ)
-    changelog = get_changelog(get_changelog_filename(environ))
+    try:
+        changelog = get_changelog(get_changelog_filename(environ))
+    except OSError:
+        return not_found(environ)
     entries = changelog.entries_for_date(date)
     prev_date = changelog.prev_date(date)
     next_date = changelog.next_date(date)
@@ -920,7 +939,10 @@ def search_page(environ):
     if isinstance(query, bytes):  # pragma: PY2
         query = query.decode('UTF-8')
     hostname = get_hostname(environ)
-    changelog = get_changelog(get_changelog_filename(environ))
+    try:
+        changelog = get_changelog(get_changelog_filename(environ))
+    except OSError:
+        return not_found(environ)
     entries = list(changelog.search(query))
     return search_template.render_unicode(
         hostname=hostname, query=query, entries=entries, prefix=prefix)
