@@ -23,7 +23,7 @@ TARGET_DISTRO := xenial
 VAGRANT_DIR = ~/tmp/vagrantbox
 VAGRANT_SSH_ALIAS = vagrantbox
 
-.DEFAULT: all
+.DEFAULT_GOAL := all
 include help.mk
 HELP_INDENT = "  "
 HELP_WIDTH = 34
