@@ -2,6 +2,8 @@ pov-server-page (2.0.2) UNRELEASED; urgency=medium
 
   * changelog2html 0.9.1:
     - return 404 when changelog file doesn't exist (GH: #54).
+  * update-ports 0.10.3:
+    - recognize systemd sockets better (GH: #55).
 
  -- Marius Gedminas <marius@gedmin.as>  Mon, 29 Mar 2021 15:44:08 +0300
 

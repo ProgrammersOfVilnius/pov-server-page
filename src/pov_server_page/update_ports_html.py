@@ -22,7 +22,7 @@ except ImportError:
     from cgi import escape
 
 
-__version__ = '0.10.2'
+__version__ = '0.10.3'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -291,12 +291,11 @@ def get_port_mapping():
     if ('tcp', 111) in mapping: # portmap is used
         portmap_data = list(rpcinfo_dump())
         merge_portmap_data(mapping, portmap_data)
-    # XXX: if I switch from netstat to ss, then data.program is no longer
-    # available and this check will fail.  Maybe I should just unconditionally
-    # run systemctl_list_sockets()?  or maybe I should check the existence
-    # of /run/systemd/system/
-    if any(data.pid == 1 and data.program == 'systemd'
-           for plist in mapping.values() for data in plist):
+    # It's not safe to filter on data.program, it might be 'systemd', but it
+    # might also be 'init' -- and if we switch to ss(8) rather than netstat(8),
+    # we no longer get program names.  We assume that pid 1 is systemd always,
+    # which is true for Ubuntu.
+    if any(data.pid == 1 for plist in mapping.values() for data in plist):
         systemd_sockets = list(systemctl_list_sockets())
         merge_portmap_data(mapping, systemd_sockets)
     return mapping
