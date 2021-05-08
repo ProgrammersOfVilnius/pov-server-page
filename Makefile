@@ -158,7 +158,7 @@ source-package: check check-target check-version source-package-skipping-checks
 source-package-skipping-checks: clean-build-tree
                         ## (internal) build a source .deb without doing checks,
                         ## intended for faster testing
-	cd pkgbuild/$(source) && debuild -S -i -k$(GPGKEY)
+	cd pkgbuild/$(source) && debuild -S -i -k$(GPGKEY) -d
 	rm -rf pkgbuild/$(source)
 	@echo
 	@echo "Built pkgbuild/$(source)_$(version)_source.changes"
