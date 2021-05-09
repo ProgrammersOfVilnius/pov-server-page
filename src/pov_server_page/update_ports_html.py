@@ -22,7 +22,7 @@ except ImportError:
     from cgi import escape
 
 
-__version__ = '0.10.3'
+__version__ = '0.10.4'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -335,7 +335,7 @@ def render_row(netstat_list):
     ips = set(t.ip for t in netstat_list if t.ip is not None)
     user = sorted(set(map(username, map(get_owner, pids)))) or '-'
     program = sorted(set(map(get_program, pids)))
-    if not program or pids == [1] and program == ['systemd']:
+    if not program or pids == [1] and (program == ['systemd'] or program == ['system']):
         program = sorted(set(escape(t.program) or '-' for t in netstat_list)) or '-'
     commands = sorted(set(map(get_html_cmdline, pids)))
     if not commands:
