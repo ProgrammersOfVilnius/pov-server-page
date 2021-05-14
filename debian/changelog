@@ -1,3 +1,11 @@
+pov-server-page (2.0.4) UNRELEASED; urgency=medium
+
+  * update-ports 0.10.5:
+    - recognize systemd sockets better (GH: #55); the previous fix was
+      buggy as well.
+
+ -- Marius Gedminas <marius@gedmin.as>  Fri, 14 May 2021 13:20:19 +0300
+
 pov-server-page (2.0.3) xenial; urgency=medium
 
   * update-ports 0.10.4:
