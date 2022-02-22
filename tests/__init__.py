@@ -64,10 +64,15 @@ class PatchMixin(object):
 
     def _open(self, filename, mode='r'):
         assert mode in ('r', 'rb')
+        data = self._read_file(filename)
         if mode == 'r':
-            return NativeStringIO(self._read_file(filename))
+            if not isinstance(data, str):
+                data = data.decode('UTF-8')
+            return NativeStringIO(data)
         else:
-            return io.BytesIO(self._read_file(filename).encode('UTF-8'))
+            if not isinstance(data, bytes):
+                data = data.encode('UTF-8')
+            return io.BytesIO(data)
 
     def _exists(self, filename):
         # Ignoring the corner case of broken symlinks for now

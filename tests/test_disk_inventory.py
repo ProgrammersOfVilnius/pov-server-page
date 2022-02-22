@@ -341,6 +341,23 @@ class TestDiskInfo(TestCase):
         self.assertEqual(self.info.get_disk_firmware_rev('vda'), 'N/A')
         self.assertEqual(self.info.get_disk_firmware_rev('vdb'), 'N/A')
 
+    def test_get_disk_serial_nvme(self):
+        self.patch_files({
+            '/sys/block/nvme0n1/device/serial': b'S649NX0RB05259Y     \n',
+        })
+        self.assertEqual(self.info.get_disk_serial('nvme0n1'),
+                         'S649NX0RB05259Y')
+
+    def test_get_disk_serial_sata(self):
+        self.patch_files({
+            '/sys/block/sda/device/vpd_pg80': (
+                b'\x00\x80\x00\x14S6PENX0RC46472K     '),
+        })
+        self.assertEqual(self.info.get_disk_serial('sda'), 'S6PENX0RC46472K')
+
+    def test_get_disk_serial_kvm(self):
+        self.assertEqual(self.info.get_disk_serial('vda'), 'N/A')
+
     def test_is_disk_an_ssd_simfs(self):
         self.patch_files({})
         self.assertFalse(self.info.is_disk_an_ssd('simfs'))
@@ -617,10 +634,11 @@ class TestTextReporter(TestCase):
         result = []
         reporter = di.TextReporter(print=result.append)
         reporter.start_disk(
-            disk='sda', model='Weird solid state disk', fwrev='FW42',
+            disk='sda', model='Weird solid state disk', serial='42',
+            fwrev='FW42',
             disk_size_bytes=40*1000**3, is_ssd=True)
         self.assertEqual(result, [
-            'sda: Weird solid state disk (40.0 GB) [SSD]',
+            'sda: Weird solid state disk (40.0 GB), serial 42 [SSD]',
         ])
 
 
@@ -630,12 +648,12 @@ class TestHtmlReporter(TestCase):
         result = []
         reporter = di.HtmlReporter(print=result.append)
         reporter.start_disk(
-            disk='sda', model='My good SSD', fwrev='FW42',
+            disk='sda', model='My good SSD', serial='42', fwrev='FW42',
             disk_size_bytes=40*1000**3, is_ssd=True)
         self.assertMultiLineEqual('\n'.join(result), textwrap.dedent('''\
             <tr>
               <th colspan="4">
-                sda: My good SSD (40.0 GB), firmware revision FW42
+                sda: My good SSD (40.0 GB), serial 42, firmware revision FW42
                 <span class="label label-info">SSD</span>
               </th>
             </tr>
@@ -714,7 +732,7 @@ class TestReport(TestCase):
             '''),
         })
         self.assertMultiLineEqual(di.report_text(verbose=2) + '\n', textwrap.dedent('''\
-            sda: Samsung SSD 850 (500.1 GB), firmware revision 2B6Q
+            sda: Samsung SSD 850 (500.1 GB), serial N/A, firmware revision 2B6Q
               sda1:      510.7 MB  ext2 /boot                        322.4 MB free
               sda2:        1.0 KB
               sda5:      499.6 GB
@@ -948,11 +966,11 @@ class TestReport(TestCase):
             '''),
         })
         self.assertMultiLineEqual(di.report_text() + '\n', textwrap.dedent('''\
-            sda: Samsung SSD 850 (250.1 GB)
+            sda: Samsung SSD 850 (250.1 GB), serial N/A
                                 250.1 GB (unused)
-            sdb: Samsung SSD 850 (250.1 GB)
+            sdb: Samsung SSD 850 (250.1 GB), serial N/A
                                 250.1 GB (unused)
-            sde: Samsung SSD 850 (500.1 GB)
+            sde: Samsung SSD 850 (500.1 GB), serial N/A
               sde1:             510.7 MB
               sde5:             499.6 GB  LVM: platonas                        0.0 B free
             platonas: LVM (499.6 GB)

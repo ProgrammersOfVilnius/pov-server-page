@@ -109,6 +109,10 @@ class LinuxDiskInfo(object):
         with open(filename) as f:
             return f.read().strip()
 
+    def _read_bytes(self, filename):
+        with open(filename, 'rb') as f:
+            return f.read()
+
     def _read_int(self, filename):
         return int(self._read_string(filename))
 
@@ -336,6 +340,50 @@ class LinuxDiskInfo(object):
             filename = '/sys/block/%s/device/rev' % disk_name
         return self._read_string(filename)
 
+    def get_disk_serial(self, disk_name):
+        if disk_name.startswith(('xvd', 'vd', 'simfs')):
+            return 'N/A'
+        filename = '/sys/block/%s/device/serial' % disk_name
+        if os.path.exists(filename):
+            return self._read_string(filename)
+        filename = '/sys/block/%s/device/vpd_pg80' % disk_name
+        if os.path.exists(filename):
+            vpd_pg80 = self._read_bytes(filename)
+            # Google gave me a PDF that describes the format of the Unit Serial
+            # Number VPD Page (80h) as follows:
+            # +------+--------------------------------------------------------+
+            # |      | Bit 7 |    6 |    5 |    4 |    3 |    2 |    1 |    0 |
+            # | Byte |       |      |      |      |      |      |      |      |
+            # +------+--------------------------------------------------------+
+            # |    0 | PERIPHERAL QUALIFIER| PERIPHERAL DEVICE TYPE           |
+            # +------+--------------------------------------------------------+
+            # |    1 | PAGE CODE (80h)                                        |
+            # +------+--------------------------------------------------------+
+            # |    2 | (MSB) PAGE LENGTH (14h)                                |
+            # |    3 |                                                  (LSB) |
+            # +------+--------------------------------------------------------+
+            # |    4 | (MSB)                                                  |
+            # |  ... |       PRODUCT SERIAL NUMBER                            |
+            # |   11 |                                                  (LSB) |
+            # +------+--------------------------------------------------------+
+            # |   12 | (MSB)                                                  |
+            # |  ... |       PRINTED CIRCUIT BOARD SERIAL NUMBER              |
+            # |   23 |                                                  (LSB) |
+            # +------+--------------------------------------------------------+
+            # "The PRODUCT SERIAL NUMBER field contains right-aligned ASCII
+            # data that is vendor-assigned serial number.  If the product
+            # serial number is not available, the target shall return ASCII
+            # spaces (20h) in this field."
+            # The description for the PRINTED CIRCUIT BOARD SERIAL NUMBER is
+            # identical.
+            # Experiments show that these are just two halves of the full serial
+            # number shown by other tools and should be concatenated.
+            # Source: https://www.seagate.com/files/staticfiles/support/docs/manual/Interface%20manuals/100293068k.pdf
+            # That PDF also documents the Device Identification VPD page (83h),
+            # which is harder to parse.
+            return vpd_pg80[4:24].decode('ascii', 'replace').strip()
+        return 'N/A'
+
     def is_disk_an_ssd(self, disk_name):
         if disk_name == 'simfs':
             return False
@@ -523,7 +571,7 @@ class Reporter:
     def end_report(self):
         pass
 
-    def start_disk(self, disk, model, disk_size_bytes, fwrev, is_ssd):
+    def start_disk(self, disk, model, disk_size_bytes, serial, fwrev, is_ssd):
         pass
 
     def end_disk(self, unallocated, free_space_at_end):
@@ -544,8 +592,10 @@ class Reporter:
 
 class TextReporter(Reporter):
 
-    def start_disk(self, disk, model, disk_size_bytes, fwrev, is_ssd):
+    def start_disk(self, disk, model, disk_size_bytes, serial, fwrev, is_ssd):
         template = "{disk}: {model} ({size})"
+        if self.verbose >= 1:
+            template += ', serial {serial}'
         if self.verbose >= 2:
             template += ', firmware revision {fwrev}'
         if is_ssd and 'SSD' not in model:
@@ -554,6 +604,7 @@ class TextReporter(Reporter):
             disk=disk,
             model=model,
             size=self.fmt_size(disk_size_bytes),
+            serial=serial,
             fwrev=fwrev,
         ))
 
@@ -646,12 +697,13 @@ class HtmlReporter(Reporter):
                 '    <span class="label label-info">{badge}</span>'.format(
                     badge=escape(badge)))
 
-    def start_disk(self, disk, model, disk_size_bytes, fwrev, is_ssd):
+    def start_disk(self, disk, model, disk_size_bytes, serial, fwrev, is_ssd):
         self._heading_row(
-            '{disk}: {model} ({size}), firmware revision {fwrev}'.format(
+            '{disk}: {model} ({size}), serial {serial}, firmware revision {fwrev}'.format(
                 disk=disk,
                 model=model,
                 size=self.fmt_size(disk_size_bytes),
+                serial=serial,
                 fwrev=fwrev,
             ), badges=['SSD'] if is_ssd else [])
 
@@ -724,9 +776,10 @@ def report(info=None, verbose=1, name_width=8, usage_width=30,
     for disk in info.list_physical_disks():
         disk_size_bytes = info.get_disk_size_bytes(disk)
         model = info.get_disk_model(disk)
+        serial = info.get_disk_serial(disk)
         fwrev = info.get_disk_firmware_rev(disk)
         is_ssd = info.is_disk_an_ssd(disk)
-        reporter.start_disk(disk, model, disk_size_bytes, fwrev, is_ssd)
+        reporter.start_disk(disk, model, disk_size_bytes, serial, fwrev, is_ssd)
         unallocated = disk_size_bytes
         partition = None
         last_partition_end = 0
