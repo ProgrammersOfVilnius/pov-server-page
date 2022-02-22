@@ -90,9 +90,9 @@ class PatchMixin(object):
         try:
             f = self._files[filename]
         except KeyError:
-            raise IOError(2, 'File not found: %r' % filename)
+            raise OSError(2, 'File not found: %r' % filename)
         if not isinstance(f, Symlink):
-            raise IOError(22, 'Not a symlink: %r' % filename)
+            raise OSError(22, 'Not a symlink: %r' % filename)
         return f.destination
 
     def patch_commands(self, commands):
@@ -103,7 +103,6 @@ class PatchMixin(object):
             self.patch('os.popen', self._popen)
 
     def _popen(self, command):
-        try:
-            return NativeStringIO(self._commands[command])
-        except KeyError:
-            raise IOError(2, 'Command not found: %r' % command)
+        # NB: actually os.popen('no-such-command') doesn't raise!
+        # you get a shell error printed to stderr and empty output
+        return NativeStringIO(self._commands.get(command, ''))

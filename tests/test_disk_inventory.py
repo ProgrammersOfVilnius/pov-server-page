@@ -103,6 +103,11 @@ class TestCanonicalDeviceName(TestCase):
         self.assertEqual(self.info._canonical_device_name('/dev/cciss/c0p0'),
                          'cciss!c0p0')
 
+    def test_missing_device(self):
+        self.assertEqual(
+            self.info._canonical_device_name('/dev/muskatas/bionic64'),
+            'muskatas/bionic64')
+
 
 class TestSwap(TestCase):
 

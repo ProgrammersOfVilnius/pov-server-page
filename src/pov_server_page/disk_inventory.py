@@ -27,8 +27,8 @@ except ImportError:
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.6.3'
-__date__ = '2019-10-30'
+__version__ = '1.6.4'
+__date__ = '2022-02-22'
 
 
 FilesystemInfo = collections.namedtuple(
@@ -121,9 +121,13 @@ class LinuxDiskInfo(object):
         if name.startswith('dm-'):
             name = self._dm_names.get(name, name)
         if '/' in name and not name.startswith('mapper/'):
-            target = os.readlink(device)
-            if target.startswith('../dm-'):
-                name = self._dm_names.get(target[len('../'):], name)
+            try:
+                target = os.readlink(device)
+            except OSError:
+                pass
+            else:
+                if target.startswith('../dm-'):
+                    name = self._dm_names.get(target[len('../'):], name)
         return name
 
     def warn(self, message):
@@ -193,9 +197,10 @@ class LinuxDiskInfo(object):
         res = []
         try:
             for name in os.listdir('/dev/mapper'):
-                if not os.path.islink('/dev/mapper/' + name):
+                try:
+                    number = os.readlink('/dev/mapper/' + name).split('/')[-1]
+                except OSError:
                     continue
-                number = os.readlink('/dev/mapper/' + name).split('/')[-1]
                 res.append(DMName('mapper/' + name, number))
         except OSError:
             pass

@@ -1,3 +1,10 @@
+pov-server-page (2.0.5) UNRELEASED; urgency=medium
+
+  * disk-inventory 1.6.4:
+    - fix crash when a libvirt VM uses a non-existend device (GH: #57).
+
+ -- Marius Gedminas <marius@gedmin.as>  Tue, 22 Feb 2022 13:42:05 +0200
+
 pov-server-page (2.0.4) xenial; urgency=medium
 
   * update-ports 0.10.5:
@@ -34,7 +41,7 @@ pov-server-page (2.0.0) xenial; urgency=medium
 
   * debian/control:
     - introduce new packages pov-server-page-py2 and pov-server-page-py3
-      to spearate dependencies so Python 2 can be removed from the system
+      to separate dependencies so Python 2 can be removed from the system
       without removing pov-server-page (GH: #46).
 
  -- Marius Gedminas <marius@gedmin.as>  Tue, 22 Sep 2020 13:38:37 +0300

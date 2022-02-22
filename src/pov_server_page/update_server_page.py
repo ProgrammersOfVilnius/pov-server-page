@@ -46,8 +46,8 @@ from . import update_ports_html, machine_summary, disk_inventory
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '2.0.4'
-__date__ = '2021-05-14'
+__version__ = '2.0.5'
+__date__ = '2022-02-22'
 
 
 debian_package = (
