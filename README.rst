@@ -1,7 +1,7 @@
 PoV server page
 ===============
 
-.. image:: https://github.com/ProgrammersOfVilnius/pov-server-page/workflows/build/badge.svg?branch=master
+.. image:: https://github.com/ProgrammersOfVilnius/pov-server-page/actions/workflows/build.yml/badge.svg?branch=master
     :target: https://github.com/ProgrammersOfVilnius/pov-server-page/actions
 
 This script sets up a web page for your server, listing the following
