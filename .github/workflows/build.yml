@@ -15,7 +15,7 @@ on:
 jobs:
   build:
     name: Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -60,7 +60,7 @@ jobs:
 
   lint:
     name: ${{ matrix.toxenv }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -74,10 +74,10 @@ jobs:
       - name: Git clone
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ env.default_python || '3.9' }}
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "${{ env.default_python || '3.9' }}"
+          python-version: "${{ env.toxenv == 'coverage2' && '2.7' || '3.9' }}"
 
       - name: Pip cache
         uses: actions/cache@v3
