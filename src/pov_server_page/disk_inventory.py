@@ -27,8 +27,8 @@ except ImportError:
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '1.6.4'
-__date__ = '2022-02-22'
+__version__ = '1.6.5'
+__date__ = '2025-03-19'
 
 
 FilesystemInfo = collections.namedtuple(
@@ -440,7 +440,12 @@ class LinuxDiskInfo(object):
     def list_partition_holders(self, partition_name):
         if partition_name == 'simfs':
             return []
-        sysdir = self.get_sys_dir_for_partition(partition_name)
+        try:
+            sysdir = self.get_sys_dir_for_partition(partition_name)
+        except KeyError:
+            # /dev/mapper/vgname-lvname for inactive LVs will raise a KeyError
+            # from get_dm_for().
+            return []
         return sorted(os.listdir(sysdir + '/holders'))
 
     def partition_raid_devices(self, partition_name):
@@ -512,6 +517,7 @@ class LinuxDiskInfo(object):
             if device.startswith('/dev/'):
                 partition_name = device[len('/dev/'):]
                 disk_name = partition_name.rstrip('0123456789')
+                # XXX: should strip p from /dev/nvme0n1p but not from /dev/sdp
                 disks.add(disk_name)
                 continue
             nested = self._lvm_lvs.get((lv.vgname, '[{}]'.format(device)))

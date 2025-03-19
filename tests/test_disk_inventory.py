@@ -426,6 +426,9 @@ class TestPartitions(TestCase):
     def test_list_partition_holders_simfs(self):
         self.assertEqual(self.info.list_partition_holders('simfs'), [])
 
+    def test_list_partition_holders_inactive_lv(self):
+        self.assertEqual(self.info.list_partition_holders('mapper/nosuch'), [])
+
     def test_partition_raid_devices(self):
         self.patch_files({
             '/sys/block/sda/sda5/holders/md0': Symlink('../../../../../../../../../../virtual/block/dm-0'),
