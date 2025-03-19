@@ -12,7 +12,7 @@ manpage_sources = $(wildcard docs/*.rst)
 manpages = $(manpage_sources:%.rst=%.8)
 
 # change this to the lowest supported Ubuntu LTS
-TARGET_DISTRO := xenial
+TARGET_DISTRO := focal
 
 # for testing in vagrant:
 #   mkdir -p ~/tmp/vagrantbox && cd ~/tmp/vagrantbox
@@ -200,12 +200,13 @@ pbuilder-test-build: source-package-skipping-checks  ##: build a binary .deb usi
 
 .PHONY: autopkgtest-prepare-images
 autopkgtest-prepare-images:     ##: prepare LXD containers for autopkgtest
-	autopkgtest-build-lxd images:ubuntu/bionic/amd64
 	autopkgtest-build-lxd images:ubuntu/focal/amd64
+	autopkgtest-build-lxd images:ubuntu/jammy/amd64
+	autopkgtest-build-lxd images:ubuntu/noble/amd64
 
 .PHONY: autopkgtest autopkgtest-with-full-build
 autopkgtest autopkgtest-with-full-build:    ##: run package tests with autopkgtest
-	autopkgtest . -- lxd autopkgtest/ubuntu/bionic/amd64 -- -e
+	autopkgtest . -- lxd autopkgtest/ubuntu/jammy/amd64 -- -e
 
 .PHONY: autopkgtest
 autopkgtest-built-packages:     ##: run autopkgtest using locally built binary .deb packages
@@ -216,11 +217,12 @@ autopkgtest-built-packages:     ##: run autopkgtest using locally built binary .
 .PHONY: autopkgtest-pbuilder-packages
 autopkgtest-pbuilder-packages:  ##: run autopkgtest using pbuilder packages, targeting all distros
 	@test -e ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes || $(MAKE) pbuilder-test-build
-	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/bionic/amd64 -- -e
 	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/focal/amd64 -- -e
+	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/jammy/amd64 -- -e
+	autopkgtest ~/pbuilder/$(TARGET_DISTRO)_result/$(source)_$(version)_amd64.changes -- lxd autopkgtest/ubuntu/noble/amd64 -- -e
 
 .PHONY: autopkgtest-upgrades
 autopkgtest-upgrades:   ##: use autopkgtest to test upgrades from current PPA
 	autopkgtest \
 	    --setup-commands='add-apt-repository -y ppa:pov && apt-get update && apt-get install -y pov-server-page' \
-	    . -- lxd autopkgtest/ubuntu/bionic/amd64 -- -e
+	    . -- lxd autopkgtest/ubuntu/focal/amd64 -- -e
