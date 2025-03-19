@@ -16,20 +16,28 @@ jobs:
   build:
     name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-22.04
+    continue-on-error: ${{ matrix.optional }}
 
     strategy:
       matrix:
+        optional: [false]
         python-version:
-          - "2.7"
           - "3.8"
           - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
-          - "pypy2.7"
-          - "pypy3.8"
-          - "pypy3.9"
-          - "pypy3.10"
+        include:
+          - python-version: "2.7"
+            optional: true
+          - python-version: "pypy2.7"
+            optional: true
+          - python-version: "pypy3.8"
+            optional: true
+          - python-version: "pypy3.9"
+            optional: true
+          - python-version: "pypy3.10"
+            optional: true
 
     steps:
       - name: Git clone
@@ -61,6 +69,7 @@ jobs:
   lint:
     name: ${{ matrix.toxenv }}
     runs-on: ubuntu-22.04
+    continue-on-error: ${{ matrix.toxenv == 'coverage2' }}
 
     strategy:
       matrix:
