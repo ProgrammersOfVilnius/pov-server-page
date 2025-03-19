@@ -131,8 +131,8 @@ def mako_error_handler(context, error):
                 linecache.cache[filename] = (None, None, lines, filename)
             if (filename, lineno) not in annotated:
                 annotated.add((filename, lineno))
-                extra = '    # {0} line {1} in {2}:\n    # {3}'.format(*cur_rich)
-                lines[lineno-1] += extra
+                extra = '    # {0} line {1} in {2}:\n    # {3}\n'.format(*cur_rich)
+                lines[lineno-1] = extra + lines[lineno-1]
         tb = tb.tb_next
     # Don't return False -- that will lose the actual Mako frame.  Instead
     # re-raise.

@@ -538,8 +538,9 @@ class TestMakoErrorHandler(unittest.TestCase):
             template.render_unicode(x=0, y=0)
         except ZeroDivisionError:
             tb = ''.join(traceback.format_tb(sys.exc_info()[-1])).splitlines()
-            self.assertEqual(tb[-1].strip(), '# ${x / y}')
-            self.assertIn(' line 4 in render_body', tb[-2])
+            last_part = '\n'.join(tb[-5:])
+            self.assertIn(' line 4 in render_body:', last_part)
+            self.assertIn('# ${x / y}', last_part)
         else:
             self.fail("did not let the error escape")
 
