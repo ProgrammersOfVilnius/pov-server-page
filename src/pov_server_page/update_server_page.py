@@ -46,8 +46,8 @@ from . import update_ports_html, machine_summary, disk_inventory
 
 
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
-__version__ = '2.0.5'
-__date__ = '2022-02-22'
+__version__ = '2.0.6'
+__date__ = '2025-03-20'
 
 
 debian_package = (
@@ -183,6 +183,8 @@ def pipeline(*args, **kwargs):
             stdin=children[-1].stdout if children else None,
             stdout=stdout if n == len(args) - 1 else subprocess.PIPE)
         children.append(p)
+    for child in children[:-1]:
+        child.stdout.close()
     for child in children:
         child.wait()
 

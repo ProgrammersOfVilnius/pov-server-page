@@ -2,6 +2,8 @@ pov-server-page (2.0.6) UNRELEASED; urgency=medium
 
   * disk-inventory 1.6.5:
     - fix crash when you have inactive LVM volumes.
+  * pov-server-page 2.0.6:
+    - fix hung pipeline when du2webtreemap crashe (GH: #60).
 
  -- Marius Gedminas <marius@gedmin.as>  Wed, 19 Mar 2025 12:13:43 +0200
 
