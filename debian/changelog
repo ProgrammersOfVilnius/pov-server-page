@@ -1,13 +1,16 @@
-pov-server-page (2.0.6) UNRELEASED; urgency=medium
+pov-server-page (3.0.0) focal; urgency=medium
 
+  * debian/control:
+    - drop the pov-server-page-py2 binary package, pov-server-page-py3
+      is now an unconditional dependency.
   * disk-inventory 1.6.5:
     - fix crash when you have inactive LVM volumes.
-  * pov-server-page 2.0.6:
+  * pov-server-page 3.0.0:
     - fix hung pipeline when du2webtreemap crashes (GH: #60).
   * du2webtreemap 2.1.1:
     - handle non-UTF-8 filenames without crashing (GH: #60).
 
- -- Marius Gedminas <marius@gedmin.as>  Wed, 19 Mar 2025 12:13:43 +0200
+ -- Marius Gedminas <marius@gedmin.as>  Thu, 20 Mar 2025 16:03:41 +0200
 
 pov-server-page (2.0.5) xenial; urgency=medium
 

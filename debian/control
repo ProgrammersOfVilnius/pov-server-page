@@ -2,8 +2,7 @@ Source: pov-server-page
 Section: admin
 Priority: optional
 Maintainer: Marius Gedminas <marius@gedmin.as>
-Build-Depends: debhelper (>=9), dh-python, python3-docutils,
- python-all, python-setuptools, python-pytest, python-mako, python-mock,
+Build-Depends: debhelper (>=10), dh-python, python3-docutils,
  python3-all, python3-setuptools, python3-pytest, python3-mako, python3-mock
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.8
@@ -12,7 +11,7 @@ Homepage: https://github.com/ProgrammersOfVilnius/pov-server-page
 
 Package: pov-server-page
 Architecture: all
-Depends: apache2, pov-server-page-py3 | pov-server-page-py2,
+Depends: apache2, pov-server-page-py3,
  collectd-core, net-tools,
  ${misc:Depends}
 Recommends: apache2-utils
@@ -31,19 +30,6 @@ Description: password-protected Apache virtual host with server information
    - disk usage treemaps (if configured)
  .
  Some manual setup is required: see /usr/share/doc/pov-server-page/README.rst.
-
-Package: pov-server-page-py2
-Architecture: all
-Depends: pov-server-page, libapache2-mod-wsgi,
- ${perl:Depends}, librrds-perl, libhtml-parser-perl, libcgi-pm-perl,
- ${python:Depends}, ${misc:Depends}
-Conflicts: pov-server-page-py3
-Breaks: pov-server-page (<< 2.0.0)
-Replaces: pov-server-page (<< 2.0.0)
-Description: password-protected Apache virtual host with server information
- * This is an unofficial package.
- .
- This package contains all the scripts for Python 2.
 
 Package: pov-server-page-py3
 Architecture: all

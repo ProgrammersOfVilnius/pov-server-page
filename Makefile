@@ -41,7 +41,7 @@ all: $(manpages)        ##: build (man pages)
 
 .PHONY: test
 test:                   ##: run tests
-	tox -e py27 --devel
+	tox -e py38,py310,py312 --devel
 
 .PHONY: check
 check: test flake8      ##: run tests and linters
@@ -52,7 +52,7 @@ flake8:                 ##: run flake8 linter
 
 .PHONY: coverage
 coverage:               ##: measure test coverage
-	tox -e coverage2,coverage3
+	tox -e coverage3
 
 .PHONY: diff-cover
 diff-cover: coverage    ##: find untested lines of code in your changes
