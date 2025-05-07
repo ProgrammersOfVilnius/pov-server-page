@@ -23,6 +23,7 @@ from pov_server_page.update_ports_html import (
     rpcinfo_dump,
     systemctl_list_sockets,
     username,
+    wireguard_ports,
 )
 
 
@@ -154,10 +155,17 @@ SYSTEMCTL_LIST_SOCKETS_SAMPLE = (
     b"Pass --all to see loaded but inactive sockets, too.\n"
 )
 
+WIREGUARD_COMMAND = ('wg', 'show', 'all', 'listen-port')
+WIREGUARD_SAMPLE = (
+    b"wg0\t56390\n"
+    b"wg1\t38837\n"
+)
+
 DEFAULT_COMMANDS = {
     NETSTAT_COMMAND: NETSTAT_SAMPLE,
     RPCINFO_COMMAND: RPCINFO_SAMPLE,
     SYSTEMCTL_LIST_SOCKETS_COMMAND: SYSTEMCTL_LIST_SOCKETS_SAMPLE,
+    WIREGUARD_COMMAND: WIREGUARD_SAMPLE,
 }
 
 
@@ -204,8 +212,8 @@ def fake_open(filename, mode='r'):
 
 class MockMixin:
 
-    def patch(self, what, with_what):
-        patcher = mock.patch(what, with_what)
+    def patch(self, what, *with_what, **kw):
+        patcher = mock.patch(what, *with_what, **kw)
         retval = patcher.start()
         self.addCleanup(patcher.stop)
         return retval
@@ -264,6 +272,31 @@ class TestSystemctl(MockMixin, unittest.TestCase):
             ),
         }))
         self.assertEqual(list(systemctl_list_sockets()), [])
+
+
+class TestWireguard(MockMixin, unittest.TestCase):
+
+    def test_wireguard_ports(self):
+        self.patch('os.path.exists', return_value=True)
+        self.patch('subprocess.Popen', FakePopen())
+        self.assertEqual(list(wireguard_ports()), [
+            NetStatTuple('udp', None, 56390, None, 'wireguard (wg0)'),
+            NetStatTuple('udp', None, 38837, None, 'wireguard (wg1)'),
+        ])
+
+    def test_wireguard_ports_no_wg(self):
+        self.patch('os.path.exists', return_value=False)
+        self.patch('subprocess.Popen', FakePopen())
+        self.assertEqual(list(wireguard_ports()), [])
+
+    def test_wireguard_ports_failure_handling(self):
+        self.patch('os.path.exists', return_value=True)
+        self.patch('subprocess.Popen', FakePopen({
+            WIREGUARD_COMMAND: (
+                b"something unrelated\n"
+            )
+        }))
+        self.assertEqual(list(wireguard_ports()), [])
 
 
 class TestProcHelpers(unittest.TestCase):

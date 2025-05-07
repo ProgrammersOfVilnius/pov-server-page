@@ -22,7 +22,7 @@ except ImportError:
     from cgi import escape
 
 
-__version__ = '0.10.5'
+__version__ = '0.11.0'
 __author__ = 'Marius Gedminas <marius@gedmin.as>'
 
 
@@ -195,6 +195,26 @@ def systemctl_list_sockets():
                     % '\n'.join([header] + failures))
 
 
+def wireguard_ports():
+    if not os.path.exists('/usr/bin/wg'):
+        return
+    with pipe('wg', 'show', 'all', 'listen-port') as f:
+        failures = []
+        for line in f:
+            line = line.rstrip()
+            # ifname TAB portnumber
+            parts = line.split(None, 1)
+            if len(parts) != 2 or not parts[1].isdigit():
+                failures.append(line)
+                continue
+            ifname, port = parts
+            yield NetStatTuple(
+                'udp', None, int(port), None, 'wireguard (%s)' % ifname)
+    if failures:
+        log.warning('Failed to parse wg show all listen-port output:\n%s'
+                    % '\n'.join(failures))
+
+
 def get_owner(pid):
     try:
         return os.stat('/proc/%d' % pid).st_uid
@@ -298,6 +318,7 @@ def get_port_mapping():
     if any(data.pid == 1 for plist in mapping.values() for data in plist):
         systemd_sockets = list(systemctl_list_sockets())
         merge_portmap_data(mapping, systemd_sockets)
+    merge_portmap_data(mapping, wireguard_ports())
     return mapping
 
 
