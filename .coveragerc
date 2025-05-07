@@ -1,10 +1,9 @@
 [run]
 source = pov_server_page
-plugins =
-    coverage_python_version
 
 [report]
 exclude_lines =
+    pragma: PY2
     nocover:
     except ImportError:
     except NameError:

@@ -16,10 +16,20 @@ except ImportError:
     from io import StringIO
 
 import mock
+import pytest
 
 from pov_server_page.update_server_page import (
-    Builder, Error, newer, mkdir_with_parents, symlink, replace_file,
-    pipeline, HTML_MARKER, CHANGELOG2HTML_SCRIPT, main, get_fqdn,
+    CHANGELOG2HTML_SCRIPT,
+    HTML_MARKER,
+    Builder,
+    Error,
+    get_fqdn,
+    main,
+    mkdir_with_parents,
+    newer,
+    pipeline,
+    replace_file,
+    symlink,
 )
 
 
@@ -773,6 +783,7 @@ class TestMain(FilesystemTests):
 
     def setUp(self):
         super(TestMain, self).setUp()
+        self.real_stdout = sys.stdout
         self.stdout = self.patch('sys.stdout', StringIO())
         self.stderr = self.patch('sys.stderr', StringIO())
         self.config_file = os.path.join(self.tmpdir, 'config')
@@ -811,9 +822,14 @@ class TestMain(FilesystemTests):
         e = self.run_main('-c', '/dev/null', '-v', 'enabled=true')
         self.assertEqual(str(e), "Refusing to overwrite %s/var/www/%s/index.html" % (self.tmpdir, get_fqdn()))
 
+    @pytest.mark.xfail(
+        sys.version_info >= (3, 13),
+        reason="traceback formatter in 3.13 shows only the first line of code",
+    )
     def test_main_exception_handling(self):
         self.patch('pov_server_page.utils.to_unicode',
                    side_effect=Exception('induced failure'))
         e = self.run_main('-c', '/dev/null', '-v', 'enabled=true')
+        print(self.stderr.getvalue(), file=self.real_stdout)  # so pytest will show it on failure
         self.assertIn('__M_writer', self.stderr.getvalue())
         self.assertEqual(e.args[0], 1)

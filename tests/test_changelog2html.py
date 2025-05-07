@@ -18,6 +18,7 @@ except ImportError:
     from io import StringIO
 
 import mock
+import pytest
 
 import pov_server_page.changelog2html as c2h
 
@@ -528,6 +529,10 @@ class TestGetPrefix(TestCase):
 
 class TestMakoErrorHandler(unittest.TestCase):
 
+    @pytest.mark.xfail(
+        sys.version_info >= (3, 13),
+        reason="traceback formatter in 3.13 shows only the first line of code",
+    )
     def test(self):
         template = c2h.Template(textwrap.dedent('''
            <h1>Hello</h1>
